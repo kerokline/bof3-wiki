@@ -12,6 +12,18 @@ default-theme = "rust"
 preferred-dark-theme = "navy"
 additional-js = ["mermaid.min.js", "mermaid-init.js", "theme/zoom.js"]
 additional-css = ["theme/zoom.css"]
+site-url = "/bof3-wiki/"
+git-repository-url = "https://github.com/raulcorreia7/bof3-wiki"
+edit-url-template = "https://github.com/raulcorreia7/bof3-wiki/edit/main/{path}"
+admonitions = true
+sidebar-header-nav = true
+
+[output.html.print]
+enable = true
+
+[output.html.fold]
+enable = true
+level = 1
 
 [output.html.search]
 enable = true
