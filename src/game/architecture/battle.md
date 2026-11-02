@@ -6,15 +6,15 @@ Battles run inside the field loop's request mechanism. The field sets request co
 
 ## Terms
 
-| Term            | Meaning                                                                                                                      |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Encounter       | A random battle: `g_BattleEncounter == 0`. The enemies come from the area's formation table ([area format](../../formats/area.md)). |
+| Term            | Meaning                                                                                                                                      |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Encounter       | A random battle: `g_BattleEncounter == 0`. The enemies come from the area's formation table ([area format](../../formats/area.md)).          |
 | Scripted battle | `g_BattleEncounter != 0`, a record index of `s_BattleModeRecords`. The enemies and a boss module come from an archive that the record names. |
-| Mode            | `g_BattleMode` (`0x801462E0`): one of 6 rows of `g_BattlePhases`.                                                            |
-| Step, sub-step  | `g_BattleStep` (`0x801462E1`) and `g_BattleSubStep` (`0x801462E2`): the second and third index inside a mode.                |
-| UI step         | `g_BattleUiStep` (`0x801462E3`): the index the `BATL_END` and `BATL_OVR` overlays dispatch on.                               |
-| Entry substate  | `g_GameEntrySubstate` while `g_GameEntryState == 5`: index into `g_GameModeHandlers[8]` (`0x801C7B54`). One entry runs `Battle_Update`. |
-| Boss module     | The code image of a `BOSSnnn.EMI` archive, loaded at `0x800C1800`. It publishes three hooks.                                |
+| Mode            | `g_BattleMode` (`0x801462E0`): one of 6 rows of `g_BattlePhases`.                                                                            |
+| Step, sub-step  | `g_BattleStep` (`0x801462E1`) and `g_BattleSubStep` (`0x801462E2`): the second and third index inside a mode.                                |
+| UI step         | `g_BattleUiStep` (`0x801462E3`): the index the `BATL_END` and `BATL_OVR` overlays dispatch on.                                               |
+| Entry substate  | `g_GameEntrySubstate` while `g_GameEntryState == 5`: index into `g_GameModeHandlers[8]` (`0x801C7B54`). One entry runs `Battle_Update`.      |
+| Boss module     | The code image of a `BOSSnnn.EMI` archive, loaded at `0x800C1800`. It publishes three hooks.                                                 |
 
 ## Starting a battle
 
@@ -24,15 +24,15 @@ The player's field step handler `func_801B146C` counts steps and asks `Area_CanS
 
 `Area_CanStartEncounter` returns 0 (no battle) when any of these holds:
 
-| Test                                                                                    | Meaning                                            |
-| --------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| `g_GameFlags & 0x20`                                                                    | A script flag switched encounters off.             |
-| The zone's `rate` byte gives threshold 0                                                | Town or safe zone.                                 |
-| Step counter `D_80143F22` (scaled by 7/10 when `D_80145FAC < 4`) is below `D_80145FB8`  | Not enough steps yet.                              |
-| `D_80145FBC & 1`                                                                        | Another state suppresses it.                       |
-| Not on the world map and `D_80143EFC >= 0xF1`                                           | A gate on a game counter. `[unknown]` meaning.     |
-| A party battler row has `flags_00` bit `0x40` (hidden)                                  | A party member is off screen.                      |
-| `Area_BuildEncounter(4, 0)` fails, or a party member has no free cell (`func_801C472C`) | No enemy fits around the party.                    |
+| Test                                                                                    | Meaning                                        |
+| --------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `g_GameFlags & 0x20`                                                                    | A script flag switched encounters off.         |
+| The zone's `rate` byte gives threshold 0                                                | Town or safe zone.                             |
+| Step counter `D_80143F22` (scaled by 7/10 when `D_80145FAC < 4`) is below `D_80145FB8`  | Not enough steps yet.                          |
+| `D_80145FBC & 1`                                                                        | Another state suppresses it.                   |
+| Not on the world map and `D_80143EFC >= 0xF1`                                           | A gate on a game counter. `[unknown]` meaning. |
+| A party battler row has `flags_00` bit `0x40` (hidden)                                  | A party member is off screen.                  |
+| `Area_BuildEncounter(4, 0)` fails, or a party member has no free cell (`func_801C472C`) | No enemy fits around the party.                |
 
 The step threshold comes from the area's zone list ([area](area.md#zone-list)). `func_801B3C3C` finds the rectangle that holds the party's cell. `Area_RollEncounterThreshold (emi/etc/game/00@0x801B3CCC)` reads the rectangle's byte 4, `rate`:
 
@@ -76,16 +76,16 @@ The one caller found is `func_801FA7D8` in `emi/scenario/scena00/00`. Calls in s
 
 `Game_RunFieldState` case 3 zeroes `g_BattleMode`, `g_BattleStep` and `g_BattleSubStep`, increments `g_BattleCount`, and sets `g_GameEntryState = 5` and `g_GameEntrySubstate = 0`. `Game_RunBattleState (emi/etc/game/00@0x80197A24)` then calls `g_GameModeHandlers[g_GameEntrySubstate]` once per frame. The eight substates are the field-side wrapper around the battle:
 
-| Substate | Function (`emi/etc/game/00`)   | Work                                                                                                     |
-| -------: | ------------------------------ | -------------------------------------------------------------------------------------------------------- |
-|        0 | `func_80197A60`                | `func_801BEDD0`, field redraw, advance.                                                                  |
-|        1 | `func_80197AA4`                | Wait for the field to be ready, change the camera pitch, stream `BPLU` (scroll direction bit 1) or `BPLD` character bank, advance. |
-|        2 | `func_80197C1C`                | Wait for the loader and the camera.                                                                      |
-|        3 | `func_80197C94`                | Pause BGM, save the sequence table, stream the battle archive, reset the battle bytes.                   |
-|        4 | `func_80197E54`                | Wait for the archive and set `g_BattlePartyCount = Party_CountOrder(1)`.                                 |
-|        5 | `Battle_Update` (`emi/battle/battle/03@0x801D1014`) | The battle itself, every frame.                                                     |
-|        6 | `func_80197EFC`                | Field-side redraw, advance.                                                                              |
-|        7 | `func_80197F48`                | Restore BGM and scroll, clear `g_BattleOptions` and `g_BattleEncounter`, return to state 2.              |
+| Substate | Function (`emi/etc/game/00`)                        | Work                                                                                                                               |
+| -------: | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+|        0 | `func_80197A60`                                     | `func_801BEDD0`, field redraw, advance.                                                                                            |
+|        1 | `func_80197AA4`                                     | Wait for the field to be ready, change the camera pitch, stream `BPLU` (scroll direction bit 1) or `BPLD` character bank, advance. |
+|        2 | `func_80197C1C`                                     | Wait for the loader and the camera.                                                                                                |
+|        3 | `func_80197C94`                                     | Pause BGM, save the sequence table, stream the battle archive, reset the battle bytes.                                             |
+|        4 | `func_80197E54`                                     | Wait for the archive and set `g_BattlePartyCount = Party_CountOrder(1)`.                                                           |
+|        5 | `Battle_Update` (`emi/battle/battle/03@0x801D1014`) | The battle itself, every frame.                                                                                                    |
+|        6 | `func_80197EFC`                                     | Field-side redraw, advance.                                                                                                        |
+|        7 | `func_80197F48`                                     | Restore BGM and scroll, clear `g_BattleOptions` and `g_BattleEncounter`, return to state 2.                                        |
 
 `func_80197C94` picks the archive to stream. For a scripted battle it is `D_801CD86C[s_BattleModeRecords[g_BattleEncounter * 4 + 3]]`. For a random battle it is slot 6 (`BATTLE`) when `g_SceneState.scenario_id < 8` and slot 7 (`BATTLE2`) otherwise. `D_801CD86C` has 42 `u16` entries: slot 6, then the `BOSS` slots `0x1B3` to `0x1DA` in a game-specific order, then `0xFFFF`.
 
@@ -126,13 +126,13 @@ stateDiagram-v2
     M5 --> [*]: func_801D7350 to entry substate 6
 ```
 
-| Mode | Handler (`emi/battle/battle/03`) | Steps | Step table                                                                                    |
-| ---: | -------------------------------- | ----: | --------------------------------------------------------------------------------------------- |
-|    0 | `Battle_DispatchStep`            |     2 | `func_801D1228` (reset), `Battle_DispatchEntrance` (4 sub-steps)                              |
-|    1 | `func_801D1C54`                  |     5 | `D_801EABB8`. Steps 3 and 4 use sub-tables `D_801EABD8[3]` and `D_801EABE4[8]`.               |
-|    2 | `func_801D2740`                  |     3 | `D_801EAC04`                                                                                  |
+| Mode | Handler (`emi/battle/battle/03`) | Steps | Step table                                                                                     |
+| ---: | -------------------------------- | ----: | ---------------------------------------------------------------------------------------------- |
+|    0 | `Battle_DispatchStep`            |     2 | `func_801D1228` (reset), `Battle_DispatchEntrance` (4 sub-steps)                               |
+|    1 | `func_801D1C54`                  |     5 | `D_801EABB8`. Steps 3 and 4 use sub-tables `D_801EABD8[3]` and `D_801EABE4[8]`.                |
+|    2 | `func_801D2740`                  |     3 | `D_801EAC04`                                                                                   |
 |    3 | `func_801D2AA8`                  |     5 | `D_801EAC10`. Sub-tables `D_801EAC24[2]`, `D_801EAC2C[6]`, `D_801EACA4`, `D_801EACB0[3]`.      |
-|    4 | `func_801D4AC0`                  |     3 | `D_801EACBC`. Sub-table `D_801EACC8[3]`.                                                      |
+|    4 | `func_801D4AC0`                  |     3 | `D_801EACBC`. Sub-table `D_801EACC8[3]`.                                                       |
 |    5 | `func_801D6774`                  |     5 | `D_801EACD4`. Sub-tables `D_801EACE8`, `D_801EACF4`, `D_801EAD00`, `D_801EAD0C`, `D_801EAD20`. |
 
 The mode names in the diagram come from the shape of the steps and from `func_801D656C`, which either returns to mode 1 or leaves for mode 5. They are `[inferred]`. Mode 3 also clears `g_BattleState` bit `0x0010` (command armed) when a button in `D_80145AC4` is held. Some step functions, for example `Battle_WaitUiMode` and `func_801D7234`, advance their sub-step through a pointer that is written during the wait.
@@ -170,12 +170,12 @@ The boss hook is called with seven event codes. The call sites are known; what e
 
 Mode 5 has five steps, each with a sub-table in `D_801EACD4`.
 
-| Step | Sub-table    | Role                                                                                         |
-| ---: | ------------ | -------------------------------------------------------------------------------------------- |
-|    0 | `D_801EACE8` | The third sub-step is `func_801D6A14`, the chooser.                                          |
-|    1 | `D_801EACF4` | Ends in `func_801EEC58`, the `BATL_END` entry (victory).                                     |
-|    2 | `D_801EAD00` | Ends in `func_801EEC04`, the `BATL_OVR` entry (defeat).                                      |
-|    3 | `D_801EAD0C` | Reloads the area slot (`0x2AB + area`), then sets step 4.                                    |
+| Step | Sub-table    | Role                                                                                                     |
+| ---: | ------------ | -------------------------------------------------------------------------------------------------------- |
+|    0 | `D_801EACE8` | The third sub-step is `func_801D6A14`, the chooser.                                                      |
+|    1 | `D_801EACF4` | Ends in `func_801EEC58`, the `BATL_END` entry (victory).                                                 |
+|    2 | `D_801EAD00` | Ends in `func_801EEC04`, the `BATL_OVR` entry (defeat).                                                  |
+|    3 | `D_801EAD0C` | Reloads the area slot (`0x2AB + area`), then sets step 4.                                                |
 |    4 | `D_801EAD20` | Exit: free battlers, stream slot `0x256` (`AFLDKWA`), restore BGM, `func_801D7350`, wait for the window. |
 
 The chooser, `Battle_StreamEndOverlay (emi/battle/battle/03@0x801D6A14)`, waits until no party row has bit `0x2000` and `g_BattleRowCursor == g_BattlePartyCount`. If the result is not defeat, it ANDs every party member's status with `0xBF5F`, which keeps KO (`0x4000`), poison (`0x80`) and confusion (`0x20`). A member with status bit `0x800` first gets HP, AP and willpower set to their maximums. For a random battle it then sets step 2 on defeat (`g_BattleResult` bit 0) or step 1 on victory (bit 1). It calls `g_BattleChooseEndingHook` and `SND_SetBankLayout(0)`, and streams slot 1 (`BATL_END`) for step 1 or slot 2 (`BATL_OVR`) for step 2. In a scripted battle, `g_BattleChooseEndingHook` sets the step. That the boss hook does this is `[inferred]`.
@@ -196,27 +196,27 @@ A scripted boss battle runs extra code from a boss module, the code entry of a `
 
 Installer addresses in the boss window, by module. A module that has more than one installer publishes variants of the three hooks.
 
-| Installer       | Modules and addresses                                                                                                                                              |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `...Hooks`      | boss015, boss029 `0x800C18F0`; boss037, boss042 `0x800C18FC`; boss050 `0x800C1908`; boss054 `0x800C1930`; boss023 `0x800C1984`; boss017 `0x800C19C4`; boss031, boss032 `0x800C19C8`; boss030 `0x800C19DC`; boss014, boss024 `0x800C19E8`; boss040, boss049 `0x800C19F4`; boss022 `0x800C1A08`; boss007 `0x800C1A0C`; boss051 `0x800C1A14`; boss021 `0x800C1AD0`; boss052 `0x800C1B0C`; boss028 `0x800C1B40`; boss035 `0x800C1B4C`; boss012 `0x800C1B68`; boss038 `0x800C1B7C`; boss004 `0x800C1C0C`; boss002 `0x800C1D50`; boss033 `0x800C1D70`; boss036 `0x800C1D78`; boss001 `0x800C1E50`; boss008 `0x800C1F9C`; boss013 `0x800C200C`; boss018 `0x800C2114`; boss034 `0x800C2340`; boss055 `0x800C24A0`; boss025 `0x800C2B60` |
-| `...Hooks2`     | boss040, boss049 `0x800C1A88`; boss014 `0x800C1A94`; boss024 `0x800C1AB0`; boss035 `0x800C1C70`; boss036 `0x800C1E0C`; boss002 `0x800C1E3C`; boss004 `0x800C1FB0`; boss008 `0x800C2088`; boss018 `0x800C23F8`; boss025 `0x800C2710` |
-| `...Hooks3`     | boss002 `0x800C1F08`; boss008 `0x800C2184`; boss004 `0x800C234C`; boss018 `0x800C26DC`                                                                           |
+| Installer   | Modules and addresses                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `...Hooks`  | boss015, boss029 `0x800C18F0`; boss037, boss042 `0x800C18FC`; boss050 `0x800C1908`; boss054 `0x800C1930`; boss023 `0x800C1984`; boss017 `0x800C19C4`; boss031, boss032 `0x800C19C8`; boss030 `0x800C19DC`; boss014, boss024 `0x800C19E8`; boss040, boss049 `0x800C19F4`; boss022 `0x800C1A08`; boss007 `0x800C1A0C`; boss051 `0x800C1A14`; boss021 `0x800C1AD0`; boss052 `0x800C1B0C`; boss028 `0x800C1B40`; boss035 `0x800C1B4C`; boss012 `0x800C1B68`; boss038 `0x800C1B7C`; boss004 `0x800C1C0C`; boss002 `0x800C1D50`; boss033 `0x800C1D70`; boss036 `0x800C1D78`; boss001 `0x800C1E50`; boss008 `0x800C1F9C`; boss013 `0x800C200C`; boss018 `0x800C2114`; boss034 `0x800C2340`; boss055 `0x800C24A0`; boss025 `0x800C2B60` |
+| `...Hooks2` | boss040, boss049 `0x800C1A88`; boss014 `0x800C1A94`; boss024 `0x800C1AB0`; boss035 `0x800C1C70`; boss036 `0x800C1E0C`; boss002 `0x800C1E3C`; boss004 `0x800C1FB0`; boss008 `0x800C2088`; boss018 `0x800C23F8`; boss025 `0x800C2710`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `...Hooks3` | boss002 `0x800C1F08`; boss008 `0x800C2184`; boss004 `0x800C234C`; boss018 `0x800C26DC`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
 `BATL_END` and `BATL_OVR` follow the same code-entry head convention: a word that equals the table of contents' cached first word, then the entries named above.
 
 ## Archives in a battle
 
-| Archive (slot)                         | Loaded by                                         | Window                                      |
-| -------------------------------------- | ------------------------------------------------- | ------------------------------------------- |
-| `BPLU` `0x1EE` or `BPLD` `0x1DB` family | entry substate 1 (`EMI_StreamFamilyArchive`)      | character bank                              |
-| `BATTLE` 6, `BATTLE2` 7, `BOSS` `0x1B3+` | entry substate 3 (`func_80197C94`)               | battle overlay; boss module at `0x800C1800` |
-| `ENEMY` `0x9 + area`                   | `func_801D1228` (random battle)                   | enemy bank                                  |
-| `BATL_SE` 5                            | `func_801D277C`, `func_801D25A0`, `func_8009B488` | sound bank                                  |
-| `BATL_RET` 4, `BATL_RE2` 3             | `func_801D3E80`; several sites in `battle/battle/15` | effect banks                             |
-| `BATL_DRA` 0                           | `func_800A4700` (`battle/battle/15`)              | effect bank                                 |
-| `COMN_SE` 8                            | `func_801D656C`                                   | sound bank                                  |
-| `BATL_END` 1 or `BATL_OVR` 2           | `Battle_StreamEndOverlay`                         | `0x801EEC00`                                |
-| `AREA` `0x2AB + area`, `AFLDKWA` `0x256` | mode 5 steps 3 and 4                            | area image, field sound                     |
+| Archive (slot)                           | Loaded by                                            | Window                                      |
+| ---------------------------------------- | ---------------------------------------------------- | ------------------------------------------- |
+| `BPLU` `0x1EE` or `BPLD` `0x1DB` family  | entry substate 1 (`EMI_StreamFamilyArchive`)         | character bank                              |
+| `BATTLE` 6, `BATTLE2` 7, `BOSS` `0x1B3+` | entry substate 3 (`func_80197C94`)                   | battle overlay; boss module at `0x800C1800` |
+| `ENEMY` `0x9 + area`                     | `func_801D1228` (random battle)                      | enemy bank                                  |
+| `BATL_SE` 5                              | `func_801D277C`, `func_801D25A0`, `func_8009B488`    | sound bank                                  |
+| `BATL_RET` 4, `BATL_RE2` 3               | `func_801D3E80`; several sites in `battle/battle/15` | effect banks                                |
+| `BATL_DRA` 0                             | `func_800A4700` (`battle/battle/15`)                 | effect bank                                 |
+| `COMN_SE` 8                              | `func_801D656C`                                      | sound bank                                  |
+| `BATL_END` 1 or `BATL_OVR` 2             | `Battle_StreamEndOverlay`                            | `0x801EEC00`                                |
+| `AREA` `0x2AB + area`, `AFLDKWA` `0x256` | mode 5 steps 3 and 4                                 | area image, field sound                     |
 
 The loader streams one archive at a time, and callers wait on `EMI_LoaderIsReady` ([loading](loading.md)). The overlay windows are in [memory](memory.md).
 
@@ -224,29 +224,29 @@ The loader streams one archive at a time, and callers wait on `EMI_LoaderIsReady
 
 The enemy record fields and the party battler layout are in [battle records](../battle.md). The encounter block layout is in the [area format](../../formats/area.md).
 
-| Limit                       | Value                                                            | Source                                                                |
-| --------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------- |
-| Party battlers              | 3 (`BATTLE_PARTY_SLOT_COUNT`), row stride `0x140`                | `Battle_RunParty`, `func_801D1228`                                    |
-| Enemy battlers              | 8, row stride `0x118` at `0x801EB630`                            | `Battle_RunEnemies`                                                   |
-| Formations per area         | 8 records of 9 bytes at `0x800E4000`                             | `func_801C6A7C`                                                       |
-| Formation weights           | Roll 1 to 16 against the running sum of the eight weights        | `func_801C6A7C`; a roll above the total gives formation 0             |
-| Enemy slots per formation   | 8 ids, `0xFF` empty                                              | `func_801C6AEC`                                                       |
-| Enemy slot spawn chance     | `16, 16, 16, 10, 8, 6, 4, 2` out of 16                           | `s_EntitySpawnChances`                                                |
-| Enemy records per area      | 8 of `0x88` bytes at `0x800E4048`                                | `func_801C6BB4`, `Area_BuildEncounter`                                |
-| Enemy position slots        | 36 (`1 + 2 + ... + 8`), 49 candidate cells each                 | `D_801CD620[36]`, `s_EntitySpawnOffsets`                              |
-| Step threshold              | Base `0x00` to `0x78`, random part capped by the pair's second byte | `s_EncounterStepThresholds[16]`                                    |
-| Zone `rate`                 | 0 to 7 (index `rate * 2` into a 16-byte table)                   | `Area_RollEncounterThreshold`                                         |
-| Encounter zone lists        | 200 lists over 666 records of 8 bytes                            | `D_80181164[200]`, `g_AreaEncounterZones[666]`                        |
-| Scripted battle records     | 56 of 4 bytes                                                    | `s_BattleModeRecords` (224 bytes)                                     |
-| Battle archive table        | 42 `u16` entries, last is `0xFFFF`                               | `D_801CD86C[42]`                                                      |
-| Boss enemy kinds            | 63 handler entries                                               | `D_801EB298[63]`                                                      |
-| Boss modules with the hooks | 35                                                               | `Boss_InstallBattleHooks`                                             |
-| Battle modes                | 6                                                                | `g_BattlePhases[6]`                                                   |
-| Entrance sub-steps          | 4                                                                | `g_BattleEntrances[4]`                                                |
-| End-of-battle item queue    | 16 entries (member sizes 32 and 16 bytes) `[inferred]`           | `PartyGrantQueue` in `Battle_GrantQueuedItems`                        |
-| Sequence table copy         | `0x560` bytes at `0x80148A50`                                    | `func_80197C94`, `func_80197F48`                                      |
-| Target pick tables          | Partial party `{9,7}, {12,4}, {8,8}`; full party six rows of 3   | `s_BattlePartialPartyTargetWeights`, `s_BattleFullPartyTargetWeights` |
-| Random ability pools        | 32 slots each (`Recall`, `MagicShuffle`)                         | `g_BattleRecallAbilities`, `g_BattleMagicShuffleAbilities`            |
+| Limit                       | Value                                                               | Source                                                                |
+| --------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Party battlers              | 3, row stride `0x140`                                               | `Battle_RunParty`, `func_801D1228`                                    |
+| Enemy battlers              | 8, row stride `0x118` at `0x801EB630`                               | `Battle_RunEnemies`                                                   |
+| Formations per area         | 8 records of 9 bytes at `0x800E4000`                                | `func_801C6A7C`                                                       |
+| Formation weights           | Roll 1 to 16 against the running sum of the eight weights           | `func_801C6A7C`; a roll above the total gives formation 0             |
+| Enemy slots per formation   | 8 ids, `0xFF` empty                                                 | `func_801C6AEC`                                                       |
+| Enemy slot spawn chance     | `16, 16, 16, 10, 8, 6, 4, 2` out of 16                              | `s_EntitySpawnChances`                                                |
+| Enemy records per area      | 8 of `0x88` bytes at `0x800E4048`                                   | `func_801C6BB4`, `Area_BuildEncounter`                                |
+| Enemy position slots        | 36 (`1 + 2 + ... + 8`), 49 candidate cells each                     | `D_801CD620[36]`, `s_EntitySpawnOffsets`                              |
+| Step threshold              | Base `0x00` to `0x78`, random part capped by the pair's second byte | `s_EncounterStepThresholds[16]`                                       |
+| Zone `rate`                 | 0 to 7 (index `rate * 2` into a 16-byte table)                      | `Area_RollEncounterThreshold`                                         |
+| Encounter zone lists        | 200 lists over 666 records of 8 bytes                               | `D_80181164[200]`, `g_AreaEncounterZones[666]`                        |
+| Scripted battle records     | 56 of 4 bytes                                                       | `s_BattleModeRecords` (224 bytes)                                     |
+| Battle archive table        | 42 `u16` entries, last is `0xFFFF`                                  | `D_801CD86C[42]`                                                      |
+| Boss enemy kinds            | 63 handler entries                                                  | `D_801EB298[63]`                                                      |
+| Boss modules with the hooks | 35                                                                  | `Boss_InstallBattleHooks`                                             |
+| Battle modes                | 6                                                                   | `g_BattlePhases[6]`                                                   |
+| Entrance sub-steps          | 4                                                                   | `g_BattleEntrances[4]`                                                |
+| End-of-battle item queue    | 16 entries (member sizes 32 and 16 bytes) `[inferred]`              | `PartyGrantQueue` in `Battle_GrantQueuedItems`                        |
+| Sequence table copy         | `0x560` bytes at `0x80148A50`                                       | `func_80197C94`, `func_80197F48`                                      |
+| Target pick tables          | Partial party `{9,7}, {12,4}, {8,8}`; full party six rows of 3      | `s_BattlePartialPartyTargetWeights`, `s_BattleFullPartyTargetWeights` |
+| Random ability pools        | 32 slots each (`Recall`, `MagicShuffle`)                            | `g_BattleRecallAbilities`, `g_BattleMagicShuffleAbilities`            |
 
 What an edit must keep, from the loops above:
 

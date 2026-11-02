@@ -41,11 +41,11 @@ After the first entry, `Game_RunFieldState (emi/etc/game/00@0x80197378)` runs `G
 
 Three places start a scenario:
 
-| Caller                                                  | Argument                       | When                                                                                                                         |
-| ------------------------------------------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
-| `Game_StartSelectedGame` (`emi/etc/game/01@0x801D0E54`) | 16                             | The title selection ends. It also registers `Game_RunMainLoop` in callback slot 0.                                           |
+| Caller                                                  | Argument                       | When                                                                                                                             |
+| ------------------------------------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| `Game_StartSelectedGame` (`emi/etc/game/01@0x801D0E54`) | 16                             | The title selection ends. It also registers `Game_RunMainLoop` in callback slot 0.                                               |
 | `Start_RunNewGame` (`emi/etc/start/08@0x801E2584`)      | 0                              | New Game. It sets `D_801448EA = 0`, `g_GameAreaId = 0xFFFF`, clears the 20 flag words, then `CallbackReplace(Game_RunMainLoop)`. |
-| `func_8019FAA0` (`emi/etc/game/00@0x8019FAA0`)          | `scenario_id + 1`, skipping 16 | Chapter advance, below.                                                                                                      |
+| `func_8019FAA0` (`emi/etc/game/00@0x8019FAA0`)          | `scenario_id + 1`, skipping 16 | Chapter advance, below.                                                                                                          |
 
 ## The controller overlay
 
@@ -55,12 +55,12 @@ The first word of each loaded image is its module id, `0x105 + n` (`0x105` for `
 
 The pointer in `g_SceneScenes` leads to a handler block of five code pointers. The resident code calls them through the wrapper named in the table.
 
-| Offset | Slot       | Called by                                          | Contract                                                                                                                  |
-| -----: | ---------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-|   0x00 | `entry_00` | `Game_RunScenarioEntry`                            | Per-frame controller. `SCENA00` and `SCENA16` read `mode_02` and jump through a mode table.                               |
-|   0x04 | `entry_04` | `Game_DispatchScenarioRecord`                      | `void (record)`. The player talks to or touches an entity whose `callback_index` is set.                                  |
-|   0x08 | `entry_08` | `func_801B0E44` through `Area_IsStepBlocked`       | `s8 (x, y)`. A nonzero result blocks the step into the cell. Zero falls back to `func_801A8728`, a switch on the area id. |
-|   0x0C | `entry_0C` | `func_801B146C` through `func_801A79A4`            | `s8 (x, y)`. A nonzero result overrides the cell test. Zero falls back to `func_801A8B84`.                                |
+| Offset | Slot       | Called by                                          | Contract                                                                                                                      |
+| -----: | ---------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+|   0x00 | `entry_00` | `Game_RunScenarioEntry`                            | Per-frame controller. `SCENA00` and `SCENA16` read `mode_02` and jump through a mode table.                                   |
+|   0x04 | `entry_04` | `Game_DispatchScenarioRecord`                      | `void (record)`. The player talks to or touches an entity whose `callback_index` is set.                                      |
+|   0x08 | `entry_08` | `func_801B0E44` through `Area_IsStepBlocked`       | `s8 (x, y)`. A nonzero result blocks the step into the cell. Zero falls back to `func_801A8728`, a switch on the area id.     |
+|   0x0C | `entry_0C` | `func_801B146C` through `func_801A79A4`            | `s8 (x, y)`. A nonzero result overrides the cell test. Zero falls back to `func_801A8B84`.                                    |
 |   0x10 | `entry_10` | `func_801B6258` through `Game_CallScenarioHandler` | `s8 (a, b)`, optional. A negative or null result falls back to `func_801A8CB4`, which reads the area hook table `D_801C86F8`. |
 
 The wrappers are `Area_IsStepBlocked (emi/etc/game/00@0x801A7914)`, `func_801A79A4`, `Game_CallScenarioHandler (emi/etc/game/00@0x801A7A34)` and `Game_DispatchScenarioRecord (emi/etc/game/00@0x801A7878)`. A scenario therefore only has to override what differs from the default; the fallbacks cover the rest.
@@ -71,14 +71,14 @@ In `SCENA00` the five words are at `0x801FC9FC` and the mode table follows at `0
 
 `g_SceneState` (`0x80146870`, 16 bytes) is the controller's working memory.
 
-| Field         | Offset | Use                                                                                       |
-| ------------- | -----: | ----------------------------------------------------------------------------------------- |
-| `scenario_id` |   0x00 | Index into `g_SceneScenes` and the EMI slot offset.                                       |
+| Field         | Offset | Use                                                                                              |
+| ------------- | -----: | ------------------------------------------------------------------------------------------------ |
+| `scenario_id` |   0x00 | Index into `g_SceneScenes` and the EMI slot offset.                                              |
 | `flags_01`    |   0x01 | Bit `0x80` requests a chapter advance. Bit `0x20` is set by `func_8019A904`; no reader is known. |
-| `mode_02`     |   0x02 | Dispatch byte of the controller.                                                          |
-| `state_04`    |   0x04 | Second-level state, used by `SCENA16` and others.                                         |
-| `step_05`     |   0x05 | Third-level step.                                                                         |
-| `timer_06`    |   0x06 | Countdown for the step.                                                                   |
+| `mode_02`     |   0x02 | Dispatch byte of the controller.                                                                 |
+| `state_04`    |   0x04 | Second-level state, used by `SCENA16` and others.                                                |
+| `step_05`     |   0x05 | Third-level step.                                                                                |
+| `timer_06`    |   0x06 | Countdown for the step.                                                                          |
 
 `SAVE_RunLoadRestore (emi/etc/start/08@0x801E5FD4)` copies `0x10` bytes from `D_801448D8` into `g_SceneState` on load. The flag words and the event-flag block (see [Flags](#flags)) lie inside the 4,272-byte persistent block that boot zeroes from `D_801448D8` ([boot](boot.md), [state](state.md#one-persistent-block)). Whether the save image carries them is in [saving](saving.md).
 
@@ -94,18 +94,18 @@ In `SCENA00` the five words are at `0x801FC9FC` and the mode table follows at `0
 
 All 20 images are present as `scenario/scenaNN` entries; the largest, `SCENA08`, fills the whole 32,384-byte window. Only some have been decoded.
 
-| Scenario             | What is established                                                                                                                                                   |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `SCENA00`            | New Game start. Calls `Game_RequestAreaChange(9, 0x570000, 0x40000, 7)` ([phases](phases.md)).                                                                        |
-| `SCENA07`, `SCENA08` | Stream slots `0x254` (`A085SE2`) and `0x255` (`A108SE2`).                                                                                                              |
-| `SCENA10`            | Streams slot `0x290` (`SCE10EFF`) into `0x801D0C00`, waits 30 frames (`D_80146876 = 0x1E`), then calls `Message_StartAreaMessage`.                                     |
-| `SCENA15`            | Streams slots `0x291`, `0x292` and `0x294`, the `SCE15EF*` effect overlays.                                                                                            |
+| Scenario             | What is established                                                                                                                                                                                                                                 |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SCENA00`            | New Game start. Calls `Game_RequestAreaChange(9, 0x570000, 0x40000, 7)` ([phases](phases.md)).                                                                                                                                                      |
+| `SCENA07`, `SCENA08` | Stream slots `0x254` (`A085SE2`) and `0x255` (`A108SE2`).                                                                                                                                                                                           |
+| `SCENA10`            | Streams slot `0x290` (`SCE10EFF`) into `0x801D0C00`, waits 30 frames (`D_80146876 = 0x1E`), then calls `Message_StartAreaMessage`.                                                                                                                  |
+| `SCENA15`            | Streams slots `0x291`, `0x292` and `0x294`, the `SCE15EF*` effect overlays.                                                                                                                                                                         |
 | `SCENA16`            | Started by the title selection. Enters area 4 at `(0x1A0000, 0x88000)` with BGM 6. Mode 1 branches on the area id (2, 4 or 31). Three-level `mode_02`, `state_04`, `step_05` machine. Its role as the title attract or intro scene is `[inferred]`. |
-| `SCENA17`            | Streams `0x260` (`ENDKANJI`) and `0x266` (`SHOP`). Its role as the ending is `[inferred]`.                                                                            |
-| `SCENA18`, `SCENA19` | Stubs: mode setters and an empty handler.                                                                                                                              |
-| others               | `[unknown]`; not decoded.                                                                                                                                              |
+| `SCENA17`            | Streams `0x260` (`ENDKANJI`) and `0x266` (`SHOP`). Its role as the ending is `[inferred]`.                                                                                                                                                          |
+| `SCENA18`, `SCENA19` | Stubs: mode setters and an empty handler.                                                                                                                                                                                                           |
+| others               | `[unknown]`; not decoded.                                                                                                                                                                                                                           |
 
-The effect overlays run in the shared window at `0x801D0C00`. `Scene_RunEffect (emi/scenario/sce10eff/00@0x801D0C10)` picks one of three handlers (begin, end, run) by byte 1 of `g_SpadWork`. The begin handler stages scene objects of type `0x69` through `Actor_Alloc`. The call site that enters `Scene_RunEffect` is `[unknown]`.
+The effect overlays run in the shared window at `0x801D0C00`. `Scene_RunEffect (emi/scenario/sce10eff/00@0x801D0C10)` picks one of three handlers (begin, end, run) by byte 1 of `g_SpadWork`. The begin handler stages scene objects of type `0x69` through `Actor_FindFreeSlot (emi/etc/game/00@0x8019601C)`. The call site that enters `Scene_RunEffect` is `[unknown]`.
 
 ## Event stage
 
@@ -118,12 +118,12 @@ The event stage is a two-state machine that sits beside the controller. `Game_Ru
 
 `g_SceneEvents` has 64 entries. The ones known:
 
-| Event id             | Handler                                                                                                       | Reading                                                                            |
-| -------------------: | ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-|                    0 | `func_801A7CE8`                                                                                               | Idle `[inferred]`.                                                                 |
+|             Event id | Handler                                                                                                       | Reading                                                                                |
+| -------------------: | ------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+|                    0 | `func_801A7CE8`                                                                                               | Idle `[inferred]`.                                                                     |
 |                    4 | `Master_RunSceneEvent`                                                                                        | Master screen: streams `SISYOU`, then `func_801D25D8`, and restores the party archive. |
-| 5, 6, 10, 27, 44, 55 | `func_801A7E54`, `func_801A82F8`, `Scene_RunShopSaveEvent`, `func_801A839C`, `func_801A83DC`, `func_801A852C` | Resident event handlers. Roles `[unknown]`.                                        |
-|               others | Addresses in `0x801F....`                                                                                     | Code at fixed addresses inside the scenario window.                                |
+| 5, 6, 10, 27, 44, 55 | `func_801A7E54`, `func_801A82F8`, `Scene_RunShopSaveEvent`, `func_801A839C`, `func_801A83DC`, `func_801A852C` | Resident event handlers. Roles `[unknown]`.                                            |
+|               others | Addresses in `0x801F....`                                                                                     | Code at fixed addresses inside the scenario window.                                    |
 
 `Scene_DispatchObject (emi/etc/game/00@0x801A86D4)` does the same for entities: it runs `g_SceneObjects[callback_index](record, g_SceneEventFlags)`, which `Game_DispatchScenarioRecord` uses when `unk_7C & 0x4000` is set in the record. `g_SceneObjects` has 66 entries. The setup stream writes `callback_index` with opcode `D` ([area](area.md#setup-stream)).
 
@@ -131,11 +131,11 @@ The event stage is a two-state machine that sits beside the controller. `Game_Ru
 
 Story state lives in three bit arrays. All are read with `SYS_TestFlag (exe/slus_004_22@0x8015B5D4)`, whose bit argument is a `u8`: it indexes at most 256 bits, 32 bytes, from the array start.
 
-| Array               | Address      | Size            | Use                                                                          |
-| ------------------- | ------------ | --------------- | ---------------------------------------------------------------------------- |
+| Array               | Address      | Size            | Use                                                                           |
+| ------------------- | ------------ | --------------- | ----------------------------------------------------------------------------- |
 | `g_SceneFlagWords`  | `0x80144E88` | 20 words of 8 B | One word per scenario. `Scene_Start` clears bits 0 to 31 of the started word. |
 | `g_SceneFlags`      | `0x8014686C` | pointer         | The active scenario's word. Controllers use `SYS_SetFlag(g_SceneFlags, bit)`. |
-| `g_SceneEventFlags` | `0x80144F28` | `0x28` bytes    | Event flags. `Scene_ResetEventState` resets the first 16 bytes.              |
+| `g_SceneEventFlags` | `0x80144F28` | `0x28` bytes    | Event flags. `Scene_ResetEventState` resets the first 16 bytes.               |
 
 An exit door can test any scenario's word: `func_801A0048` reads `SYS_TestFlag(g_SceneFlagWords + (b << 3), bit)` for the scenario byte `b` of a door row ([area](area.md#doors)).
 
@@ -157,12 +157,12 @@ See also the [editor guide](editor-guide.md) and [disc and files](disc-and-files
 
 ## Gaps
 
-| Gap                                                                       | What would settle it                                                           |
-| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Story meaning of each scenario and each flag bit                          | Read each controller's mode table and the `SYS_SetFlag` sites.                 |
-| Mode and state counts of the 18 undecoded controllers                     | Read the five-word block and the table after it for each.                      |
-| Caller that enters `Scene_RunEffect`, and the `SCE15EF*` overlays          | Find the call into `0x801D0C10` from `SCENA10` and `SCENA15`.                  |
-| Purpose of `SCENA16` and `SCENA17`                                        | Trace the title idle path and the ending path.                                 |
+| Gap                                                                       | What would settle it                                                            |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Story meaning of each scenario and each flag bit                          | Read each controller's mode table and the `SYS_SetFlag` sites.                  |
+| Mode and state counts of the 18 undecoded controllers                     | Read the five-word block and the table after it for each.                       |
+| Caller that enters `Scene_RunEffect`, and the `SCE15EF*` overlays         | Find the call into `0x801D0C10` from `SCENA10` and `SCENA15`.                   |
+| Purpose of `SCENA16` and `SCENA17`                                        | Trace the title idle path and the ending path.                                  |
 | Roles of event ids 5, 6, 10, 27, 44, 55 and the `0x801F....` handlers     | Read each handler and the writers of `D_801448EB` (`func_801B6674` and others). |
-| Whether the save image carries `g_SceneFlagWords` and `g_SceneEventFlags` | The save writer in [saving](saving.md).                                        |
-| Reader of the `flags_01 & 0x20` bit set by `func_8019A904`                | Find its readers.                                                              |
+| Whether the save image carries `g_SceneFlagWords` and `g_SceneEventFlags` | The save writer in [saving](saving.md).                                         |
+| Reader of the `flags_01 & 0x20` bit set by `func_8019A904`                | Find its readers.                                                               |

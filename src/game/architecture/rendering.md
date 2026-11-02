@@ -6,15 +6,15 @@ This page follows that path. It covers the primitive arena and ordering table, t
 
 ## Terms
 
-| Term          | Meaning                                                                                                   |
-| ------------- | --------------------------------------------------------------------------------------------------------- |
-| Primitive     | One GPU packet (`SPRT`, `POLY_FT4`, `DR_MODE`, `DR_AREA`) built at `g_GfxPrimCursor`.                     |
-| Arena         | The RAM block that holds one frame's primitives. Two arenas, one per render record.                       |
-| Layer         | One of 8 ordering-table entries. `GFX_AddPrim` appends a primitive to one layer's chain.                  |
-| Cell          | A 16-colour palette unit: 16 VRAM words of one palette row. A 256-colour palette is 16 cells.             |
+| Term          | Meaning                                                                                                               |
+| ------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Primitive     | One GPU packet (`SPRT`, `POLY_FT4`, `DR_MODE`, `DR_AREA`) built at `g_GfxPrimCursor`.                                 |
+| Arena         | The RAM block that holds one frame's primitives. Two arenas, one per render record.                                   |
+| Layer         | One of 8 ordering-table entries. `GFX_AddPrim` appends a primitive to one layer's chain.                              |
+| Cell          | A 16-colour palette unit: 16 VRAM words of one palette row. A 256-colour palette is 16 cells.                         |
 | Palette arena | The RAM block at `0x80033800` that holds loaded palette banks. Its working copy at `0x80037800` is what the GPU sees. |
-| Stage palette | The VRAM rectangle (0, 0x1E0, 0x100, 0x20): 32 palette rows of 256 words.                                 |
-| Sprite record | The work record (`Actor`) at scratchpad `work_ptr`. Its bytes `+0x24` to `+0x29` pick page, CLUT and layer. |
+| Stage palette | The VRAM rectangle (0, 0x1E0, 0x100, 0x20): 32 palette rows of 256 words.                                             |
+| Sprite record | The work record (`Actor`) at scratchpad `work_ptr`. Its bytes `+0x24` to `+0x29` pick page, CLUT and layer.           |
 
 ## Frame pipeline
 
@@ -89,13 +89,13 @@ flowchart TD
 
 `Area_BuildClut (exe/slus_004_22@0x8014CE78)` builds the word from three bytes of the sprite record: flags `+0x24` (bit `0x04`), selector `+0x27` (`sel`) and kind `+0x28`. `base` is `0x1E0`, or `0x1F0` when flag bit `0x04` is set. The kind sets how many palette cells the sprite owns:
 
-| Kind (`+0x28`) | CLUT word                                       | Palette size          | Cells per row |
-| -------------: | ----------------------------------------------- | --------------------- | ------------: |
-|              0 | `((base + (sel >> 4)) << 6) \| (sel & 0xF)`     | 1 cell, 16 colours    |            16 |
-|              1 | `(base + sel) << 6`                             | Whole row, 256 colours |            1 |
-|              2 | `((base + (sel >> 3)) << 6) \| ((sel & 7) * 2)` | 2 cells               |             8 |
-|              3 | `((base + (sel >> 2)) << 6) \| ((sel & 3) * 4)` | 4 cells               |             4 |
-|              4 | `((base + (sel >> 1)) << 6) \| ((sel & 1) * 8)` | 8 cells               |             2 |
+| Kind (`+0x28`) | CLUT word                                       | Palette size           | Cells per row |
+| -------------: | ----------------------------------------------- | ---------------------- | ------------: |
+|              0 | `((base + (sel >> 4)) << 6) \| (sel & 0xF)`     | 1 cell, 16 colours     |            16 |
+|              1 | `(base + sel) << 6`                             | Whole row, 256 colours |             1 |
+|              2 | `((base + (sel >> 3)) << 6) \| ((sel & 7) * 2)` | 2 cells                |             8 |
+|              3 | `((base + (sel >> 2)) << 6) \| ((sel & 3) * 4)` | 4 cells                |             4 |
+|              4 | `((base + (sel >> 1)) << 6) \| ((sel & 1) * 8)` | 8 cells                |             2 |
 
 The row is `word >> 6` and the column is `(word & 0x3F) * 16`. The cell counts match the table `s_PaletteFadeColorCounts = {1, 16, 2, 4, 8}` that the fade code uses. The texture depth follows the kind: `Area_DrawObjectSprite` passes `tp = (kind != 0)`, so kind 0 is a 4-bit texture and kinds 1 to 4 are 8-bit. That kinds 2 to 4 use only the first 32, 64 or 128 colours of a CLUT placed at a multiple of its width is `[inferred]`.
 
@@ -124,17 +124,17 @@ One of these four items disagrees with the others `[inferred]`:
 
 The last four stage palette rows are handed out dynamically to sprites that need their own colours, such as fading or recoloured characters.
 
-| Object          | Address      | Size                              | Role                                                                    |
-| --------------- | ------------ | --------------------------------- | ----------------------------------------------------------------------- |
-| Cell map        | `D_80145D54` | 4 rows by 16 bytes, `0xFF` = free | One byte per 16-colour cell. It holds the fade record id that owns it.  |
-| Fade records    | `D_80145BD4` | 32 records of `0x0C` bytes        | `GFX_AllocPaletteFade` fills the first record with bit 0 clear.         |
+| Object          | Address      | Size                              | Role                                                                              |
+| --------------- | ------------ | --------------------------------- | --------------------------------------------------------------------------------- |
+| Cell map        | `D_80145D54` | 4 rows by 16 bytes, `0xFF` = free | One byte per 16-colour cell. It holds the fade record id that owns it.            |
+| Fade records    | `D_80145BD4` | 32 records of `0x0C` bytes        | `GFX_AllocPaletteFade` fills the first record with bit 0 clear.                   |
 | Animation slots | `D_80145D94` | 8 slots                           | `GFX_StartPaletteAnimation` starts one. `GFX_UpdatePaletteAnimations` steps them. |
 
 `GFX_AllocPaletteCell (emi/etc/game/00@0x801968BC)` takes a mode and scans the map row by row, returning the first run of free cells that fits. Mode 0 is one cell, 1 a whole row, 2 two cells (even column), 3 four cells (column multiple of 4) and 4 eight cells. The result is a selector for `Area_BuildClut` of the same kind. Mode 0 returns `cell - 0x40` as a byte. With record flag `0x04` set, `Area_BuildClut` turns that into rows `0x1FC` to `0x1FF`. Those are the same rows (28 to 31) that `GFX_ResetPalette` zeroes, so the dynamic cells live in the last four rows of the stage palette `[inferred]`.
 
 A fade, `GFX_AllocPaletteFade (emi/etc/game/00@0x8019651C)`, takes a free cell run for the sprite record, remembers the record's old selector in the fade record, and `GFX_FreePaletteFade` restores it and frees the cells. `GFX_UploadPaletteRows` sets bit `0x8000` (the STP bit) on every colour of the record's cells. The code that interpolates colours during a fade is in overlays (`emi/world00/area036/13`, `emi/world02/area085/13`, `emi/world02/area108/14`, `emi/bmagic/magic064/03`), not in the resident core, and was not read `[unknown]`.
 
-Palette animations read 4-byte steps (`dst`, `src`, `count`, `wait`) and copy `count` colours from `src` to `dst` inside one row of the working copy. A step whose first byte is `GAME_NONE` loops back by its second byte (`GFX_StepPaletteAnimation`, `GFX_UploadPaletteAnimation`).
+Palette animations read 4-byte steps (`dst`, `src`, `count`, `wait`) and copy `count` colours from `src` to `dst` inside one row of the working copy. A step whose first byte is `0xFF` loops back by its second byte (`GFX_StepPaletteAnimation`, `GFX_UploadPaletteAnimation`).
 
 ## Sprite sheet queue
 
@@ -154,45 +154,45 @@ Palette animations read 4-byte steps (`dst`, `src`, `count`, `wait`) and copy `c
 
 ## Key data
 
-| Object                 | Address                   | Role                                                                          |
-| ---------------------- | ------------------------- | ----------------------------------------------------------------------------- |
-| `g_GfxPrimCursor`      | `0x8014598C`              | Next free primitive byte.                                                     |
-| `D_801459D0`           | main executable           | 8 layer tail pointers.                                                        |
-| `D_80145990`           | main executable           | 2 by 8 layer head words.                                                      |
-| `g_GfxPalettePending`  | `0x80145988`              | Set when the working palette must be uploaded.                                |
-| `g_AreaDrawFlags`      | `0x8014832E`              | Bit 0 sprites, 1 negative depth, 2 cell layers, 3 and 4 appended primitives.  |
-| `g_SpriteSizes`        | `0x8017F53C`              | 16 cell width and height pairs.                                               |
+| Object                | Address         | Role                                                                         |
+| --------------------- | --------------- | ---------------------------------------------------------------------------- |
+| `g_GfxPrimCursor`     | `0x8014598C`    | Next free primitive byte.                                                    |
+| `D_801459D0`          | main executable | 8 layer tail pointers.                                                       |
+| `D_80145990`          | main executable | 2 by 8 layer head words.                                                     |
+| `g_GfxPalettePending` | `0x80145988`    | Set when the working palette must be uploaded.                               |
+| `g_AreaDrawFlags`     | `0x8014832E`    | Bit 0 sprites, 1 negative depth, 2 cell layers, 3 and 4 appended primitives. |
+| `g_SpriteSizes`       | `0x8017F53C`    | 16 cell width and height pairs.                                              |
 
 The working copy of the stage palette is the fixed block at `0x80037800`.
 
 ## Data and limits
 
-| Limit                 | Value                                                         | Source                                               | Asset must stay within                                                                            |
-| --------------------- | ------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Primitive arena       | `0x8FCC` bytes (36,812) per buffer, `0x80020000 + b * 0x9000` | `SYS_PrepareFrame`, `GFX_AddPrim`, `PRIM_ARENA_BASE` | At most about 920 `POLY_FT4`, 1,840 `SPRT` or 2,300 `SPRT_8` per frame, all primitives together.  |
-| Overflow behaviour    | The primitive is dropped; no error.                           | `GFX_AddPrim`                                        | Too many cells or glyphs make sprites vanish, not crash.                                          |
-| Primitive size        | One byte                                                      | `GFX_AddPrim` `u8 size`                              | A packet over 255 bytes is not supported.                                                         |
-| Layers                | 8; no range check on the argument                             | `D_801459D0[8]`                                      | Sprite record layer byte `+0x29` stays in 0 to 7.                                                 |
-| Frame size            | 320 by 240                                                    | `SYS_InitDisplay`                                    | UI coordinates are in this space.                                                                 |
-| Sprite cull window    | x in -64 to 384, y in -64 to 304                              | `Area_DrawObjectSprite` (`0x1C0`, `0x170`)           | Sprites outside are skipped.                                                                      |
-| Stage palette         | 256 by 32 words = 16 KB, from `0x80037800`                    | `GFX_UploadPalette`                                  | All palette banks fit the arena offsets above.                                                    |
-| Dynamic palette cells | 4 rows by 16 cells = 64 cells                                 | `D_80145D54`, `GFX_AllocPaletteCell`                 | Fades and animated sprites share these 64 cells; free-run search, no compaction.                  |
-| Fade records          | 32                                                            | `GFX_AllocPaletteFade` (`0x20`)                      | Returns `0xFF` when full.                                                                         |
-| Palette animations    | 8                                                             | `GFX_StartPaletteAnimation`                          | Returns `0xFF` when full.                                                                         |
-| Sheet upload queue    | 20 per frame                                                  | `GFX_RunTransferQueue`, `D_80145A00`                 | At most 20 sprite records change sheets in one frame; no overflow check.                          |
-| Texture pages         | 16 columns by 2 rows of 64 by 256                             | `Area_DrawObjectSprite`                              | Record page byte `+0x25` below 32.                                                                |
-| Cell shapes           | 16 sizes                                                      | `g_SpriteSizes`                                      | Sprite sheet cells use these sizes only.                                                          |
-| Scene packet records  | 56 per frame, loop bound `0x37`                               | `SYS_PrepareFrame`, `func_8014BC70`                  | At most 55 or 56 scene layers in an area map `[inferred]`.                                        |
-| Graphics block upload | x up to 1000, y up to 500                                     | `EMI_LoaderUploadSector`                             | Type-3 blocks beyond this are not uploaded.                                                       |
+| Limit                 | Value                                                         | Source                                     | Asset must stay within                                                                           |
+| --------------------- | ------------------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| Primitive arena       | `0x8FCC` bytes (36,812) per buffer, `0x80020000 + b * 0x9000` | `SYS_PrepareFrame`, `GFX_AddPrim`          | At most about 920 `POLY_FT4`, 1,840 `SPRT` or 2,300 `SPRT_8` per frame, all primitives together. |
+| Overflow behaviour    | The primitive is dropped; no error.                           | `GFX_AddPrim`                              | Too many cells or glyphs make sprites vanish, not crash.                                         |
+| Primitive size        | One byte                                                      | `GFX_AddPrim` `u8 size`                    | A packet over 255 bytes is not supported.                                                        |
+| Layers                | 8; no range check on the argument                             | `D_801459D0[8]`                            | Sprite record layer byte `+0x29` stays in 0 to 7.                                                |
+| Frame size            | 320 by 240                                                    | `SYS_InitDisplay`                          | UI coordinates are in this space.                                                                |
+| Sprite cull window    | x in -64 to 384, y in -64 to 304                              | `Area_DrawObjectSprite` (`0x1C0`, `0x170`) | Sprites outside are skipped.                                                                     |
+| Stage palette         | 256 by 32 words = 16 KB, from `0x80037800`                    | `GFX_UploadPalette`                        | All palette banks fit the arena offsets above.                                                   |
+| Dynamic palette cells | 4 rows by 16 cells = 64 cells                                 | `D_80145D54`, `GFX_AllocPaletteCell`       | Fades and animated sprites share these 64 cells; free-run search, no compaction.                 |
+| Fade records          | 32                                                            | `GFX_AllocPaletteFade` (`0x20`)            | Returns `0xFF` when full.                                                                        |
+| Palette animations    | 8                                                             | `GFX_StartPaletteAnimation`                | Returns `0xFF` when full.                                                                        |
+| Sheet upload queue    | 20 per frame                                                  | `GFX_RunTransferQueue`, `D_80145A00`       | At most 20 sprite records change sheets in one frame; no overflow check.                         |
+| Texture pages         | 16 columns by 2 rows of 64 by 256                             | `Area_DrawObjectSprite`                    | Record page byte `+0x25` below 32.                                                               |
+| Cell shapes           | 16 sizes                                                      | `g_SpriteSizes`                            | Sprite sheet cells use these sizes only.                                                         |
+| Scene packet records  | 56 per frame, loop bound `0x37`                               | `SYS_PrepareFrame`, `func_8014BC70`        | At most 55 or 56 scene layers in an area map `[inferred]`.                                       |
+| Graphics block upload | x up to 1000, y up to 500                                     | `EMI_LoaderUploadSector`                   | Type-3 blocks beyond this are not uploaded.                                                      |
 
 ## Gaps
 
-| Gap                                                                  | What would settle it                                                            |
-| -------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Gap                                                                  | What would settle it                                                             |
+| -------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
 | Ordering meaning of each layer number                                | List every `GFX_AddPrim` layer literal per overlay and compare with screenshots. |
-| VRAM page allocation between area, character, battle and font sheets | A VRAM dump from an emulator at each phase.                                     |
-| Whether `LoadImage` finishes before `DrawOTag` in the same frame     | PsyQ `LoadImage` queue behaviour or a trace of the GPU DMA.                     |
-| Purpose of the (0x340, 0x100, 0xC0, 0x100) draw area                 | Trace which records set record flag `0x08`.                                     |
-| Page 16 mismatch between sheet upload and draw formulas              | Read the page bytes of shipped sprite records.                                  |
-| Behaviour of `func_8014BC70`                                         | A full read of its assembly.                                                    |
-| Layers above 7 passed to `GFX_AddPrim`                               | Search call sites for non-literal layer values.                                 |
+| VRAM page allocation between area, character, battle and font sheets | A VRAM dump from an emulator at each phase.                                      |
+| Whether `LoadImage` finishes before `DrawOTag` in the same frame     | PsyQ `LoadImage` queue behaviour or a trace of the GPU DMA.                      |
+| Purpose of the (0x340, 0x100, 0xC0, 0x100) draw area                 | Trace which records set record flag `0x08`.                                      |
+| Page 16 mismatch between sheet upload and draw formulas              | Read the page bytes of shipped sprite records.                                   |
+| Behaviour of `func_8014BC70`                                         | A full read of its assembly.                                                     |
+| Layers above 7 passed to `GFX_AddPrim`                               | Search call sites for non-literal layer values.                                  |

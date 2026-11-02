@@ -6,13 +6,13 @@ This page covers the code that runs messages and screens: the message state mach
 
 ## Terms
 
-| Term          | Meaning                                                                                              |
-| ------------- | ---------------------------------------------------------------------------------------------------- |
-| Message       | One script of text bytes in a message bank. The engine draws it a character at a time.               |
-| Channel       | The window script record at `g_UiWindowChannel` (`0x801490A4`): flags, delay timer, script cursors.  |
-| Message state | The byte `D_801490A0.state_00` (0 to 7) that selects the engine's current step.                      |
-| Panel         | A window frame task in `g_MenuPanelTasks`; see [scheduler](scheduler.md#work-record-tables).         |
-| Local mode    | One of 21 screen effects started by `UI_SetMode` (a fade or wipe).                                   |
+| Term          | Meaning                                                                                             |
+| ------------- | --------------------------------------------------------------------------------------------------- |
+| Message       | One script of text bytes in a message bank. The engine draws it a character at a time.              |
+| Channel       | The window script record at `g_UiWindowChannel` (`0x801490A4`): flags, delay timer, script cursors. |
+| Message state | The byte `D_801490A0.state_00` (0 to 7) that selects the engine's current step.                     |
+| Panel         | A window frame task in `g_MenuPanelTasks`; see [scheduler](scheduler.md#work-record-tables).        |
+| Local mode    | One of 21 screen effects started by `UI_SetMode` (a fade or wipe).                                  |
 
 ## The string path
 
@@ -36,22 +36,22 @@ flowchart LR
     E -->|"control byte"| E
 ```
 
-Control codes that insert text (`TEXT_GOTO`, `TEXT_INSERT`, `TEXT_VAR`, `TEXT_LINK`) are followed by a character budget in `UI_DrawMessageScript`. Party-record names are 6 characters, read from `0x80144968 + slot * 0xA4`. A variable string is 33 steps, read from `0x801490D8 + n * 32`. A link through the bank's own table is 17 characters. After the budget the cursor returns to the byte after the code.
+Control codes that insert text (`{GOTO}`, `{INSERT}`, `{VAR}`, `{LINK}`, [text codes](../text.md)) are followed by a character budget in `UI_DrawMessageScript`. Party-record names are 6 characters, read from `0x80144968 + slot * 0xA4`. A variable string is 33 steps, read from `0x801490D8 + n * 32`. A link through the bank's own table is 17 characters. After the budget the cursor returns to the byte after the code.
 
 ## Message state machine
 
 `func_801507BC` copies the table `D_80149A5C` to the stack and calls the handler for `D_801490A0.state_00`. `func_801518F4` does the same for the selection state `D_801490A2` with `D_80149AB4`. Each handler either runs the script or waits for the player.
 
-| State | Handler              | Role                                                                                              |
-| ----: | -------------------- | ------------------------------------------------------------------------------------------------- |
-|     0 | `func_8015083C`      | Run the script until a glyph, a page, a choice, the end or a box end.                             |
-|     1 | `UI_TickChoiceTimer` | Count the per-character delay `D_801490A6` down. At zero, return to state 0.                      |
-|     2 | `func_80150E48`      | Message end. Step 0 waits for a button (`func_80150E98`), step 1 sets confirm (`func_80150F08`).  |
-|     3 | `func_80150F3C`      | Page wait. Step 0 draws the wait marker and waits for a button, step 1 is `func_8015102C`.        |
-|     4 | `func_801510DC`      | Choice list, 8 steps by `g_UiWindowStep`. Per-step roles `[unknown]`.                             |
-|     5 | `func_80151538`      | Choice list variant, 6 steps by `g_UiWindowStep`. Per-step roles `[unknown]`.                     |
-|     6 | `func_80151820`      | Clears the state when the owner mode byte is 2.                                                   |
-|     7 | `func_80151844`      | Box end, 2 steps by `g_UiWindowStep`.                                                             |
+| State | Handler              | Role                                                                                             |
+| ----: | -------------------- | ------------------------------------------------------------------------------------------------ |
+|     0 | `func_8015083C`      | Run the script until a glyph, a page, a choice, the end or a box end.                            |
+|     1 | `UI_TickChoiceTimer` | Count the per-character delay `D_801490A6` down. At zero, return to state 0.                     |
+|     2 | `func_80150E48`      | Message end. Step 0 waits for a button (`func_80150E98`), step 1 sets confirm (`func_80150F08`). |
+|     3 | `func_80150F3C`      | Page wait. Step 0 draws the wait marker and waits for a button, step 1 is `func_8015102C`.       |
+|     4 | `func_801510DC`      | Choice list, 8 steps by `g_UiWindowStep`. Per-step roles `[unknown]`.                            |
+|     5 | `func_80151538`      | Choice list variant, 6 steps by `g_UiWindowStep`. Per-step roles `[unknown]`.                    |
+|     6 | `func_80151820`      | Clears the state when the owner mode byte is 2.                                                  |
+|     7 | `func_80151844`      | Box end, 2 steps by `g_UiWindowStep`.                                                            |
 
 ```mermaid
 stateDiagram-v2
@@ -71,7 +71,7 @@ The diagram shows only the transitions out of state 0, taken from the `switch` i
 
 **Typewriter speed.** After each glyph, `func_8015083C` loads the delay from the byte table at `D_8017F5B4`, row `D_80144950` (a signed byte; the option that sets it was not traced). Byte 0 applies when a pad button is held (`g_InputMasks & g_InputHeld`), byte 1 otherwise. A zero delay keeps state 0. Any other value goes to state 1 for that many frames. `FRONTEND_FLAG_FORCE_STEP` forces a delay of 3. The channel flag `FRONTEND_FLAG_NO_INPUT_WAIT` (toggled by opcodes `0x10` and `0x11`) makes the script run without waiting.
 
-**Choice.** `TEXT_CHOICE` stores the count (`operand & 0xF`, minus one) and the layout nibble, then enters state 4 or 5. The pick is kept in `D_801490C7`. `UI_HandleChoiceInput` moves it on repeated direction input, wrapping at zero. The pick selects the next message through a dozen small functions (`func_80152370`, `func_80152510` to `func_801526C8`). Each stores entry `D_801490C7` of a row of tables at `0x8017F628..0x8017F664` into `g_MessageRequest`. The next message starts at the `u16` of the bank at `0x80010000 + g_MessageRequest * 2` (`func_801514D0`).
+**Choice.** The `{CHOICE}` code (`0x14`) stores the count (`operand & 0xF`, minus one) and the layout nibble, then enters state 4 or 5. The pick is kept in `D_801490C7`. `UI_HandleChoiceInput` moves it on repeated direction input, wrapping at zero. The pick selects the next message through a dozen small functions (`func_80152370`, `func_80152510` to `func_801526C8`). Each stores entry `D_801490C7` of a row of tables at `0x8017F628..0x8017F664` into `g_MessageRequest`. The next message starts at the `u16` of the bank at `0x80010000 + g_MessageRequest * 2` (`func_801514D0`).
 
 ## Windows and panels
 
@@ -79,15 +79,15 @@ The text box is the panel in `g_MenuPanelTasks` slot 0. `UI_ResetMessage (exe/sl
 
 A box opens by growing from a point to its full size, stays, then shrinks:
 
-| Piece            | What the code does                                                                                                                                                           |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Piece            | What the code does                                                                                                                                                              |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | State 0, set up  | `func_80159050` picks size 200 by 54 (`0xC8`, `0x36`), or 120 by 54 when the request flag `0x40` is set. It sets the start position and per-frame steps of a fifth of the size. |
-| State 1, growing | `func_8015920C` adds the step each frame, snaps to the origin table, then draws the frame with `func_80159FA0`.                                                              |
-| State 2, open    | `func_80159510`. Not read `[unknown]`. It is the step between growing and shrinking.                                                                                         |
-| State 3, closing | `func_80159580` shrinks the box the same way and calls `UI_UpdateLayout` while the sub-kind is 0.                                                                            |
-| Frame            | `func_80159FA0` draws a grey (`0x78`) four-point outline and `func_8015A2B0` draws the inner line, both on layer 1.                                                          |
-| Text origin      | `UI_UpdateLayout` sets it to `(D_80148334 >> 4) + 10`, `(D_80148336 >> 4) + 6` before each redraw.                                                                           |
-| Position         | `g_MenuPanelOrigins (exe/slus_004_22@0x8017F90C)`, 32 bytes: two sets of 8 (x, y) byte pairs, selected by `D_801490CE`.                                                      |
+| State 1, growing | `func_8015920C` adds the step each frame, snaps to the origin table, then draws the frame with `func_80159FA0`.                                                                 |
+| State 2, open    | `func_80159510`. Not read `[unknown]`. It is the step between growing and shrinking.                                                                                            |
+| State 3, closing | `func_80159580` shrinks the box the same way and calls `UI_UpdateLayout` while the sub-kind is 0.                                                                               |
+| Frame            | `func_80159FA0` draws a grey (`0x78`) four-point outline and `func_8015A2B0` draws the inner line, both on layer 1.                                                             |
+| Text origin      | `UI_UpdateLayout` sets it to `(D_80148334 >> 4) + 10`, `(D_80148336 >> 4) + 6` before each redraw.                                                                              |
+| Position         | `g_MenuPanelOrigins (exe/slus_004_22@0x8017F90C)`, 32 bytes: two sets of 8 (x, y) byte pairs, selected by `D_801490CE`.                                                         |
 
 The panel fill and the other panel handlers are not in the resident image. The table `g_MenuPanels` (the executable's constant data at `0x80149B0C`) holds `func_80158F80` followed by eight fixed addresses: `0x801D2F9C`, `0x80199558`, `0x801E9074`, `0x801EFD98`, `0x800B0180`, `0x801E8D14`, `0x801E27BC` and `0x800B2088`. They point into overlay windows ([memory](memory.md)). A panel armed while its overlay is not loaded would jump into other code `[inferred]`; no loader check was found. `0x80199558` is in `emi/etc/game/00` and `0x801E9074` in `emi/battle/battle/03`. The owners of the other six are `[unknown]`.
 
@@ -95,35 +95,35 @@ The panel fill and the other panel handlers are not in the resident image. The t
 
 Five drawers cover all text. Each builds sprites from one of two glyph sheets and a palette row.
 
-| Drawer                         | Sheet and cell                                                                                             | CLUT                       | Primitive         |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------- | -------------------------- | ----------------- |
-| `UI_DrawTextGlyphs`            | 31 columns, cell 8 wide, 12 high, `u = ((c - 0x30) % 31) * 8`, `v = ((c - 0x30) / 31) * 12 + 0x48 + shade` | `0x7800 \| (flags & 0xF)`  | `SPRT` (`0x14`)   |
-| `UI_DrawTextGlyphs` `TEXT_NUM` | 21 columns of 12, `u = ((n + 0x5B) % 21) * 12`, `v = shade + ((n + 0x5B) / 21) * 12`                       | same                       | `SPRT`            |
-| `UI_DrawAsciiString`           | Same 31-column sheet as the first row.                                                                     | `0x7800 \| (flags & 0x3F)` | `SPRT` (`0x14`)   |
-| `UI_DrawTextString`            | 31 columns, or 32 columns of 8 by 8 for `0x15`: `u = ((n + 0x40) % 32) * 8`                                | `0x7800 \| (flags & 0xF)`  | `SPRT`            |
-| `UI_DrawGlyphString`           | 32 columns of 8 by 8 from `0x20`: `u = ((c - 0x20) % 32) * 8`, `v = ((c - 0x20) / 32) * 8`                 | `0x7800 \| (clut & 0x3F)`  | `SPRT_8` (`0x10`) |
+| Drawer                            | Sheet and cell                                                                                             | CLUT                       | Primitive         |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------- | -------------------------- | ----------------- |
+| `UI_DrawTextGlyphs`               | 31 columns, cell 8 wide, 12 high, `u = ((c - 0x30) % 31) * 8`, `v = ((c - 0x30) / 31) * 12 + 0x48 + shade` | `0x7800 \| (flags & 0xF)`  | `SPRT` (`0x14`)   |
+| `UI_DrawTextGlyphs`, code `{NUM}` | 21 columns of 12, `u = ((n + 0x5B) % 21) * 12`, `v = shade + ((n + 0x5B) / 21) * 12`                       | same                       | `SPRT`            |
+| `UI_DrawAsciiString`              | Same 31-column sheet as the first row.                                                                     | `0x7800 \| (flags & 0x3F)` | `SPRT` (`0x14`)   |
+| `UI_DrawTextString`               | 31 columns, or 32 columns of 8 by 8 for `0x15`: `u = ((n + 0x40) % 32) * 8`                                | `0x7800 \| (flags & 0xF)`  | `SPRT`            |
+| `UI_DrawGlyphString`              | 32 columns of 8 by 8 from `0x20`: `u = ((c - 0x20) % 32) * 8`, `v = ((c - 0x20) / 32) * 8`                 | `0x7800 \| (clut & 0x3F)`  | `SPRT_8` (`0x10`) |
 
 `UI_DrawTextGlyphs` handles control bytes and glyphs for message text. `UI_DrawTextString` draws name-style strings (control bytes `0x01`, `0xFF`, `0x15`). `UI_DrawAsciiString` draws ASCII as 8 by 12 sprites, and `UI_DrawGlyphString` as 8 by 8 sprites.
 
 All of them first call `func_8014FC00(0)`, which emits a draw-mode packet with texture page `0x2F` (column 15, 4 bits per pixel) on layer 1, so the glyph sheets live in that page. The `flags` byte holds the palette in its low nibble and a row style in its high nibble. The high nibble indexes a pair of bytes in `g_NumberRowShades` or `g_TextRowShades` that offset `v` and trim the cell height. Glyph colours are the 16 cells of stage palette row 0 (`0x7800 | n` is VRAM row 480, column `n * 16`); see [rendering](rendering.md#textures-tims-and-palettes).
 
-`UI_DrawText (exe/slus_004_22@0x8014F800)` seeds the cursor: `D_80145ACA` (x), `D_80145ACC` (y) and `D_80145ACE` (line start x). A newline moves y by 12, or by 14 in the message engine (`UI_DrawMessageScript`). Formatted numbers go through `g_UiWindowTextBuffer` (`0x80145AD4`) with `sprintf`, then `UI_DrawGlyphString`; the `sprintf` call sites are not listed.
+`UI_DrawText (exe/slus_004_22@0x8014F800)` seeds the cursor: `D_80145ACA` (x), `D_80145ACC` (y) and `D_80145ACE` (line start x). A newline moves y by 12, or by 14 in the message engine (`UI_DrawMessageScript`). Formatted numbers go through `g_UiFormatBuffer` (`0x80145AD4`) with `sprintf`, then `UI_DrawGlyphString`; the `sprintf` call sites are not listed.
 
 ## Screen effects
 
 `UI_SetMode (exe/slus_004_22@0x8014ECAC)` starts one of 21 effects; [scheduler](scheduler.md#local-ui-modes) has the dispatch. Each table entry is a small function that calls `func_8014F514` (a full-screen fade) or `func_8014F5F0` (a variant) with a step, a semi-transparency flag and a layer.
 
-| Modes (table index) | Call                                            | Effect                            |
-| ------------------- | ----------------------------------------------- | --------------------------------- |
-| 0, 1                | `func_8014F514(+0x800 / -0x800, 1, 0)`          | Fade, 16 frames.                  |
-| 2, 3                | `(+0x2000 / -0x2000, 1, 0)`                     | Fast fade, 4 frames.              |
-| 4, 5                | `(+0x400 / -0x400, 1, 0)`                       | Slow fade, 32 frames.             |
-| 6, 7                | `(+0x800 / -0x800, 1, 2)`                       | Fade on layer 2.                  |
-| 8, 9                | `func_8014F5F0(+0x800 / -0x800, 1, 0)`          | Variant fade.                     |
-| 10, 11, 17, 18, 20  | Loops that also change `g_AreaCameraAngle`      | Camera-spin wipes.                |
+| Modes (table index) | Call                                            | Effect                             |
+| ------------------- | ----------------------------------------------- | ---------------------------------- |
+| 0, 1                | `func_8014F514(+0x800 / -0x800, 1, 0)`          | Fade, 16 frames.                   |
+| 2, 3                | `(+0x2000 / -0x2000, 1, 0)`                     | Fast fade, 4 frames.               |
+| 4, 5                | `(+0x400 / -0x400, 1, 0)`                       | Slow fade, 32 frames.              |
+| 6, 7                | `(+0x800 / -0x800, 1, 2)`                       | Fade on layer 2.                   |
+| 8, 9                | `func_8014F5F0(+0x800 / -0x800, 1, 0)`          | Variant fade.                      |
+| 10, 11, 17, 18, 20  | Loops that also change `g_AreaCameraAngle`      | Camera-spin wipes.                 |
 | 12                  | Sets `g_AreaViewOffsetZ = 0x5DC`, fade `-0x800` | Fade with a camera distance reset. |
-| 13, 14, 15, 16      | `+0x200 / -0x200` with `F514` or `F5F0`         | Slow fades, 64 frames.            |
-| 19                  | `func_8014F514(0x100, 1, 0)`                    | Very slow fade, 128 frames.       |
+| 13, 14, 15, 16      | `+0x200 / -0x200` with `F514` or `F5F0`         | Slow fades, 64 frames.             |
+| 19                  | `func_8014F514(0x100, 1, 0)`                    | Very slow fade, 128 frames.        |
 
 The fade body `func_8014F704` draws a 320 by 240 `TILE` with grey level `position >> 7`, semi-transparent with draw mode `GetTPage(1, abr, 0x140, 0)`, and adds the step to a 16-bit level each frame until the sign bit flips. The frame count is `0x8000 / step`. The thread then calls `CallbackExit`, so every effect ends its slot. That `abr = 2` is a subtractive blend, a fade to black, is PlayStation GPU behaviour rather than game data `[inferred]`. The modes with camera changes were read only for their loop shape `[unknown]`.
 
@@ -131,46 +131,46 @@ The fade body `func_8014F704` draws a 320 by 240 `TILE` with grey level `positio
 
 ## Key data
 
-| Object                     | Address      | Role                                                                              |
-| -------------------------- | ------------ | --------------------------------------------------------------------------------- |
+| Object                     | Address      | Role                                                                               |
+| -------------------------- | ------------ | ---------------------------------------------------------------------------------- |
 | `g_UiWindowChannel`        | `0x801490A4` | Channel flags: timer, confirm, selection, request, no-wait, advance, latch, force. |
-| `D_801490A0`               | `0x801490A0` | Message state byte (`state_00`).                                                  |
-| `D_801490A2`               | `0x801490A2` | Selection state.                                                                  |
-| `g_UiWindowStep`           | `0x801490A1` | Step index inside a state's sub-table.                                            |
-| `g_MessageRequest`         | `0x801490A8` | Message index; `0xFFFF` means none.                                               |
-| `D_801490AC`, `D_801490B0` | `0x801490AC` | Script start and current record pointer.                                          |
-| `D_801490B9`               | `0x801490B9` | Characters shown.                                                                 |
-| `D_801490C7`               | `0x801490C7` | The player's choice.                                                              |
-| `g_TextVariables`          | `0x801490D8` | 32-byte variable strings.                                                         |
-| `g_UiLocalMode`            | `0x80143C90` | Current screen effect.                                                            |
+| `D_801490A0`               | `0x801490A0` | Message state byte (`state_00`).                                                   |
+| `D_801490A2`               | `0x801490A2` | Selection state.                                                                   |
+| `g_UiWindowStep`           | `0x801490A1` | Step index inside a state's sub-table.                                             |
+| `g_MessageRequest`         | `0x801490A8` | Message index; `0xFFFF` means none.                                                |
+| `D_801490AC`, `D_801490B0` | `0x801490AC` | Script start and current record pointer.                                           |
+| `D_801490B9`               | `0x801490B9` | Characters shown.                                                                  |
+| `D_801490C7`               | `0x801490C7` | The player's choice.                                                               |
+| `g_TextVariables`          | `0x801490D8` | 32-byte variable strings.                                                          |
+| `g_UiLocalMode`            | `0x80143C90` | Current screen effect.                                                             |
 
 ## Data and limits
 
-| Limit                       | Value                                                                                      | Source                                                    | Asset must stay within                                                 |
-| --------------------------- | ------------------------------------------------------------------------------------------ | --------------------------------------------------------- | ---------------------------------------------------------------------- |
-| Characters per frame budget | The primitive arena, 36,812 bytes: about 2,300 `SPRT_8` or 1,840 `SPRT`                    | `GFX_AddPrim` ([rendering](rendering.md#data-and-limits)) | Text beyond the arena is dropped, not truncated by the engine.         |
-| Name insert                 | 6 characters                                                                               | `UI_DrawMessageScript`                                    | Party names fit 6 glyphs when inserted into a message.                 |
-| Variable string             | 32 bytes per entry; the budget is 33 steps because the cursor steps past the operand first | `g_TextVariables[][0x20]`                                 | Variable text stays under 32 bytes.                                    |
-| Bank link                   | 17 characters                                                                              | `UI_DrawMessageScript`                                    | A linked message shows at most 17 characters.                          |
-| Message bank offsets        | `u16` offsets from `0x80010000`                                                            | `Message_StartAreaMessage`                                | A bank is under 64 KB; the record pointer is `0x80010000 + u16`.       |
-| Resource groups             | 4 (id bits 14 and 15)                                                                      | `Resource_Resolve` mask `0xC`                             | Resource ids use groups 0 to 3, index below `0x4000`.                  |
+| Limit                       | Value                                                                                      | Source                                                    | Asset must stay within                                                  |
+| --------------------------- | ------------------------------------------------------------------------------------------ | --------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Characters per frame budget | The primitive arena, 36,812 bytes: about 2,300 `SPRT_8` or 1,840 `SPRT`                    | `GFX_AddPrim` ([rendering](rendering.md#data-and-limits)) | Text beyond the arena is dropped, not truncated by the engine.          |
+| Name insert                 | 6 characters                                                                               | `UI_DrawMessageScript`                                    | Party names fit 6 glyphs when inserted into a message.                  |
+| Variable string             | 32 bytes per entry; the budget is 33 steps because the cursor steps past the operand first | `g_TextVariables[][0x20]`                                 | Variable text stays under 32 bytes.                                     |
+| Bank link                   | 17 characters                                                                              | `UI_DrawMessageScript`                                    | A linked message shows at most 17 characters.                           |
+| Message bank offsets        | `u16` offsets from `0x80010000`                                                            | `Message_StartAreaMessage`                                | A bank is under 64 KB; the record pointer is `0x80010000 + u16`.        |
+| Resource groups             | 4 (id bits 14 and 15)                                                                      | `Resource_Resolve` mask `0xC`                             | Resource ids use groups 0 to 3, index below `0x4000`.                   |
 | Window size                 | 200 by 54 or 120 by 54 pixels                                                              | `func_80159050`                                           | Message text fits the box: glyphs advance 8 pixels, a newline moves 14. |
-| Window positions            | 8 per set, 2 sets                                                                          | `g_MenuPanelOrigins`, `D_801490CE`                        | Position index below 8.                                                |
-| Panel tasks                 | 22                                                                                         | `Menu_ResetPanelTasks`                                    | At most 22 panels open together.                                       |
-| Screen effects              | 21 modes                                                                                   | `g_UiLocalModeFuncs`                                      | Effect index below 21.                                                 |
-| Glyph sheet                 | 31 columns of 8 by 12 cells at texture page `0x2F`; 32 columns of 8 by 8                   | `UI_DrawTextGlyphs`, `UI_DrawGlyphString`                 | A replacement font keeps the cell grid and page.                       |
-| Palette for text            | 16 cells (columns 0 to 15) of stage row 0                                                  | CLUT `0x7800 \| n`                                        | Text colours sit in the first 16 cells of arena row 0.                 |
+| Window positions            | 8 per set, 2 sets                                                                          | `g_MenuPanelOrigins`, `D_801490CE`                        | Position index below 8.                                                 |
+| Panel tasks                 | 22                                                                                         | `Menu_ResetPanelTasks`                                    | At most 22 panels open together.                                        |
+| Screen effects              | 21 modes                                                                                   | `g_UiLocalModeFuncs`                                      | Effect index below 21.                                                  |
+| Glyph sheet                 | 31 columns of 8 by 12 cells at texture page `0x2F`; 32 columns of 8 by 8                   | `UI_DrawTextGlyphs`, `UI_DrawGlyphString`                 | A replacement font keeps the cell grid and page.                        |
+| Palette for text            | 16 cells (columns 0 to 15) of stage row 0                                                  | CLUT `0x7800 \| n`                                        | Text colours sit in the first 16 cells of arena row 0.                  |
 
 See also [frame loop](frame-loop.md), the [editor guide](editor-guide.md) and [disc and files](disc-and-files.md).
 
 ## Gaps
 
-| Gap                                                                      | What would settle it                                                                     |
-| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
-| Per-step roles of message states 4, 5 and 7                              | Read the 8, 6 and 2 step functions and the shop and start-menu callers.                  |
-| Source of `D_80144950` (message speed) and the row count of `D_8017F5B4` | Search writers of `D_80144950` in the options menu.                                      |
-| Who writes `g_UiWindowEffectBusy`                                        | Read `func_801D74D4`, `func_80198780`, `func_801985C8`.                                  |
-| Overlay owners of six `g_MenuPanels` handlers                            | Map each address to its overlay window and archive.                                      |
-| Panel fill drawing and the pass-order meaning of modes 0, 1, 2           | Read `func_80158FE0`, `func_801598F4`, `func_80159A20`.                                  |
-| Battle messages (`g_BattleMessageState`) use a separate path             | Read the `emi/battle/battle/03` message functions.                                       |
+| Gap                                                                      | What would settle it                                                                      |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| Per-step roles of message states 4, 5 and 7                              | Read the 8, 6 and 2 step functions and the shop and start-menu callers.                   |
+| Source of `D_80144950` (message speed) and the row count of `D_8017F5B4` | Search writers of `D_80144950` in the options menu.                                       |
+| Who writes `g_UiWindowEffectBusy`                                        | Read `func_801D74D4`, `func_80198780`, `func_801985C8`.                                   |
+| Overlay owners of six `g_MenuPanels` handlers                            | Map each address to its overlay window and archive.                                       |
+| Panel fill drawing and the pass-order meaning of modes 0, 1, 2           | Read `func_80158FE0`, `func_801598F4`, `func_80159A20`.                                   |
+| Battle messages (`g_BattleMessageState`) use a separate path             | Read the `emi/battle/battle/03` message functions.                                        |
 | Camera-spin effects (modes 10 to 20)                                     | Read `func_8014EF80`, `func_8014F024`, `func_8014F24C`, `func_8014F2F0`, `func_8014F460`. |
