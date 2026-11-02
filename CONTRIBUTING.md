@@ -18,6 +18,14 @@ mdbook-mermaid install .
 mdbook build .       # writes book/
 dprint check         # Markdown format
 dprint fmt           # fix the format
+python3 tools/build_ingest.py   # llms.txt, llms-full.txt, sitemap.xml, robots.txt into book/
+```
+
+CI also checks internal links and anchors offline with
+[lychee](https://github.com/lycheeverse/lychee) 0.24.2. To run it, download that release, then:
+
+```sh
+lychee --offline --include-fragments --root-dir "$PWD/book" --exclude-path book/404.html book
 ```
 
 ## Submit a change
