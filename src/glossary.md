@@ -1,16 +1,24 @@
 # Glossary
 
-The terms these pages use without explaining each time. Read the first two sections before any page that cites functions or addresses.
+This page defines the evidence tags and the terms that the other pages use without explaining each
+time. Read the first section before any page that cites functions or addresses. Each term has one
+definition here, and the other pages link to it.
 
 ## Evidence citations
 
-A claim about the game's code names the function and the program that holds it: `Name (image@0xADDR)`. For example, `SYS_Main (exe/slus_004_22@0x8014AAC8)` is the function `SYS_Main` at address `0x8014AAC8` in the image `exe/slus_004_22`. The symbol name at that address is a result of this research, not a name the game stores. A name of the form `func_8014AAC8` is an address name: the function is located but not yet given a role. `D_80146840` is the same for data, and a `g_` prefix marks a named global. A `u8`, `u16`, `s32` and so on is an unsigned (`u`) or signed (`s`) integer of 8, 16 or 32 bits; all multi-byte values are little endian.
+A claim about the game's code names the function and the image that holds it: `Name (image@0xADDR)`.
+For example, `SYS_Main (exe/slus_004_22@0x8014AAC8)` is the function `SYS_Main` at address `0x8014AAC8` in
+the image `exe/slus_004_22`. Read the address together with its image, because overlays reuse
+addresses.
 
-An address alone is not enough, because overlays reuse addresses. Always read the address together with its image.
+The name is a label from this research, not a name that the game stores. A name of the form
+`func_8014AAC8` is an address name: the function is located but has no role name yet. `D_80146840` is the
+same for data, and a `g_` prefix marks a named global. A `u8`, `u16` or `s32` is an unsigned (`u`) or
+signed (`s`) integer of 8, 16 or 32 bits. All multi-byte values are little endian.
 
 ### Image ids
 
-An image is one program the game loads. Its id is a path:
+An image is one program that the game loads. Its id is a path.
 
 | Image id                    | What it is                                                                                                              |
 | --------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
@@ -20,42 +28,61 @@ An image is one program the game loads. Its id is a path:
 
 ### Evidence tags
 
-| Tag                        | Meaning                                                                       |
-| -------------------------- | ----------------------------------------------------------------------------- |
-| `read` or `[read]`         | read directly in the code or data                                             |
-| `measured`                 | checked over every instance on the disc; the count is given                   |
-| `inferred` or `[inferred]` | deduced from several reads; treat as a lead                                   |
-| `unknown` or `[unknown]`   | not established; [gaps](game/architecture/gaps.md) lists what would settle it |
+Every page states facts that come from reading the retail code or data. A claim with no tag is such a
+read: the code or the data shows it. Only two tags exist, and they mark the exceptions.
+
+| Tag          | Meaning                                                                                                  |
+| ------------ | -------------------------------------------------------------------------------------------------------- |
+| `[inferred]` | deduced from several reads or from a community source; treat it as a lead                                |
+| `[unknown]`  | not established; the page says what would settle it, and [gaps](game/architecture/gaps.md) collects them |
+
+The site holds no retail bytes. Layouts, offsets and counts come from reading the game and checking
+every instance on the disc. A count such as "200 of 200" says a check covered every instance.
 
 ## Disc and containers
 
-| Term           | Meaning                                                                                                                                                                                                     |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| EMI            | the game's archive format (`.EMI` files): a sector-aligned table of contents and typed entries ([EMI container](formats/emi.md))                                                                            |
-| entry          | one item in an EMI archive; written `ARCHIVE#n` or `archive/n`; its type (0 to 10) says how the loader treats it                                                                                            |
-| slot           | an index. An archive slot id is the archive's index in the disc file list. A text slot is an index in a message bank's offset table. A battler slot is a position in the battle party. Each page says which |
-| payload        | the bytes of an entry after its table-of-contents record                                                                                                                                                    |
-| load argument  | a type-dependent 32-bit value in an entry's table record: a RAM address for code and data, a VRAM position for textures                                                                                     |
-| LBA            | logical block address: a sector number on the disc                                                                                                                                                          |
-| Form 1, Form 2 | the two CD-ROM XA sector layouts; Form 1 has error correction and 2,048 data bytes, Form 2 has 2,324 data bytes and none                                                                                    |
-| STR, XA        | the game's streamed video and interleaved audio sectors ([STR and XA](formats/str.md))                                                                                                                      |
-| CDDA           | CD audio tracks on the disc, outside the data track                                                                                                                                                         |
-| kind           | a name this wiki gives to a class of disc content, such as `area-map`, `texture` or `audio-bank` ([asset kinds](formats/assets.md))                                                                         |
+| Term           | Meaning                                                                                                                                                                                                                                                                            |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| EMI            | the game's archive format (`.EMI` files): a sector-aligned table of contents and typed entries ([EMI container](formats/emi.md))                                                                                                                                                   |
+| entry          | one item in an EMI archive; written `ARCHIVE#n` or `archive/n`; its type (0 to 10) says how the loader treats it                                                                                                                                                                   |
+| slot           | an index. An archive slot id is the archive's index in the disc file list. A text slot is an index in a message bank's offset table. A battler slot is a position in a battle (0-2 party, 3-10 enemies). A field slot is one row of the scene's object table. Each page says which |
+| record         | one fixed-size row of a table (a character record, an enemy record, a drop row), or one string run in a message bank                                                                                                                                                               |
+| message bank   | a payload that opens with a little-endian `u16` offset table. Each slot of the table points at a record of text; several slots can share one record ([text](game/text.md#message-bank))                                                                                            |
+| name table     | an array of fixed-stride records that each hold a name field ([text](game/text.md#fixed-width-name-tables))                                                                                                                                                                        |
+| fixed tables   | the eight tables in `GAME.EMI` entry 0: items, vital items, weapons, armor, accessories, shops, abilities and level growth ([records](game/records.md#gameemi-fixed-tables))                                                                                                       |
+| payload        | the bytes of an entry after its table-of-contents record                                                                                                                                                                                                                           |
+| load argument  | a type-dependent 32-bit value in an entry's table record: a RAM address for code and data, a VRAM position for textures                                                                                                                                                            |
+| LBA            | logical block address: a sector number on the disc                                                                                                                                                                                                                                 |
+| Form 1, Form 2 | the two CD-ROM XA sector layouts; Form 1 has error correction and 2,048 data bytes, Form 2 has 2,324 data bytes and none                                                                                                                                                           |
+| STR, XA        | the game's streamed video and interleaved audio sectors ([STR and XA](formats/str.md))                                                                                                                                                                                             |
+| CDDA           | CD audio tracks on the disc, outside the data track                                                                                                                                                                                                                                |
+| kind           | a name this wiki gives to a class of disc content, such as `area-map`, `texture` or `audio-bank` ([asset kinds](formats/assets.md))                                                                                                                                                |
 
 ## Game runtime
 
-| Term           | Meaning                                                                                                                 |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| overlay        | code or data streamed from the disc into a fixed RAM window, replacing the previous overlay at that address             |
-| window         | a RAM range that overlays share, such as `0x801D0C00` for scene overlays ([memory](game/architecture/memory.md))        |
-| area           | one of the 200 `WORLDnn/AREAnnn.EMI` maps: a town, dungeon, world map, battlefield, fishing pond, fairy village or camp |
-| scenario       | one of 20 story controller overlays, `SCENA00` to `SCENA19` ([scenario](game/architecture/scenario.md))                 |
-| boss module    | the code overlay of one boss battle                                                                                     |
-| callback slot  | one of the four cooperative tasks the main loop runs each frame ([scheduler](game/architecture/scheduler.md))           |
-| scratchpad     | the PlayStation's 1 KiB fast memory at `0x1F800000`                                                                     |
-| ordering table | the GPU's linked list of primitives drawn in depth order                                                                |
-| primitive      | one GPU draw command (sprite, textured quad, line)                                                                      |
-| staging buffer | RAM where data waits before it is copied to VRAM, the card or the SPU                                                   |
+| Term             | Meaning                                                                                                                                                                                                   |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| resident program | the main executable, which stays in RAM from boot to power-off; every overlay calls into it ([runtime](game/runtime.md))                                                                                  |
+| overlay          | code or data streamed from the disc into a fixed RAM window, replacing the previous overlay at that address                                                                                               |
+| window           | a RAM range that overlays share, such as `0x801D0C00` for scene overlays ([memory](game/architecture/memory.md))                                                                                          |
+| area             | one of the 200 `WORLDnn/AREAnnn.EMI` maps: a town, dungeon, world map, battlefield, fishing pond, fairy village or camp                                                                                   |
+| scenario         | one of 20 story controller overlays, `SCENA00` to `SCENA19` ([scenario](game/architecture/scenario.md))                                                                                                   |
+| module           | a small overlay that a window swaps, such as a boss battle or a battle effect. Its first `u32` is its module id ([runtime](game/runtime.md#module-windows))                                               |
+| boss module      | the module of one boss battle                                                                                                                                                                             |
+| area program     | the code entry of an area, loaded at `0x801F2C00`; it places the area's objects and runs its scripts                                                                                                      |
+| map kind         | what an area is: world map, battlefield, fishing pond, fairy village, camp or walked area. Byte `+0x32` of the area's load row selects it ([runtime](game/runtime.md#map-kinds))                          |
+| entry state      | the value of `g_GameEntryState`: an index into the table `g_GameStates` of 12 full-screen modes, such as the field or the menu ([screens](game/architecture/screens.md))                                  |
+| request code     | a byte, `g_GameStateIndex`, with values 0 to 9. Field, actor and scenario code write it, and the field state reads it to choose the next entry state ([phases](game/architecture/phases.md))              |
+| zone list        | the executable's per-area list of 8-byte rectangles in map cells. A rectangle holds an encounter step class, a zone kind and a music selector (`[inferred]`; [area](game/architecture/area.md#zone-list)) |
+| work row         | a row that an overlay builds in RAM at run time, such as a player or enemy row of a battle ([battle](game/battle.md))                                                                                     |
+| actor row        | one of 30 rows of `0x98` bytes at `0x80146888`: a map object or an interaction slot ([field](game/field.md#actor-rows))                                                                                   |
+| field slot       | one of 20 rows of `0x74` bytes at `0x80143FC8` that the scene claims, fills and clears ([field](game/field.md#field-slots))                                                                               |
+| text id          | a 16-bit id that a record stores to name a string. The top two bits pick a group, and the rest index that group's offset table (`Resource_Resolve`, [text](game/text.md#references))                      |
+| callback slot    | one of the four cooperative tasks the main loop runs each frame ([scheduler](game/architecture/scheduler.md))                                                                                             |
+| scratchpad       | the PlayStation's 1 KiB fast memory at `0x1F800000`                                                                                                                                                       |
+| ordering table   | the GPU's linked list of primitives drawn in depth order                                                                                                                                                  |
+| primitive        | one GPU draw command (sprite, textured quad, line)                                                                                                                                                        |
+| staging buffer   | RAM where data waits before it is copied to VRAM, the card or the SPU                                                                                                                                     |
 
 ## PlayStation hardware and formats
 

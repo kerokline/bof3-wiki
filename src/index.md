@@ -1,12 +1,51 @@
 # Breath of Fire III: game specifications
 
-Independent research on how *Breath of Fire III* (US, PlayStation, `SLUS-00422`) stores and runs its data: file formats, memory layouts, record tables, text encoding and the code that reads them. Every page states layouts, offsets, values, limits and what is still unknown.
+This site documents how *Breath of Fire III* (US, PlayStation, `SLUS-00422`) stores and runs its data:
+file formats, memory layouts, record tables, text encoding and the code that reads them. It is written
+for modders and fans who know some PlayStation basics but not this game. Every page states layouts,
+offsets, values, limits and what is still unknown.
 
-This site holds no game data and no game assets. It is independent research on the game's file formats and behaviour. *Breath of Fire* and the game belong to Capcom, and the PlayStation belongs to Sony; they keep their rights. This site is not affiliated with or endorsed by either company.
+The site holds no game data and no game assets. *Breath of Fire* and the game belong to Capcom, and the
+PlayStation belongs to Sony; they keep their rights. This site is independent and is not affiliated
+with or endorsed by either company.
 
-## How to read it
+## What the game is made of
 
-Facts cite the retail code as `Name (image@0xADDR)`: a function name, the program that holds it, and its address. Tags such as `[read]`, `measured` and `unknown` say how well a fact is established. Both are explained in the [glossary](glossary.md). Where something is not known, the page says so, and [open questions](game/architecture/gaps.md) collects every gap.
+The game has three parts.
+
+1. **One resident program.** `SLUS_004.22` loads at boot and stays in RAM until power-off. It holds
+   the main loop, the loader, the graphics and sound drivers and the shared helpers. See
+   [runtime](game/runtime.md).
+2. **Overlays.** Everything else is code that the loader streams from `.EMI` archives on the disc
+   into fixed RAM windows. Each window holds one overlay at a time, such as the battle program, a
+   scenario controller or the program of one map. See [loading](game/architecture/loading.md) and
+   [memory](game/architecture/memory.md).
+3. **Data tables.** Items, abilities, enemies, text, maps and sound are payloads inside the archives.
+   The game reads them through fixed tables and offsets. See [game records](game/records.md) and
+   [game text](game/text.md).
+
+An EMI archive is a sector-aligned list of typed entries ([EMI container](formats/emi.md)). Each
+entry names the RAM address it loads at, so one archive can carry code, data, textures and audio.
+
+## How the site is organised
+
+The pages go from overview to detail.
+
+- **How the game is built** names the programs and where they sit in RAM and on the disc.
+- **How the game runs** follows one run from power-on to the credits: boot, the frame loop, phases,
+  areas, battle, screens, rendering, audio and saving.
+- **Game data** gives the layout of the tables and rows the game uses at run time.
+- **File formats** gives the byte layout of each kind of file on the disc.
+- **For editors** lists, per kind of data, where it lives and what limits a change.
+- **Reference** has the open questions, the documentation coverage and the sources.
+
+## How to read a page
+
+A fact about the code cites the function as `Name (image@0xADDR)`: the name, the program that holds
+it and its address. A claim with no tag was read in the code or data. A claim tagged `[inferred]` is a
+lead, and one tagged `[unknown]` is not established. The [glossary](glossary.md) defines the citation
+format, the two tags and every term, and [open questions](game/architecture/gaps.md) collects the
+gaps.
 
 ## Start with your goal
 
@@ -20,13 +59,6 @@ Facts cite the retail code as `Name (image@0xADDR)`: a function name, the progra
 | Edit maps and scenes                    | [Area formats](formats/area.md), [areas and the field](game/architecture/area.md), [scenario engine](game/architecture/scenario.md)           |
 | Edit characters and sprites             | [Character bank](formats/character.md), [graphics](formats/graphics.md)                                                                       |
 | Edit or inspect a save                  | [Memory card save](formats/save.md), [saving](game/architecture/saving.md)                                                                    |
-| Look up the battle or field data in RAM | [Battle](game/battle.md), [field and party](game/field.md)                                                                                    |
+| Look up the battle or field data in RAM | [Battle records](game/battle.md), [field and party records](game/field.md)                                                                    |
 | Find a term                             | [Glossary](glossary.md)                                                                                                                       |
 | See where a fact comes from             | [Sources](sources.md)                                                                                                                         |
-
-## How the pages are organised
-
-- **Game** pages describe what the game does: records, text, battle, field and the runtime.
-- **Architecture** pages follow one run from power-on to the end credits: boot, loading, phases, rendering, audio and saving.
-- **Formats** pages give the byte layout of each file kind on the disc.
-- Page style: a format page names the file, where it sits on the disc, its layout, its values and limits, and what is unknown.

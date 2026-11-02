@@ -3,23 +3,20 @@
 [Introduction](index.md)
 [Glossary](glossary.md)
 
-# Game data
+# How the game is built
 
+- [Overview](game/architecture/index.md)
 - [Runtime](game/runtime.md)
-- [Game records](game/records.md)
-- [Game text](game/text.md)
-- [Battle records](game/battle.md)
-- [Field and party records](game/field.md)
+- [Disc and files](game/architecture/disc-and-files.md)
+- [Memory](game/architecture/memory.md)
+- [Loading](game/architecture/loading.md)
+- [Where the code lives](game/architecture/responsibilities.md)
 
 # How the game runs
 
-- [Overview](game/architecture/index.md)
-- [Disc and files](game/architecture/disc-and-files.md)
 - [Boot](game/architecture/boot.md)
 - [Frame loop](game/architecture/frame-loop.md)
 - [Scheduler and tasks](game/architecture/scheduler.md)
-- [Memory](game/architecture/memory.md)
-- [Loading](game/architecture/loading.md)
 - [Game phases](game/architecture/phases.md)
 - [Scenario engine](game/architecture/scenario.md)
 - [Areas and the field](game/architecture/area.md)
@@ -30,7 +27,13 @@
 - [Audio](game/architecture/audio.md)
 - [Saving and loading](game/architecture/saving.md)
 - [Persistent state](game/architecture/state.md)
-- [Where the code lives](game/architecture/responsibilities.md)
+
+# Game data
+
+- [Game records](game/records.md)
+- [Game text](game/text.md)
+- [Battle records](game/battle.md)
+- [Field and party records](game/field.md)
 
 # File formats
 
