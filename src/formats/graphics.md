@@ -1,13 +1,8 @@
 # Graphics
 
-*Read this if you extract or edit textures and palettes.*
+The game draws its sprites, maps and menus from textures that it keeps in the GPU's video memory (VRAM). On the disc a texture and its palette are separate things. A texture is a block of raw VRAM words that the loader uploads as is (EMI type 3, with no header). A palette is a small block of colour words that arrives as a type-0 entry. Nothing in either block says which palette goes with which texture. That link lives in the drawing code, which names a texture page and a palette row for each primitive. This page describes how both blocks are stored and loaded, how the VRAM words are encoded, and what is known about the texture-to-palette link.
 
-VRAM uploads, palettes and the palette codec. Type-3 EMI entries are raw VRAM uploads. A payload has no header; the TOC load argument places it.
-Palette bytes arrive separately as small type-0 entries. The runtime primitives are the PsyQ SDK's
-records. The sprite records are `SPRT` (free size), `SPRT_8` and `SPRT_16`, and the game also draws
-textured `POLY_FT4`/`POLY_GT4` quads and untextured `TILE` and `POLY_G` records (identifier counts in
-the game code read: `POLY_FT4` 152, `SPRT` 95, `POLY_GT4` 36, `SPRT_8` 13, `SPRT_16` 5). The
-menu's panel icon is one `SPRT_8` written at the primitive cursor `g_GfxPrimCursor` (`0x8014598C`).
+The game draws with the PsyQ primitive records: `SPRT` (free size), `SPRT_8` and `SPRT_16` sprites, textured quads `POLY_FT4` and `POLY_GT4`, and untextured `TILE` and `POLY_G`. The identifier counts in the game code read are `POLY_FT4` 152, `SPRT` 95, `POLY_GT4` 36, `SPRT_8` 13 and `SPRT_16` 5. The menu's panel icon is one `SPRT_8` written at the primitive cursor `g_GfxPrimCursor (exe/slus_004_22@0x8014598C)`.
 
 ## Type-3 load argument
 
@@ -20,21 +15,15 @@ The type-3 handler `EMI_LoaderLoadGraphics (exe/slus_004_22@0x80162698)` reads t
 | `15:8`, mask `0x3F`  | rectangles per row                 | 32x32-word rectangles |
 | `7:0`                | unused (`0` in 592 of 593 entries) |                       |
 
-## Chunk layout
+For example, the argument `0x1A080400` has column `0x1A` = 26 (VRAM x = 832), row `0x08` = 8 (VRAM y = 256) and `0x04` rectangles per row. A 65,536-byte payload holds 32 rectangles, so it fills 8 rectangle rows of 4 rectangles, 128 words wide and 256 rows tall, from (832, 256).
 
-Each `0x800`-byte payload chunk is one 32x32 rectangle of 16-bit VRAM words: 32 payload rows of 32
-little-endian words. Rectangles fill a row left to right up to `rectangles per row`, then the
-destination advances 32 VRAM rows down. Payload order is rectangle order.
+### Chunk layout
 
-Every extracted payload is a whole number of rectangles whose count divides into rows
-(593/593 entries, 54,840 rectangles). A rectangle is uploaded only when its whole 32x32 extent is
-inside the 1024x512-word frame buffer; the loader drops the rest instead of clipping. `@0x80163378`
-calls `LoadImage` while `x < 1001` and `y < 501`, which for the 32-aligned destinations means the
-rectangle fits. `ETC/FIRST.EMI#6` starts at row 15 and spans 8 rectangle rows, so rows 16-22 are
-dropped; those words are zero in all 14 dropped rectangles.
+Each `0x800`-byte chunk of the payload is one 32x32 rectangle of 16-bit VRAM words: 32 rows of 32 little-endian words. Rectangles fill a row from left to right up to `rectangles per row`. Then the destination moves 32 VRAM rows down. The payload order is the rectangle order.
 
-The rectangle is 32 VRAM words wide in every mode; the pixel dimensions follow the draw state's
-bits per pixel, which no payload or descriptor field carries.
+All 593 payloads are a whole number of rectangles, and the count divides into whole rows (54,840 rectangles in all). A rectangle uploads only if its whole 32x32 extent is inside the 1,024 by 512 word frame buffer. The loader drops the rest instead of clipping: `EMI_LoaderUploadSector (exe/slus_004_22@0x80163378)` calls `LoadImage` while `x < 1001` and `y < 501`, which for these 32-aligned destinations means the rectangle fits. `ETC/FIRST.EMI#6` starts at row 15 and spans 8 rectangle rows, so rows 16 to 22 fall outside. All 14 rectangles dropped on the disc are zero.
+
+A rectangle is 32 VRAM words wide in every mode, so its size in pixels depends on the colour depth of the draw. No payload or descriptor field carries the depth.
 
 | Mode  | Pixels per rectangle |
 | ----- | -------------------- |
@@ -42,88 +31,63 @@ bits per pixel, which no payload or descriptor field carries.
 | 8bpp  | 64x32                |
 | 16bpp | 32x32                |
 
-## Palette
+## Palettes
 
-Palette entries are raw little-endian PSX color words:
+A palette is a run of colour words. A word is a raw little-endian PSX colour:
 
 ```text
 15      14..10 9..5 4..0
 STP     blue   green red
 ```
 
-| Mode | Colors | Row size |
-| ---- | -----: | -------: |
-| 4bpp |     16 |   `0x20` |
-| 8bpp |    256 |  `0x200` |
+STP is the semi-transparency bit. A texel of `0x0000` is never drawn. With any other value, STP set marks the texel as semi-transparent when the primitive's blend mode is on. To show a colour on a desktop, expand each 5-bit channel to 8 bits.
 
-A CLUT bank is a whole number of 4bpp rows, so its payload holds an even byte count and a multiple
-of `0x20` bytes; a bank whose word count also divides by 256 is a whole number of 8bpp rows.
-Nothing in the payload names a bank's bpp, geometry or owner. Palette data commonly loads into
-`0x80033XXX`-`0x8003AXXX` as type-0 entries; the runtime drawing data, not the texture payload,
-supplies the texture-to-palette association ([area](area.md#palette-arena)).
+A 4bpp texture uses a row of 16 colours and an 8bpp texture a row of 256. A CLUT bank is a whole number of 4bpp rows, so its payload has a multiple of `0x20` bytes. A bank whose word count is also a multiple of 256 is a whole number of 8bpp rows.
 
-### Texture-to-palette join
+| Mode | Colours | Row size |
+| ---- | ------: | -------: |
+| 4bpp |      16 |   `0x20` |
+| 8bpp |     256 |  `0x200` |
 
-A texture's palette row follows from a draw rule, never from the texture
-payload:
+Nothing in a bank names its depth, geometry or owner. Palette banks are type-0 entries that load into `0x80033800` to `0x80036E00` and the engine uploads them to VRAM rows 480 to 511 ([palette arena](area.md#palette-arena)). The disc holds 620 such entries: 32 to 6,144 bytes each, 1,121,696 bytes in all, and every size is a multiple of `0x20`. 577 carry 64 bytes or more, and 43 are a single 16-colour row. The arena of one area is a single type-0 entry, and its load argument is `0x80033E00` in most areas.
 
-- A **literal site** names a texture page and a CLUT in one function (`WORLD00/AREA024.EMI#14`
-  writes `0x003B` and `0x78CA`). The proven sites are listed in the [assets join table](assets.md#texture-evidence).
-- The **world-map terrain rule** reads each tile descriptor word (`func_80155560 (exe/slus_004_22@0x80155560)`): bit 31 selects
-  the depth, bits 24-27 the CLUT index and bits 28-29 the page bank. An 8bpp descriptor
-  (`bit 31 = 0`) reads CLUT row `(0, 483 + index)`; a 4bpp descriptor reads `(16 * index, 483)`.
-  Both use page `(320 + 128 * bank, 256)`. Empty descriptors name nothing.
+## VRAM coordinates
 
-A rule joins only when exactly one type-3 sheet covers the page and exactly one distinct bank
-holds the row. Two sheets over the same words, or two banks that disagree at the same arena
-position, leave the texture unjoined: the sheet slot is known and no palette is guessed.
-The bank search first uses the texture's own archive; when that archive has no bank for the row,
-the resident set of palette banks loaded from the disc is consulted and identical banks collapse.
-The battle icon rows show the limit: row 506 differs between `BATL_OVR.EMI` and `BATL_DRA.EMI`,
-and row 507 agrees in `BATTLE.EMI`, `BATL_RE2.EMI`, `BATL_RET.EMI` and `BATTLE2.EMI` but differs
-in `BATL_DRA.EMI`, so a disc-wide resident set leaves them unjoined rather than guess.
+A palette-arena word `w` sits at VRAM column `w % 256` and row `480 + w / 256`. A 16-colour CLUT at arena offset `o` sits at VRAM `x = (o mod 0x200) / 2` and `y = 480 + o / 0x200`.
 
-The encoded words assume graph type 0, the runtime the US disc selects: `GetGraphType()` reads
-`D_8018B15C`, and `SetVideoMode(MODE_NTSC)` with `_reset(3)` leaves it zero. A site that writes the
-graph-type-1/2 encoding is decoded with the page fields that encoding places there.
+A CLUT word packs the position of a palette row in VRAM. A texture-page word (`tpage`) packs a page, a depth and a blend mode:
 
-The proven rules cover **212 of the 593 type-3 textures, 890 palette rows**: 200 world-map terrain
-sheets (865 distinct rows across the archives), 11 of which also carry a literal site, plus the
-nine area sprite sheets, two `AREA030` icon sheets and the `BMAGIC/MAGIC218` effect sheet.
-These are the measured totals. The association still comes from code, not
-data: a texture with no draw rule stays unknown.
+- CLUT word: `(x / 16) | (y << 6)`.
+- `tpage` page column: `(w & 0xF) * 64` words. Page row: 256 if `w & 0x10`, else 0.
+- `tpage` colour mode: `(w >> 7) & 3` (0 is 4bpp, 1 is 8bpp, 2 is 15bpp, 3 is reserved). Blend: `(w >> 5) & 3`.
 
-## Palette words and runtime records
+### Palette words and runtime records
 
-`GetClut` (`exe/slus_004_22@0x8017A6F0`) builds a 16-bit CLUT word: bits 0-5 are the column in
-16-word units, bits 6-15 the row.
+`GetClut (exe/slus_004_22@0x8017A6F0)` builds a 16-bit CLUT word. Bits 0 to 5 are the column in 16-word units and bits 6 to 15 are the row:
 
 ```text
 clut = ((y & 0x3FF) << 6) | ((x >> 4) & 0x3F)
 ```
 
-`GetTPage` (`@0x8017A620`) has two encodings. The US disc runs graph type 0: `GetGraphType()` reads
-`D_8018B15C`, and the boot path leaves it zero.
+`GetTPage (exe/slus_004_22@0x8017A620)` has two encodings, chosen by the graph type. `GetGraphType (exe/slus_004_22@0x8017B2B4)` returns the byte at `D_8018B15C`, which `ResetGraph (exe/slus_004_22@0x8017AF0C)` writes from the result of `_reset (exe/slus_004_22@0x8017DA54)`. The US disc runs graph type 0 (a high-confidence inference from the boot path, not a hardware capture): the logo overlay calls `ResetGraph(0)`, and `SYS_InitHardware (exe/slus_004_22@0x8014AD28)` calls `ResetGraph(0)` on first boot and `ResetGraph(3)` later. `_reset(3)` returns 0, and `ResetGraph(0)` returns `_version(0)`, which is 0 when its GPU status probe fails.
 
 | Graph type | TPage word                                                                                          |
 | ---------- | --------------------------------------------------------------------------------------------------- |
 | 0          | `(tp & 3) << 7 \| (abr & 3) << 5 \| ((y & 0x100) >> 4) \| ((x & 0x3FF) >> 6) \| ((y & 0x200) << 2)` |
 | 1, 2       | `(tp & 3) << 9 \| (abr & 3) << 7 \| ((y & 0x300) >> 3) \| ((x & 0x3FF) >> 6)`                       |
 
-`tp` is 0 4bpp, 1 8bpp, 2 15bpp. A site that writes the graph-type-1/2 encoding must be decoded with
-that row. The game also open-codes both forms as `getTPage`/`getTPageN` in
-`Area_DrawObjectSprite (exe/slus_004_22@0x8014C4D4)`.
+`tp` is 0 for 4bpp, 1 for 8bpp and 2 for 15bpp. A site that writes the type 1 or 2 form decodes with the second row. The game also writes both forms by hand as `getTPage` and `getTPageN` in `Area_DrawObjectSprite (exe/slus_004_22@0x8014C4D4)`.
 
-The palette arena is not the only palette writer. The frontend keeps three records beside it:
+The palette arena is not the only palette writer. The frontend keeps three more records beside it:
 
 | Record                     | Address      |   Size | Count | Readers                                                 |
 | -------------------------- | ------------ | -----: | ----: | ------------------------------------------------------- |
 | `PaletteFade`              | `0x80145BD4` | `0x0C` |    32 | `GFX_AllocPaletteFade`, `GFX_MarkPaletteCells`          |
-| cell map                   | `0x80145D54` |    `1` |  4×16 | `GFX_FindPaletteCell`, `GFX_AllocPaletteCell`           |
+| cell map                   | `0x80145D54` |    `1` |  4x16 | `GFX_FindPaletteCell`, `GFX_AllocPaletteCell`           |
 | `GraphicsPaletteAnimation` | `0x80145D94` | `0x10` |     8 | `GFX_StartPaletteAnimation`, `GFX_StepPaletteAnimation` |
 | palette stage              | `0x80035600` | `0x40` |     - | `func_80166C48` callers                                 |
 
-`PaletteFade` layout:
+`PaletteFade` (`0x0C` bytes):
 
 | Offset | Width | Meaning                                                  |
 | -----: | ----: | -------------------------------------------------------- |
@@ -137,7 +101,7 @@ The palette arena is not the only palette writer. The frontend keeps three recor
 | `0x07` |     1 | unknown                                                  |
 | `0x08` |     4 | target pointer (the target pattern at `+0x08` sets size) |
 
-`GraphicsPaletteAnimation` layout:
+`GraphicsPaletteAnimation` (`0x10` bytes):
 
 | Offset | Width | Meaning                                                  |
 | -----: | ----: | -------------------------------------------------------- |
@@ -149,12 +113,7 @@ The palette arena is not the only palette writer. The frontend keeps three recor
 | `0x08` |     4 | pointer to the current entry                             |
 | `0x0C` |     4 | pointer to the owner (owner `+0x4B` is the animation id) |
 
-The cell map is one byte per cell; `0xFF` is empty. `GFX_StepPaletteAnimation` selects the source-table
-entry named by the owner's animation id, advances the entry four bytes at a time (entry byte 3 is the frame
-count) and wraps when the next entry starts with `0xFF`: that entry's second byte is the back-step, a count of four-byte entries. The battle
-overlay has a different 0x0C-byte view at `0x80145BD4` (`BattleSpriteSlot`): it reads bytes `+0x02`
-(a second copy of the shared sprite value), `+0x03` and `+0x04`. The same address is not the same object
-in another overlay.
+The cell map has one byte per cell, and `0xFF` is empty. `GFX_StepPaletteAnimation` selects the source-table entry named by the owner's animation id and advances four bytes at a time (entry byte 3 is the frame count). It wraps when the next entry starts with `0xFF`: that entry's second byte is the back-step, a count of four-byte entries. The battle overlay views the same address `0x80145BD4` differently, as a `0x0C`-byte `BattleSpriteSlot` that reads bytes `+0x02` (a second copy of the shared sprite value), `+0x03` and `+0x04`. The same address is not the same object in another overlay.
 
 ```mermaid
 flowchart LR
@@ -167,55 +126,62 @@ flowchart LR
     S --> A
 ```
 
-The arena base holds 256 units of `0x40` bytes (32 rows of `0x200`). `GFX_ResetPalette` zeroes rows
-28-31 and copies all 32 rows into the working copy; `GFX_CopyPalette(row)` copies one row and raises
-`g_GfxPalettePending`; `GFX_UploadPalette` uploads the working copy once per frame while the flag
-is nonzero. `GFX_StepPaletteAnimation` writes one stage entry, so a palette animation changes
-the arena before the next upload.
+The arena base holds 256 units of `0x40` bytes (32 rows of `0x200`). `GFX_ResetPalette` zeroes rows 28 to 31 and copies all 32 rows into the working copy. `GFX_CopyPalette(row)` copies one row and raises `g_GfxPalettePending`. `GFX_UploadPalette` uploads the working copy once per frame while the flag is nonzero. `GFX_StepPaletteAnimation` writes one stage entry, so a palette animation changes the arena before the next upload.
 
 ## Load path
 
-| Asset                         | Route                                                                                                                                                                                                   |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| texture page, type 3          | `EMI_LoaderLoadGraphics` (`exe/slus_004_22@0x80162698`) uploads it with `LoadImage`, one 32x32 rectangle at a time ([chunk layout](#chunk-layout))                                                      |
-| CLUT bank, type 0             | `EMI_LoaderCopyPayload` (`@0x801625E4`) copies it into the palette arena at its load address; the engine uploads the arena's working copy to VRAM rows 480-511 ([area](area.md#palette-arena))          |
-| `etc/start/09` save-icon TIMs | never uploaded: `CardBuildFileHeader` (`emi/etc/start/09@0x801EF27C`) copies icon 0's CLUT colors and each icon's pixels into the memory-card save frame at `0x800C1800`; nothing reads the TIM headers |
+| Asset                         | Route                                                                                                                                                                                                                          |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| texture page, type 3          | `EMI_LoaderLoadGraphics` uploads it with `LoadImage`, one 32x32 rectangle at a time ([chunk layout](#chunk-layout))                                                                                                            |
+| CLUT bank, type 0             | `EMI_LoaderCopyPayload (exe/slus_004_22@0x801625E4)` copies it into the palette arena at its load address; the engine uploads the arena's working copy to VRAM rows 480 to 511 ([area](area.md#palette-arena))                 |
+| `etc/start/09` save-icon TIMs | never uploaded: `CardBuildFileHeader (emi/etc/start/09@0x801EF27C)` copies icon 0's CLUT colours and each icon's pixels into the memory card save frame at `0x800C1800`; nothing reads the TIM headers ([save](save.md#icons)) |
 
-A 16-color CLUT at arena offset `o` sits at VRAM `x = (o mod 0x200) / 2`, `y = 480 + o / 0x200`.
+## Texture-to-palette join
 
-## VRAM coordinates
+A texture's palette follows from a draw rule, never from the texture payload. A draw site names a texture page and a CLUT, and two kinds of rule are proven:
 
-A palette-arena word `w` is VRAM column `w % 256`, row `480 + w / 256`. A CLUT word is
-`(x / 16) | (y << 6)`. A texture-page word `tpage` holds the page column `(w & 0xf) * 64` words, the
-page row `(w & 0x10) ? 256 : 0`, the color mode `(w >> 7) & 3` (0 4bpp, 1 8bpp, 2 15bpp, 3 reserved)
-and the blend `(w >> 5) & 3`.
+- A literal site names both in one function. `WORLD00/AREA024.EMI#14` writes the page `0x003B` and the CLUT `0x78CA`.
+- The world-map terrain rule reads each tile descriptor word in `func_80155560 (exe/slus_004_22@0x80155560)`. Bit 31 selects the depth, bits 24 to 27 the CLUT index and bits 28 to 29 the page bank. An 8bpp descriptor (`bit 31 = 0`) reads CLUT row `(0, 483 + index)`. A 4bpp descriptor reads `(16 * index, 483)`. Both use page `(320 + 128 * bank, 256)`. Empty descriptors name nothing. [Area](area.md#terrain-mesh) describes the descriptor.
 
-## Codec
+A rule joins only when exactly one type-3 sheet in the archive covers the page, and exactly one distinct bank holds the row. Two sheets over the same words, or two banks that disagree at one arena position, leave the texture unjoined. The sheet slot is known, and no palette is guessed. The search first uses the texture's own archive. If that archive has no bank for the row, it consults the resident set of palette banks loaded from the disc, where identical banks collapse. The battle icon rows show the limit: row 506 differs between `BATL_OVR.EMI` and `BATL_DRA.EMI`. Row 507 agrees in `BATTLE.EMI`, `BATL_RE2.EMI`, `BATL_RET.EMI` and `BATTLE2.EMI` but differs in `BATL_DRA.EMI`. A disc-wide resident set therefore leaves them unjoined.
 
-Palette codec rules:
+A site whose page or CLUT depends on runtime state is not a joined site: a caller argument, a branch or a table. A `GetGraphType()` test is different. It chooses between two encodings of one page (see below), so it does not change which page the site names.
 
-| Operation        | Contract                                                                                                             |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------- |
-| decode           | payload bytes to color words; rejects an odd byte count and a word count that is not a whole number of 16-color rows |
-| encode           | color words back to the same payload bytes                                                                           |
-| validate         | the bank rule above                                                                                                  |
-| word to RGBA     | each 5-bit channel repeats its top 3 bits; alpha stays `0xff` because STP is not alpha; RGBA to word clears STP      |
-| JSON export      | `format`, `words`, `rows_4bpp`, `rows_8bpp` plus one `{index, word, stp, rgba}` record per color                     |
-| PNG strip export | PNG swatch strip, 16 colors per row and one 4bpp row per image row                                                   |
+Every CLUT and TPage write in the game code was resolved from literals and `GetClut` and `GetTPage` calls. Several sites write the page twice, once per graph-type encoding. Decoding each pair (`0x229` with the type 1 and 2 form and `0x99` with the type 0 form, and so on) gives the same page in all eight pairs, so the table lists one decoded page. "Family" means the CLUT column is a function of a caller argument.
 
-The arena bank of an area is one type-0 entry; its load argument is
-`0x80033E00` in most areas.
+| Overlay and function                                                                                                                     | tpage (decoded)                                            | clut (decoded)                                          | Status                                                                             |
+| ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `func_801F2DF8 (emi/world00/area024/14@0x801F2DF8)`                                                                                      | `0x003B` (4bpp, abr 1, page (704, 256))                    | `0x78CA` ((160, 483))                                   | joined: sheet slot 7, bank slot 8                                                  |
+| `func_801F6E48 (emi/scenario/scena00/00@0x801F6E48)`                                                                                     | `0x001B` (4bpp, (704, 256))                                | `0x78CB` ((176, 483))                                   | literal; no sheet in the archive                                                   |
+| `func_801D2C34 (emi/world00/area030/04@0x801D2C34)`                                                                                      | `0x229` or `0x99`: 8bpp, page (576, 256)                   | `0x7A40` ((0, 489))                                     | page fixed in both encodings                                                       |
+| `func_800F5E44 (emi/world00/area030/05@0x800F5E44)`                                                                                      | `0x225` or `0x95`: 8bpp, page (320, 256)                   | `0x7A80` ((0, 490))                                     | page fixed in both encodings                                                       |
+| `func_801F39D8 (emi/world00/area016/13@0x801F39D8)`                                                                                      | `0x22C` or `0x9C`: 8bpp, page (768, 256)                   | `0x7B80` ((0, 494))                                     | page fixed in both encodings                                                       |
+| `func_801F4768 (emi/world00/area016/13@0x801F4768)`                                                                                      | `0x12B` or `0x5B`: 4bpp, abr 2, page (704, 256)            | `0x78CB` ((176, 483))                                   | page fixed in both encodings                                                       |
+| `func_801F7134 (emi/scenario/scena00/00@0x801F7134)`                                                                                     | `0x32D` or `0xDD`: 8bpp, abr 2, page (832, 256)            | `0x7A80` ((0, 490))                                     | page fixed in both encodings                                                       |
+| `Menu_DrawIcon (emi/etc/shop/00@0x801DA00C)`                                                                                             | `0x8F` or `0x2F`: 4bpp, abr 1, page (960, 0)               | `0x7800` ((0, 480))                                     | page fixed in both encodings                                                       |
+| `Menu_DrawPortrait (emi/etc/sisyou/00@0x801D23A0)`                                                                                       | `0x2E` or `0x1E`: 4bpp, page (896, 256)                    | `getClut(entry[2], entry[3] + 0x1E0)`                   | page fixed in both encodings; palette from a table entry                           |
+| `func_801D165C (emi/scenario/sce10eff/00@0x801D165C)`                                                                                    | `0xA5` or `0x35`: 4bpp, abr 1, page (320, 256)             | none in function                                        | page fixed in both encodings                                                       |
+| `func_801F3D88 (emi/world00/area008/13@0x801F3D88)` and `func_801D1E54 (emi/etc/sisyou/00@0x801D1E54)`                                   | `0x0F` (4bpp, (960, 0))                                    | `GetClut(clut_x, 0x1E1)`, `clut_x = (arg4 << 5) + 0x10` | family: row 481, column `2 x arg4 + 1`                                             |
+| `func_801D7D10 (emi/battle/battle/03@0x801D7D10)`                                                                                        | `GetTPage(0, 0, 0x100, 0x100)` = `0x14` (4bpp, (256, 256)) | `(table[arg0] & 0x3F) \| 0x7800`, row 480               | table of 7 bytes at `0x801D0C64`; the texture is not at (256, 256) in `BATTLE.EMI` |
+| `func_801D94D4 (emi/battle/battle/03@0x801D94D4)` and `func_801D9804 (emi/battle/battle/03@0x801D9804)`                                  | none in function                                           | `GetClut((arg2 & 0xFF) << 4, 0x1E0)`                    | family: row 480, column from `arg2`                                                |
+| `UI_DrawSprite (emi/etc/game/00@0x801AF2A0)` and `func_801AE984 (emi/etc/game/00@0x801AE984)`                                            | none in function                                           | `(176, 481)`, `(128, 482)`, `(192, 480)`                | CLUT only                                                                          |
+| `UI_DrawSpriteRun (emi/etc/game/00@0x801AF390)`                                                                                          | 832 or 896 (modes 2 and 3)                                 | none in function                                        | not a texture page                                                                 |
+| `func_8014F704 (exe/slus_004_22@0x8014F704)`, `func_8014FC00 (exe/slus_004_22@0x8014FC00)`, `func_801647C4 (exe/slus_004_22@0x801647C4)` | `GetTPage(1, p4, 0x140, 0)`, `\| 0x2F`; clut `0x7802`      | -                                                       | partial                                                                            |
 
-`words` is the bank's 16-bit color count; `rows_4bpp` and `rows_8bpp` are the whole rows the bank
-can fill. A texture join needs a draw site that names one row; the bank alone proves no owner.
+The proven sites and the terrain rule together join 212 of the 593 type-3 textures to 890 palette rows: 200 terrain sheets (865 distinct rows across the archives, 11 of which also carry a literal site), nine area sprite sheets, two `AREA030` icon sheets and the `BMAGIC/MAGIC218` effect sheet. The other 381 textures have no proven depth or palette. A data check confirms the terrain depth: all 105,308 terrain descriptors have bit 31 clear (8bpp), and the 8bpp decode selects a page and bank that exist in the archive.
 
-The disc holds 620 type-0 palette entries in the `0x80033800`-`0x80036E00` band: 32-6,144 bytes
-each, 1,121,696 bytes in total, every size a multiple of `0x20`; 577 carry 64 bytes or more and 43
-are one 16-color row. Measured: all 620 decode and re-encode
-byte-exactly.
+### Open questions
+
+These are ranked by the bytes they leave unexplained.
+
+1. Battle, `SCENARIO` and `ETC` sites. Their pages and CLUTs come from tables, caller arguments or banks in other archives. `BATTLE.EMI` has no row-506 bank, and `BATL_OVR` and `BATL_DRA` disagree there. The join needs the resident banks of the scene, not the archive alone.
+2. Family and table CLUTs (`BATTLE`, `AREA008`, `SISYOU`). The row 480 and row 481 CLUTs come from caller arguments or the 7-byte table at `0x801D0C64`. They need the callers' arguments.
+3. Textures outside their archive. The page that `SCENA00` and the battle quads use is not a sheet of the same archive, so the same-archive rule finds nothing.
+4. Overlapping sheets. Several sheets cover the same VRAM words, for example slots 5 and 7 of `AREA024`. Which upload is resident depends on the stream order (`EMI_LoaderUploadSector`).
+5. Texel depth without a site. A depth of 4bpp, 8bpp or 15bpp is known only for the sites in the table and for a joined terrain descriptor.
+
+A reading of a texture without a join is limited. Read as 16bpp, each VRAM word is one pixel, and 4bpp and 8bpp textures look like noise. A texture and one CLUT row are what a Sony TIM file holds (Sony's *File Formats* manual, chapter 3), but the game stores no TIM of its own for textures. The six TIM records on the disc are the memory card icons ([save](save.md#icons)).
 
 ## Sources
 
-Chunk, palette and VRAM facts are measured from the retail payloads. The community
-[BoF3-Data-Doc](https://github.com/GlitchedDragon-dev/BoF3-Data-Doc) (texture and palette notes, no
-license, cited only) is confirmation. The runtime primitives are PsyQ 3.7 ([sources](../sources.md)).
+Chunk, palette and VRAM facts are measured from the retail payloads. The community [BoF3-Data-Doc](https://github.com/GlitchedDragon-dev/BoF3-Data-Doc) (texture and palette notes) is confirmation only. The runtime primitives are PsyQ 3.7 ([sources](../sources.md)).
