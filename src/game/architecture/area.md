@@ -2,7 +2,7 @@
 
 An area is one place the party can stand: a town, a dungeon, the world map, a battlefield, the fishing pond, the fairy village or the camp. The game has 200 of them, one `WORLDnn/AREAnnn.EMI` archive each. The player walks to an exit and the screen fades to the next area. Under the fade the game frees the old area's objects, streams the new archive, builds the new area's characters from a short byte program, and lets the active [scenario](scenario.md) react to the arrival.
 
-One resident engine in `emi/etc/game/00` runs every area. The area archive supplies only data and a small code overlay for the area's own behaviour. Byte layouts of the archives are in the [area format](../../formats/area.md). The fields of an entity row are in [field](../field.md). The map-kind flags are in [runtime](../runtime.md#map-modes-and-the-shared-map-engine). This page covers the flow: load, per-frame update, exits and the setup stream.
+One resident engine in `emi/etc/game/00` runs every area. The area archive supplies only data and a small code overlay for the area's own behaviour. Byte layouts of the archives are in the [area format](../../formats/area.md). The fields of an entity row are in [field](../field.md). The map-kind flags are in [runtime](../runtime.md#map-kinds). This page covers the flow: load, per-frame update, exits and the setup stream.
 
 ## Load and transition
 
