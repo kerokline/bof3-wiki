@@ -30,7 +30,7 @@ The message bank holds the area's dialogue. It starts with a little-endian `u16`
 +slot[0] .. end          ; records, delimited by consecutive distinct slots
 ```
 
-A message is addressed by its slot index. Two slots may share one record, and unused slots point at the end of the payload. 185 of the 200 payloads have at least one such slot, and 182 have two or more. All 200 area entries load at this address, and 165 carry text and are kept as message banks. In the archive, 162 of them are at slot 11, 2 at slot 7 and 1 at slot 12. The other 35 payloads (32 at slot 11 and 3 at slot 18) do not parse as text banks.
+A message is addressed by its slot index. Two slots may share one record, and unused slots point at the end of the payload. 185 of the 200 payloads have at least one such slot, and 182 have two or more. All 200 area entries load at this address. 197 are message banks and 165 of those are text banks, the ones this page and the [text kinds](assets.md#message-banks) describe; 162 are at entry 11, 2 at entry 7 and 1 at entry 12. The other 35 payloads are the 32 non-text banks at entry 11 and the 3 fishing payloads at entry 18, which are not banks. [Game text](../game/text.md#message-bank) defines both terms.
 
 The engine finds the active message itself. The code at `@0x801514D0` forms `D_80010000[g_MessageRequest] + 0x80010000`, and `@0x8014F800` is the text draw entry. The bytes of a record and the control codes are described in [game text](../game/text.md).
 

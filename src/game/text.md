@@ -134,8 +134,9 @@ Take a bank whose table is `0008 000F 000F 0014`. The table is 8 bytes, so it ha
 Slots 1 and 2 share the record at `0x0F`. Slot 0 is the 7 bytes from `0x08` to `0x0F`, and that record
 ends with a `{END}`. Slot 3 starts at `0x14` and runs to the end of the payload.
 
-The 200 area message banks load at `0x80010000`. 197 parse as banks. The fishing areas 030, 089
-and 129 hold other data in that slot. The engine resolves a message as
+A payload is a message bank when `offset[0]` is even, at least 4 and no larger than the payload, every slot is at least `offset[0]` and no larger than the payload, and the slots never decrease. A bank is a text bank when at least half of its first 64 distinct records read as text. A record reads as text when, after its trailing zeros, it has at least 3 bytes and either 4 letters that make up 40 percent or more of it, or 3 letters and a `0xFF` space.
+
+The 200 entries that load at `0x80010000` hold 152 distinct payloads. 197 entries are banks. The three fishing entries (`AREA030`, `AREA089` and `AREA129`, entry 18) are one identical 4,293-byte payload whose slots do not ascend, so they hold other data in that slot. 165 of the 197 banks are text banks: 162 at entry 11, 2 at entry 7 and 1 at entry 12, and 33, 33, 29, 30 and 40 in WORLD00 to WORLD04. The other 32 banks (31 of 1,022 bytes and one of 512 bytes) hold only short or empty records. The 165 text banks hold 10,510 messages, a message being one distinct slot value below the payload size. 10,494 of them are proven strings: they do not start with a zero byte and have at least 3 bytes before their terminator. All 197 banks hold 11,006 messages, and the three other payloads add 330, which makes 11,336 for the 200 entries (`measured`). The engine resolves a message as
 `u16[0x80010000 + 2 * g_MessageRequest] + 0x80010000`, and the loader descriptor table at
 `0x8014677C` stages the payload. The largest bank is 21,547 bytes.
 

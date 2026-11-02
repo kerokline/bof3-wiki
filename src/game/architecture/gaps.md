@@ -71,20 +71,25 @@ Pages: [phases](phases.md#gaps), [scenario](scenario.md#gaps), [area](area.md#ga
 
 ## Battle
 
-Page: [battle](battle.md#gaps).
+Pages: [battle engine](battle.md#gaps), [battle records](../battle.md#gaps), [field](../field.md#gaps).
 
-| Question                                                            | What would settle it                                                         |
-| ------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| The writer of mode-5 step 3 (`D_801EAD0C`, the area reload)         | Search the `batl_end` and boss overlays for `g_BattleStep = 3`.              |
-| Meaning of the seven boss event codes                               | Read `Boss_HandleBattleEvent` in several modules.                            |
-| The `D_801EB298` index to module mapping for 34 of 35 bosses        | Read each module's head for the installer address and match it to the table. |
-| Reward payout (experience, money, drops) in `BATL_END`              | Read the `BATL_END` functions after `Battle_GrantQueuedItems`.               |
-| Trait ids `(3, 0x14)` and `(3, 0x15)` for the step threshold        | Read `func_801C38F4` and the ability trait table.                            |
-| Meaning of the `D_80143EFC >= 0xF1` gate                            | Find its writers in the field engine.                                        |
-| Scene `0x19`, requested by the area `0xBD` defeat hook              | Read the scenario that owns it.                                              |
-| Mode names (party commands, turn order, actions, round end, result) | Read the mode 1 to 4 steps in full, or an emulator trace.                    |
-| Scripted-battle starts in scenario overlays not read                | Search the scenario overlays for calls to `Battle_StartScripted`.            |
-| The script that ends the 10 enemies with HP `0xFFFF`                | A trace of one such fight ([area](../../formats/area.md#open-questions)).    |
+| Question                                                                                                                          | What would settle it                                                         |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| The writer of mode-5 step 3 (`D_801EAD0C`, the area reload)                                                                       | Search the `batl_end` and boss overlays for `g_BattleStep = 3`.              |
+| Meaning of the seven boss event codes                                                                                             | Read `Boss_HandleBattleEvent` in several modules.                            |
+| The `D_801EB298` index to module mapping for 34 of 35 bosses                                                                      | Read each module's head for the installer address and match it to the table. |
+| Reward payout (experience, money, drops) in `BATL_END`                                                                            | Read the `BATL_END` functions after `Battle_GrantQueuedItems`.               |
+| Trait ids `(3, 0x14)` and `(3, 0x15)` for the step threshold                                                                      | Read `func_801C38F4` and the ability trait table.                            |
+| Meaning of the `D_80143EFC >= 0xF1` gate                                                                                          | Find its writers in the field engine.                                        |
+| Scene `0x19`, requested by the area `0xBD` defeat hook                                                                            | Read the scenario that owns it.                                              |
+| Mode names (party commands, turn order, actions, round end, result)                                                               | Read the mode 1 to 4 steps in full, or an emulator trace.                    |
+| Scripted-battle starts in scenario overlays not read                                                                              | Search the scenario overlays for calls to `Battle_StartScripted`.            |
+| The script that ends the 10 enemies with HP `0xFFFF`                                                                              | A trace of one such fight ([area](../../formats/area.md#open-questions)).    |
+| The roles of the unnamed cells in the battle work rows ([battle](../battle.md#gaps))                                              | A write trace per cell.                                                      |
+| Readers of battle state bit `0x0008`                                                                                              | Search the battle overlays for tests of the bit.                             |
+| The roles of the unnamed cells in the actor rows and field slots ([field](../field.md#gaps))                                      | A write trace per cell.                                                      |
+| The widths of the lure float-rate groups ([field](../field.md#gaps))                                                              | Read the lure tables once their addresses are known.                         |
+| The rod and lure table addresses: the strides are read, but `0x801E2748` lies in the panel-icon array ([field](../field.md#gaps)) | A read breakpoint on `func_801DDE2C`.                                        |
 
 ## Screens and interface
 
@@ -185,9 +190,12 @@ Pages: [EMI](../../formats/emi.md#open-questions), [LZ77](../../formats/lz77.md#
 
 ## Strings
 
-Pages: [editor guide](editor-guide.md#3-strings-and-dialogue), [asset kinds](../../formats/assets.md#message-banks).
+Pages: [editor guide](editor-guide.md#3-strings-and-dialogue), [game text](../text.md#open-questions), [asset kinds](../../formats/assets.md#message-banks).
 
-| Question                                                                                                         | What would settle it                                  |
-| ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| The editor guide counts 275 string payloads and the asset kinds page counts 666 with strings                     | A scan of the disc that lists both sets side by side. |
-| 10,494 strings are proven in the 165 message banks, but 10,510 messages decode. The 16 extra are not classified. | Classify the 16 messages.                             |
+| Question                                                                                                                  | What would settle it                                  |
+| ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| The editor guide counts 275 string payloads and the asset kinds page counts 666 with strings                              | A scan of the disc that lists both sets side by side. |
+| The 165 text banks hold 10,510 messages, and 10,494 are proven strings. The other 16 are short or start with a zero byte. | Read the 16 messages.                                 |
+| Which payload sits at `0x8001A000` when a `text-id` resolves ([text](../text.md#open-questions))                          | A trace of the resolver call.                         |
+| The row base of the 21-column number sheet drawn by `{NUM}` ([text](../text.md#other-glyph-sheets))                       | A read of the `{NUM}` draw path against the sheet.    |
+| The effect of `{SKIP12}` and `{SKIP13}` beyond advancing one byte                                                         | Read the text drawer's handling of both codes.        |

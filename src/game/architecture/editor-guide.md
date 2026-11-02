@@ -101,8 +101,9 @@ entries loaded at `0x8001A000`: 44 entries, among them `FIRST.EMI#11` and `AFLDK
 `START.EMI#8` and in the enemy blocks.
 
 **Layout.** A message bank is a `u16` offset table whose first entry is the table size, followed by
-records that run to the next distinct offset. 197 of the 200 area entries parse as banks; the three
-fishing areas do not. `Resource_Resolve` (exe/slus_004_22@0x801502D0) maps a 16-bit id through four
+records that run to the next distinct offset. 197 of the 200 area entries are banks and 165 of those are text banks (10,510
+messages, 10,494 of them proven strings). The three fishing entries hold other data in that slot
+([definitions and counts](../text.md#message-bank)). `Resource_Resolve` (exe/slus_004_22@0x801502D0) maps a 16-bit id through four
 group bases. The control codes are in [text](../text.md#control-codes).
 
 **Limits.** A message bank may not pass `0x8001A000`, where the resource table starts, so it holds at
