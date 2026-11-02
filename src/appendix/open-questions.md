@@ -1,6 +1,6 @@
 # Open questions
 
-These are the questions the wiki leaves open, grouped by topic. Each row says what would settle it. A check is static, meaning more code or data to read, unless the row says a run is needed. The evidence tags are defined in the [glossary](glossary.md#evidence-tags). The linked page holds the evidence and the code involved.
+These are the questions the wiki leaves open, grouped by topic. Each row says what would settle it. A check is static, meaning more code or data to read, unless the row says a run is needed. The evidence tags are defined in the [conventions](../conventions.md#evidence-tags). The linked page holds the evidence and the code involved.
 
 ## Startup, frame loop and scheduler
 

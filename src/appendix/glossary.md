@@ -1,43 +1,8 @@
 # Glossary
 
-This page defines the evidence tags and the terms that the other pages use without explaining each
-time. Read the first section before any page that cites functions or addresses. Each term has one
-definition here, and the other pages link to it.
-
-## Evidence citations
-
-A claim about the game's code names the function and the image that holds it: `Name (image@0xADDR)`.
-For example, `SYS_Main (exe/slus_004_22@0x8014AAC8)` is the function `SYS_Main` at address `0x8014AAC8` in
-the image `exe/slus_004_22`. Read the address together with its image, because overlays reuse
-addresses.
-
-The name is a label from this research, not a name that the game stores. A name of the form
-`func_8014AAC8` is an address name: the function is located but has no role name yet. `D_80146840` is the
-same for data, and a `g_` prefix marks a named global. A `u8`, `u16` or `s32` is an unsigned (`u`) or
-signed (`s`) integer of 8, 16 or 32 bits. All multi-byte values are little endian.
-
-### Image ids
-
-An image is one program that the game loads. Its id is a path.
-
-| Image id                    | What it is                                                                                                              |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `exe/slus_004_22`           | the main executable, `SLUS_004.22`, resident from boot to power-off                                                     |
-| `exe/logo`                  | the logo program, `LOGO/LOGO.EXE`                                                                                       |
-| `emi/<folder>/<archive>/NN` | the code in entry `NN` of an EMI archive, for example `emi/world02/area078/13` is entry 13 of `BIN/WORLD02/AREA078.EMI` |
-
-### Evidence tags
-
-Every page states facts that come from reading the retail code or data. A claim with no tag is such a
-read: the code or the data shows it. Only two tags exist, and they mark the exceptions.
-
-| Tag          | Meaning                                                                                          |
-| ------------ | ------------------------------------------------------------------------------------------------ |
-| `[inferred]` | deduced from several reads or from a community source; treat it as a lead                        |
-| `[unknown]`  | not established; the page says what would settle it, and [gaps](open-questions.md) collects them |
-
-The site holds no retail bytes. Layouts, offsets and counts come from reading the game and checking
-every instance on the disc. A count such as "200 of 200" says a check covered every instance.
+This page defines the terms that the other pages use without explaining each time. Each term has one
+definition here, and the other pages link to it. The notation for numbers, field types, offsets,
+citations and evidence tags is on the [conventions](../conventions.md) page.
 
 ## Disc and containers
 

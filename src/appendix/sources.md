@@ -39,6 +39,6 @@ Sony proprietary; none of it is redistributed here.
 
 ## How a fact cites its source
 
-- A layout or name proven by the game's data cites a function as `Name (image@0xADDR)` ([glossary](glossary.md#evidence-citations)). An external source, if any, confirms it.
+- A layout or name proven by the game's data cites a function as `Name (image@0xADDR)` ([conventions](../conventions.md#images-and-citations)). An external source, if any, confirms it.
 - A section that rests on a community source ends with a "Sources" line that links this page.
-- A fact that only a community source states is a lead, tagged `[inferred]` ([glossary](glossary.md#evidence-tags)), until a read of the game's own code or data confirms it.
+- A fact that only a community source states is a lead, tagged `[inferred]` ([conventions](../conventions.md#evidence-tags)), until a read of the game's own code or data confirms it.

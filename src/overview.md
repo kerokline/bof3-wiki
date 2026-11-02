@@ -1,6 +1,6 @@
 # Game architecture
 
-This section explains how Breath of Fire III (NTSC-U) runs, from power-on to a running frame. The game is one resident executable, one resident game program and a large set of overlays that the game streams from the disc into fixed RAM windows. Each page below covers one part of that, and this page tells the whole story once, in order. Claims carry the evidence tags that the [glossary](appendix/glossary.md#evidence-citations) defines. A claim with no tag is read directly in the code.
+This section explains how Breath of Fire III (NTSC-U) runs, from power-on to a running frame. The game is one resident executable, one resident game program and a large set of overlays that the game streams from the disc into fixed RAM windows. Each page below covers one part of that, and this page tells the whole story once, in order. Claims carry the evidence tags that the [conventions](conventions.md#evidence-tags) defines. A claim with no tag is read directly in the code.
 
 ## From power-on to a running frame
 

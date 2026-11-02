@@ -4,7 +4,7 @@ The game is one resident program, `SLUS_004.22`, plus code and data that the loa
 
 ## Images
 
-An image is one program the game loads: the main executable, the logo executable, or the code held in one EMI entry. The glossary defines the [image ids](../appendix/glossary.md#image-ids). An image has its own payload and load address. Two images can use the same address for unrelated code, so a citation always names the image with the address.
+An image is one program the game loads: the main executable, the logo executable, or the code held in one EMI entry. The [conventions](../conventions.md#images-and-citations) page defines the image ids. An image has its own payload and load address. Two images can use the same address for unrelated code, so a citation always names the image with the address.
 
 Names belong to one owner: the SDK libraries, the BIOS, the main executable `exe/slus_004_22` (which every EMI image calls into), `exe/logo`, or the image itself for its local names. There is no global name map. An EMI archive is a container, never an image.
 

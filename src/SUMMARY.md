@@ -5,6 +5,7 @@
 # Getting started
 
 - [How the game is built](overview.md)
+- [Notation and conventions](conventions.md)
 
 # How the game works
 
