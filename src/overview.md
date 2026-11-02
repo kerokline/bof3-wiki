@@ -26,7 +26,7 @@ flowchart LR
 
 ## Reading order
 
-Read the first six pages in order for the mechanism. The rest cover one system each and can go in any order.
+Read [notation and conventions](conventions.md) first if the number formats, the citations or the layout tables are new to you. Then read the first six pages below in order for the mechanism. The rest cover one system each and can go in any order. To change the game, finish with the [editing guides](guides/index.md).
 
 | Order | Page                                         | It answers                                                                               |
 | ----: | -------------------------------------------- | ---------------------------------------------------------------------------------------- |
@@ -49,10 +49,10 @@ Read the first six pages in order for the mechanism. The rest cover one system e
 
 Three companion pages sit beside these:
 
-| Page                                 | It answers                                            |
-| ------------------------------------ | ----------------------------------------------------- |
-| [Disc and files](formats/disc.md)    | What the disc holds and where each file sits.         |
-| [Responsibilities](data/code-map.md) | Which code image owns which job.                      |
-| [Editor guide](guides/editing.md)    | What an editor must keep intact for each asset class. |
+| Page                                 | It answers                                               |
+| ------------------------------------ | -------------------------------------------------------- |
+| [Disc and files](formats/disc.md)    | What the disc holds and where each file sits.            |
+| [Responsibilities](data/code-map.md) | Which code image owns which job.                         |
+| [Editing the game](guides/index.md)  | How to change each kind of data and what to keep intact. |
 
-System pages list in a limits section the counts, sizes and addresses that an edited asset must stay within. Read those sections and the [editor guide](guides/editing.md) before changing any asset.
+System pages list in a limits section the counts, sizes and addresses that an edited asset must stay within. Read those sections and the [editing guides](guides/index.md) before changing any asset.

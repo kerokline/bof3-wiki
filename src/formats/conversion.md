@@ -47,7 +47,7 @@ An archive rebuilds from its entries when each entry keeps its payload, type and
 
 A disc file is a run of CD sectors, and writing one back means writing its sectors again. The data track is Mode 2 Form 1. A 2,352-byte sector holds a 12-byte sync, a 4-byte address, an 8-byte sub-header, 2,048 user bytes, a 4-byte EDC and 276 bytes of parity.
 
-- EDC: a CRC-32 over bytes 16 to 2071 (sub-header and user data) with the reflected polynomial `0xD8018001`. It is stored little endian at byte 2072.
+- EDC: a CRC-32 over bytes 16 to 2071 (sub-header and user data) with the reflected polynomial `0xD8018001`. It is stored little-endian at byte 2072.
 - Parity: the ECMA-130 Annex B product code over bytes 12 to 2247, with the address (bytes 12 to 15) counted as zero. P is 86 columns of 24 bytes at byte 2076. Q is 52 columns of 43 bytes at byte 2248, and it covers P.
 - Form 2: XA and STR sectors (sub-header submode bit `0x20`) have no parity. Copy them as stored.
 

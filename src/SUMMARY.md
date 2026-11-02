@@ -51,7 +51,14 @@
 
 # Guides
 
-- [Editing the game](guides/editing.md)
+- [Editing the game](guides/index.md)
+  - [Text and dialogue](guides/text.md)
+  - [Items, skills and shops](guides/items.md)
+  - [Characters and enemies](guides/characters.md)
+  - [Sound and music](guides/sound.md)
+  - [Maps and scripts](guides/maps.md)
+  - [Graphics and textures](guides/graphics.md)
+  - [Saves](guides/saves.md)
 
 # Appendix
 

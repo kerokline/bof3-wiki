@@ -176,7 +176,7 @@ What an edited area must keep:
 - **Zone list.** It lives in the executable, not the area archive. A cell outside every rectangle makes `func_801A0490` run past the list.
 - **Fixed buffers.** The cell grid, scene table and encounter table sit in fixed windows ([memory](memory.md), [loading](loading.md)).
 
-See also the [editor guide](../guides/editing.md) and [disc and files](../formats/disc.md).
+See also the [guide to editing maps and scripts](../guides/maps.md) and [disc and files](../formats/disc.md).
 
 ## Gaps
 

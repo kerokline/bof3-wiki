@@ -161,7 +161,7 @@ The fade body `func_8014F704` draws a 320 by 240 `TILE` with grey level `positio
 | Glyph sheet                 | 31 columns of 8 by 12 cells at texture page `0x2F`; 32 columns of 8 by 8                   | `UI_DrawTextGlyphs`, `UI_DrawGlyphString`                 | A replacement font keeps the cell grid and page.                        |
 | Palette for text            | 16 cells (columns 0 to 15) of stage row 0                                                  | CLUT `0x7800 \| n`                                        | Text colours sit in the first 16 cells of arena row 0.                  |
 
-See also [frame loop](frame-loop.md), the [editor guide](../guides/editing.md) and [disc and files](../formats/disc.md).
+See also [frame loop](frame-loop.md), the [guide to editing text](../guides/text.md) and [disc and files](../formats/disc.md).
 
 ## Gaps
 

@@ -153,7 +153,7 @@ A rebuilt or relocated scenario has to respect these limits.
 - **Slot range.** Scenario code uses EMI slots `0x295-0x2A8`. The effect overlays use `0x290-0x294`.
 - **Save compatibility.** `scenario_id` and the flag words are part of the state restored on load ([saving](saving.md)).
 
-See also the [editor guide](../guides/editing.md) and [disc and files](../formats/disc.md).
+See also the [guide to editing maps and scripts](../guides/maps.md) and [disc and files](../formats/disc.md).
 
 ## Gaps
 

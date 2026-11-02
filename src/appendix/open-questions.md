@@ -190,12 +190,11 @@ Pages: [EMI](../formats/emi.md#open-questions), [LZ77](../formats/lz77.md#open-q
 
 ## Strings
 
-Pages: [editor guide](../guides/editing.md#3-strings-and-dialogue), [game text](../data/text.md#open-questions), [asset kinds](../formats/assets.md#message-banks).
+Pages: [text guide](../guides/text.md), [game text](../data/text.md#open-questions), [asset kinds](../formats/assets.md#message-banks).
 
-| Question                                                                                                                  | What would settle it                                  |
-| ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| The editor guide counts 275 string payloads and the asset kinds page counts 666 with strings                              | A scan of the disc that lists both sets side by side. |
-| The 165 text banks hold 10,510 messages, and 10,494 are proven strings. The other 16 are short or start with a zero byte. | Read the 16 messages.                                 |
-| Which payload sits at `0x8001A000` when a `text-id` resolves ([text](../data/text.md#open-questions))                     | A trace of the resolver call.                         |
-| The row base of the 21-column number sheet drawn by `{NUM}` ([text](../data/text.md#other-glyph-sheets))                  | A read of the `{NUM}` draw path against the sheet.    |
-| The effect of `{SKIP12}` and `{SKIP13}` beyond advancing one byte                                                         | Read the text drawer's handling of both codes.        |
+| Question                                                                                                                  | What would settle it                               |
+| ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| The 165 text banks hold 10,510 messages, and 10,494 are proven strings. The other 16 are short or start with a zero byte. | Read the 16 messages.                              |
+| Which payload sits at `0x8001A000` when a `text-id` resolves ([text](../data/text.md#open-questions))                     | A trace of the resolver call.                      |
+| The row base of the 21-column number sheet drawn by `{NUM}` ([text](../data/text.md#other-glyph-sheets))                  | A read of the `{NUM}` draw path against the sheet. |
+| The effect of `{SKIP12}` and `{SKIP13}` beyond advancing one byte                                                         | Read the text drawer's handling of both codes.     |

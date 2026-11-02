@@ -1,6 +1,6 @@
 # Responsibilities
 
-This page maps regions of the game's code to the jobs they do, so you can find which code owns a job. Names are the symbol names of the decompilation. An address name such as `func_80158F80` means the function has no readable name, and a range with no entry points is listed by address only. Read the page that owns the mechanism for the detail: [overview](../overview.md), [phases](../systems/phases.md), [loading](../systems/loading.md), [saving](../systems/saving.md), [disc and files](../formats/disc.md), and the layouts in the [editor guide](../guides/editing.md).
+This page maps regions of the game's code to the jobs they do, so you can find which code owns a job. Names are the symbol names of the decompilation. An address name such as `func_80158F80` means the function has no readable name, and a range with no entry points is listed by address only. Read the page that owns the mechanism for the detail: [overview](../overview.md), [phases](../systems/phases.md), [loading](../systems/loading.md), [saving](../systems/saving.md), [disc and files](../formats/disc.md), and the layouts in the [file format pages](../formats/assets.md).
 
 `slus` is the main executable `exe/slus_004_22`. A citation reads `Name (image@0xADDR)`, and an address is meaningful only inside its image, because overlays share addresses. A role that no reader or caller establishes is called not identified, and [open questions](../appendix/open-questions.md) lists what would settle each one.
 
@@ -177,7 +177,7 @@ actor record is in [field](field.md#actor-rows).
 ## Asset classes
 
 For each class: the function that loads it, the one that parses it, the one that uses it. Layouts
-and byte formats are in the [editor guide](../guides/editing.md); the disc side in
+and byte formats are in the [file format pages](../formats/assets.md) and the [editing guides](../guides/index.md); the disc side in
 [disc and files](../formats/disc.md).
 
 | Class                 | Load                                                                                                                                                                                                                                                                   | Parse                                                                                                                                                                                                                                                         | Use                                                                                                                                                                                                                                                                                                                  | Format                                                                    |

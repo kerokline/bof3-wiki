@@ -59,5 +59,3 @@ On the retail disc 831 payloads hold strings, 43,593 in all. 165 are text banks 
 > WARNING: a record that changes length moves the bytes after it. A pointer table that reaches those bytes is stale afterwards. Check an edited payload in the game before it ships.
 
 The executables hold 167 C string literals, which need the ASCII encoding. They are not in the 33,083.
-
-The figure of 666 payloads with strings and the editor guide's count of 275 string payloads are different counts that nobody has reconciled ([gaps](../appendix/open-questions.md#strings)).

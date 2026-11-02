@@ -200,7 +200,7 @@ What an edited audio asset must stay within:
 - **VAB body (VB).** It must fit the SPU span of its bank and layout above. SPU RAM is 512 KiB (`0x80000`) and the table starts at `0x1010`. The reverb work area also occupies the top of SPU RAM in room mode, which is the PsyQ contract `[inferred]`. The loader reports an error only when `SsVabOpenHeadSticky` or `SsSepOpenJ` returns -1.
 - **SEP package.** It must fit the bank's sequence window (bank 0: `0xC3A0` in layout 0, `0x8D60` in layout 1, `0xD3A0` in layout 2) and hold 4 sequences. A track archive replaces bank 0, so battle music (`BATTLE`, `BOSS` archives) uses the layout 1 limit `[inferred]`.
 - **Cue table.** At most 24 records per disc entry and 31 per bank chunk. Each record's voice field is 0 to 23.
-- **Track ids.** A new track needs a new row in `D_80181EB8` (executable data, 165 fixed rows) and the archive slot in the disc table `g_EmiSlotLbas` ([disc and files](../formats/disc.md)). Enlarging the table is a code change; see the [editor guide](../guides/editing.md).
+- **Track ids.** A new track needs a new row in `D_80181EB8` (executable data, 165 fixed rows) and the archive slot in the disc table `g_EmiSlotLbas` ([disc and files](../formats/disc.md)). Enlarging the table is a code change; see the [guide to editing sound](../guides/sound.md).
 - **XA.** A key resolves to a table entry, a file and a channel. New speech needs table entries and sectors at the matching positions. The channel interleave factor is 8 (group 0) or 16 (other groups) `[inferred]`.
 
 See also [frame loop](frame-loop.md) for where the loader runs each frame, [area](areas.md) for arrival music and [scenario](scenario.md) for scenario music calls.
