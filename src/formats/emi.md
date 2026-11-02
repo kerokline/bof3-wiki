@@ -46,7 +46,7 @@ Padding bytes have fixed values, so a rebuilt archive can match the original byt
 | `0x10 + count * 0x10` up to `0x800`         | `0x2E`   |
 | payload end up to the next `0x800` boundary | `0x5F`   |
 
-Over the whole disc this is 1,686,656 bytes of `0x2E` TOC fill and 7,440,017 bytes of `0x5F` payload fill, with no exception (`measured`).
+Over the whole disc this is 1,686,656 bytes of `0x2E` TOC fill and 7,440,017 bytes of `0x5F` payload fill, with no exception.
 
 ## Entry types
 
@@ -91,7 +91,7 @@ A BOSS archive loads banks 0, 1, 2 and 6 together. [Audio](audio.md) explains wh
 
 ## Disc slot ids
 
-The game names an archive by its slot id, the archive's index in the disc file list. `EMI_LoaderStreamInitSlot` (`exe/slus_004_22@0x80161FDC`) takes the slot id and reads the start sector from `g_EmiSlotLbas[slot_id]`. For example, `0x261` is `FIRST.EMI` and `0x262` is `GAME.EMI`. The list is in ascending sector order, so each directory is one contiguous run of slots (`measured`: all 17 directory ranges equal the base slots below). Slots `0x373` to `0x376` are `CAPCOM30.STR`, `LOGO.EXE`, `SYSTEM.CNF` and `SLUS_004.22`. The table itself is described on the [executable page](exe.md#the-disc-file-table).
+The game names an archive by its slot id, the archive's index in the disc file list. `EMI_LoaderStreamInitSlot (exe/slus_004_22@0x80161FDC)` takes the slot id and reads the start sector from `g_EmiSlotLbas[slot_id]`. For example, `0x261` is `FIRST.EMI` and `0x262` is `GAME.EMI`. The list is in ascending sector order, so each directory is one contiguous run of slots (all 17 directory ranges equal the base slots below). Slots `0x373` to `0x376` are `CAPCOM30.STR`, `LOGO.EXE`, `SYSTEM.CNF` and `SLUS_004.22`. The table itself is described on the [executable page](exe.md#the-disc-file-table).
 
 Do not confuse the slot id with the entry slot, which is the TOC index inside one archive.
 
@@ -110,7 +110,7 @@ Do not confuse the slot id with the entry slot, which is the TOC index inside on
 | `SCE_XA`     |   `0x2A9` |        2 | `SND_StartXaStream`, key kinds 0 and 2                                                                                                                                                                                        |
 | `WORLD00-04` |   `0x2AB` |      200 | `func_8019FAA0 (emi/etc/game/00@0x8019FAA0)` and `func_801D7108 (emi/battle/battle/03@0x801D7108)`: `area + 0x2AB`                                                                                                            |
 
-`EMI_StreamFamilyArchive` (`exe/slus_004_22@0x8016728C`) adds a family bias to the character index, for the four character families:
+`EMI_StreamFamilyArchive (exe/slus_004_22@0x8016728C)` adds a family bias to the character index, for the four character families:
 
 | Family |    Bias | Archives      |
 | -----: | ------: | ------------- |
@@ -121,7 +121,7 @@ Do not confuse the slot id with the entry slot, which is the TOC index inside on
 
 For example, character index 12 in family 0 is slot `0x26A + 12 = 618`, which is `PL012`. Slots 475, 494 and 637 are `BPLD012`, `BPLU012` and `PLP012`.
 
-`SND_StartXaStream` (`exe/slus_004_22@0x801636A0`) is not an EMI loader. It streams the three XA files (`D_80183230 = {0x2A9, 0x1B2, 0x2AA}`) with its own state machine ([STR and XA](str.md)).
+`SND_StartXaStream (exe/slus_004_22@0x801636A0)` is not an EMI loader. It streams the three XA files (`D_80183230 = {0x2A9, 0x1B2, 0x2AA}`) with its own state machine ([STR and XA](str.md)).
 
 ## Loader chain
 
@@ -211,7 +211,7 @@ Where the code entry sits depends on the family:
 | WORLD    | `0x801F2C00`                                   | varies by shape ([below](#world-shapes))                                                                                                                                                                                    |
 | PLCHAR   | `0x801CE400`                                   | 0 (`PLPxxx`)                                                                                                                                                                                                                |
 | SCENARIO | `0x801F6C00` (SCENA), `0x801D0C00` (SCE*)      | 0 only (the controller)                                                                                                                                                                                                     |
-| BMAGIC   | `0x801EEC00`                                   | 3 (128 archives with a VAB triple), 0 (13 archives without); the other slots are type-3 uploads, CLUT banks (`0x80033800`-`0x80036E00`) and data blocks (`0x800C3800`, `0x80036C00`)                                        |
+| BMAGIC   | `0x801EEC00`                                   | 3 (128 archives with a VAB triple), 0 (13 archives without); the other slots are type-3 uploads, CLUT banks (`0x80033800..0x80036E00`) and data blocks (`0x800C3800`, `0x80036C00`)                                         |
 | BOSS     | `0x800C1800`                                   | 17-entry shape (BOSS001, 004, 022, 025, 031): slots 0, 12, 13; 20-entry shape (35 archives): slots 3, 15, 16. The three programs are the boss module and the two copied battle programs                                     |
 | BATTLE   | none (per archive)                             | `BATTLE` and `BATTLE2`: programs at slots 3 and 15 (16 entries, byte-identical across the two); `BATL_END` and `BATL_OVR`: module at slot 0; `BATL_RE2`: CLUT bundle; `BATL_DRA`, `BATL_RET`, `BATL_SE`, `COMN_SE`: no code |
 | ETC      | `0x801D0C00` (menus), `0x80195800` (`game/00`) | slot 0 for `bate`, `game/00`, `shisu`, `shop`, `sisyou`; 6 for `commu03` and `commu04`; 7 for `commu01`, `commu05` and `commu02b`; 8 for `commu02` and `start/08`; 9 for `start/09`                                         |

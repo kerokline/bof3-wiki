@@ -41,7 +41,7 @@ The second ability byte of a `level-growth` record is `extra_ability` in the lay
 
 ## Rebuilding an EMI archive
 
-An archive rebuilds from its entries when each entry keeps its payload, type and load argument and the archive keeps its version. The payloads are laid out again with the [padding rules](emi.md#padding). A payload that changes size moves every entry after it. All 880 archives rebuild byte for byte from their own entries, and replacing one entry changes only that entry (`measured`).
+An archive rebuilds from its entries when each entry keeps its payload, type and load argument and the archive keeps its version. The payloads are laid out again with the [padding rules](emi.md#padding). A payload that changes size moves every entry after it. All 880 archives rebuild byte for byte from their own entries, and replacing one entry changes only that entry.
 
 ## Sector sealing
 
@@ -51,13 +51,13 @@ A disc file is a run of CD sectors, and writing one back means writing its secto
 - Parity: the ECMA-130 Annex B product code over bytes 12 to 2247, with the address (bytes 12 to 15) counted as zero. P is 86 columns of 24 bytes at byte 2076. Q is 52 columns of 43 bytes at byte 2248, and it covers P.
 - Form 2: XA and STR sectors (sub-header submode bit `0x20`) have no parity. Copy them as stored.
 
-On the retail disc, all 161,720 Form 1 sectors match these rules. One sector after the last file (LBA 188323) keeps stray parity bytes and does not match, so it stays as stored. Rewriting every non-XA file with its own bytes gives a byte-identical disc: 883 files and 128,479 sealed sectors (`measured`).
+On the retail disc, all 161,720 Form 1 sectors match these rules. One sector after the last file (LBA 188323) keeps stray parity bytes and does not match, so it stays as stored. Rewriting every non-XA file with its own bytes gives a byte-identical disc: 883 files and 128,479 sealed sectors.
 
 A replacement file keeps the original sectors. It can shrink but cannot grow past its last sector, because the disc has no room to move the files after it, and the start sectors in the [file table](exe.md#the-disc-file-table) stay valid. A shrunk file has its tail sectors zeroed. The directory record that holds the size is rewritten in both byte orders and its sector is sealed again. The audio track is unchanged.
 
 ## Sound banks
 
-A VAB bank ([layout](audio.md#vab-bank)) converts to a SoundFont 2 file with one preset for each playable program, numbered by the program, in bank 0. A MIDI file that selects program `p` on bank 0 then plays through preset `p`. A VAG at pitch `0x1000` plays at 44,100 Hz, and a decoded sample is 16-bit PCM at that rate. A SEP sequence converts to a format 0 Standard MIDI File with a tempo and a time signature at time zero and a second end-of-track. A MIDI file carries no sequence id, so a rebuilt package needs the id from the original. On the retail disc, all 476 sequences of the 119 packages read back from their MIDI, and the packages encode to their stored bytes (`measured`). XA streams decode to PCM at 37,800 Hz ([STR and XA](str.md)).
+A VAB bank ([layout](audio.md#vab-bank)) converts to a SoundFont 2 file with one preset for each playable program, numbered by the program, in bank 0. A MIDI file that selects program `p` on bank 0 then plays through preset `p`. A VAG at pitch `0x1000` plays at 44,100 Hz, and a decoded sample is 16-bit PCM at that rate. A SEP sequence converts to a format 0 Standard MIDI File with a tempo and a time signature at time zero and a second end-of-track. A MIDI file carries no sequence id, so a rebuilt package needs the id from the original. On the retail disc, all 476 sequences of the 119 packages read back from their MIDI, and the packages encode to their stored bytes. XA streams decode to PCM at 37,800 Hz ([STR and XA](str.md)).
 
 | VAB field              | SoundFont field                    | Mapping                                                                                 |
 | ---------------------- | ---------------------------------- | --------------------------------------------------------------------------------------- |

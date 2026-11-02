@@ -88,41 +88,41 @@ The base-stat table is entry 8 of `START.EMI` (payload `0x1A914`, load address `
 
 The table gives the offset, width and meaning of each field. The runtime record at `g_Characters` has the same layout. The block's header byte at `0x80144952` (`0x16` bytes before the first record) holds the window style.
 
-| Offset        | Width    | Field                                                                |
-| ------------- | -------- | -------------------------------------------------------------------- |
-| `0x00`        | 5 bytes  | name                                                                 |
-| `0x05`        | u8       | character id                                                         |
-| `0x06`        | u8       | level                                                                |
-| `0x07`        | u8       | party-row flags (bit 0 selects the rows the shop overlay lists)      |
-| `0x08`        | u32      | experience                                                           |
-| `0x0C`        | u16      | status flags                                                         |
-| `0x0E`-`0x11` | 4 × u8   | weapon, shield, helmet, armor                                        |
-| `0x12`        | 2 × u8   | accessories                                                          |
-| `0x14`        | u16      | current HP                                                           |
-| `0x16`        | u16      | current AP                                                           |
-| `0x18`        | u8       | current willpower                                                    |
-| `0x19`        | u8       | inoculations                                                         |
-| `0x1A`        | u8       | fatigue                                                              |
-| `0x1B`        | u8       | master id (`0xFF` for none)                                          |
-| `0x1C`-`0x26` | 6 × u16  | max HP, max AP, power, defense, agility, intellect                   |
-| `0x28`        | u16      | unknown                                                              |
-| `0x2A`        | u8       | willpower                                                            |
-| `0x2B`        | 9 × u8   | resistances                                                          |
-| `0x34`-`0x38` | 5 × u8   | surprise chance, reprisal chance, critical chance, evasion, accuracy |
-| `0x39`        | 3 bytes  | unknown                                                              |
-| `0x3C`-`0x46` | 6 × u16  | base HP, AP, power, defense, agility, intellect                      |
-| `0x48`        | u16      | unknown                                                              |
-| `0x4A`        | u8       | base willpower                                                       |
-| `0x4B`        | 9 × u8   | base resistances                                                     |
-| `0x54`-`0x58` | 5 × u8   | base surprise, reprisal, critical, evasion, accuracy                 |
-| `0x59`        | 3 bytes  | unknown                                                              |
-| `0x5C`        | 10 × u8  | healing abilities                                                    |
-| `0x66`        | 10 × u8  | assist abilities                                                     |
-| `0x70`        | 10 × u8  | attack abilities                                                     |
-| `0x7A`        | 10 × u8  | skill abilities                                                      |
-| `0x84`        | u8       | level when the current master was assigned                           |
-| `0x85`        | 6 × i8   | level-up modifiers: HP, AP, power, defense, agility, intellect       |
-| `0x8B`        | 25 bytes | unknown                                                              |
+| Offset      | Type      | Field                                                                |
+| ----------- | --------- | -------------------------------------------------------------------- |
+| `0x00`      | `char[5]` | name                                                                 |
+| `0x05`      | `u8`      | character id                                                         |
+| `0x06`      | `u8`      | level                                                                |
+| `0x07`      | `u8`      | party-row flags (bit 0 selects the rows the shop overlay lists)      |
+| `0x08`      | `u32`     | experience                                                           |
+| `0x0C`      | `u16`     | status flags                                                         |
+| `0x0E-0x11` | 4 × u8    | weapon, shield, helmet, armor                                        |
+| `0x12`      | 2 × u8    | accessories                                                          |
+| `0x14`      | `u16`     | current HP                                                           |
+| `0x16`      | `u16`     | current AP                                                           |
+| `0x18`      | `u8`      | current willpower                                                    |
+| `0x19`      | `u8`      | inoculations                                                         |
+| `0x1A`      | `u8`      | fatigue                                                              |
+| `0x1B`      | `u8`      | master id (`0xFF` for none)                                          |
+| `0x1C-0x26` | 6 × u16   | max HP, max AP, power, defense, agility, intellect                   |
+| `0x28`      | `u16`     | unknown                                                              |
+| `0x2A`      | `u8`      | willpower                                                            |
+| `0x2B`      | 9 × u8    | resistances                                                          |
+| `0x34-0x38` | 5 × u8    | surprise chance, reprisal chance, critical chance, evasion, accuracy |
+| `0x39`      | `u8[3]`   | unknown                                                              |
+| `0x3C-0x46` | 6 × u16   | base HP, AP, power, defense, agility, intellect                      |
+| `0x48`      | `u16`     | unknown                                                              |
+| `0x4A`      | `u8`      | base willpower                                                       |
+| `0x4B`      | 9 × u8    | base resistances                                                     |
+| `0x54-0x58` | 5 × u8    | base surprise, reprisal, critical, evasion, accuracy                 |
+| `0x59`      | `u8[3]`   | unknown                                                              |
+| `0x5C`      | 10 × u8   | healing abilities                                                    |
+| `0x66`      | 10 × u8   | assist abilities                                                     |
+| `0x70`      | 10 × u8   | attack abilities                                                     |
+| `0x7A`      | 10 × u8   | skill abilities                                                      |
+| `0x84`      | `u8`      | level when the current master was assigned                           |
+| `0x85`      | 6 × s8    | level-up modifiers: HP, AP, power, defense, agility, intellect       |
+| `0x8B`      | `u8[25]`  | unknown                                                              |
 
 The record holds two copies of the stats. The "base" copy at `0x3C` is what level-ups raise. The live copy at `0x1C` is what a battle reads and what equipment and status effects change. The shop overlay reads the skill-ability bytes at `0x90` from the block base (`0x16 + 0x7A`, `emi/etc/shop/00@0x801E1710`).
 
@@ -143,7 +143,7 @@ Whelp stores character id 10 in its record, not 7. Every starting record has `ma
 
 The level-growth table has 693 rows: seven blocks of 99, one for each of character slots 0 to 6. Slot 7 (Whelp) has no block. Row `character × 99 + n - 1` belongs to level `n`. Its experience field is the experience needed to go from level `n-1` to `n`, so a character's level is the first `L` for which the character's experience is below the sum of the experience fields of block rows `1` to `L`. The level caps at 99. Row 0 of each block is the level-1 row, and the level-up routine does not apply it.
 
-`func_801ADDD4` (`emi/etc/game/00@0x801ADDD4`) recomputes the level from the experience. For each level gained, from the old level up to the new one minus one, it adds the row's stats to the base stats at `0x3C`..`0x46`: HP and AP in full, and the four packed stats as nibbles. It adds the signed modifier byte at `0x85`..`0x8A` to each gain, floors the gain at 0 and caps the stat at 999. It then passes the row's two ability bytes to `func_801651DC` (`exe/slus_004_22`), stores the new level at `+0x06` and recalculates the live stats. All 693 `extra ability` bytes in the shipped table are zero; the `ability` byte is nonzero in 70 rows.
+`func_801ADDD4 (emi/etc/game/00@0x801ADDD4)` recomputes the level from the experience. For each level gained, from the old level up to the new one minus one, it adds the row's stats to the base stats at `0x3C`..`0x46`: HP and AP in full, and the four packed stats as nibbles. It adds the signed modifier byte at `0x85`..`0x8A` to each gain, floors the gain at 0 and caps the stat at 999. It then passes the row's two ability bytes to `func_801651DC` (`exe/slus_004_22`), stores the new level at `+0x06` and recalculates the live stats. All 693 `extra ability` bytes in the shipped table are zero; the `ability` byte is nonzero in 70 rows.
 
 ### Masters
 
@@ -151,8 +151,8 @@ A master is a trainer that changes a character's stat growth and teaches skills.
 
 - `MasterSkills` rows are six pairs of `level | ability << 8`. A high byte of `0xFF` marks an empty pair and a low byte of `0x63` marks an unused level. The first row, for example, begins level 2 with ability `0xAA`, level 5 with ability `0x27`.
 - `MasterStats` rows are six signed bytes: HP, AP, power, defense, agility and intellect bonuses.
-- `func_801D2CA4` (`emi/etc/sisyou/00@0x801D2CA4`) assigns a master. It stores the master id at `+0x1B`, stores the character's current level at `+0x84`, and copies the six `MasterStats` bytes into the level-up modifiers at `+0x85`.
-- `func_801D3A24` (`emi/etc/sisyou/00@0x801D3A24`) checks the skills a master has granted. It compares each pair's level byte against the levels gained since assignment, which is the level minus the byte at `+0x84`. Masters 11 to 14 are special cases that grant a reward after three levels gained; the other masters follow the skill pairs.
+- `func_801D2CA4 (emi/etc/sisyou/00@0x801D2CA4)` assigns a master. It stores the master id at `+0x1B`, stores the character's current level at `+0x84`, and copies the six `MasterStats` bytes into the level-up modifiers at `+0x85`.
+- `func_801D3A24 (emi/etc/sisyou/00@0x801D3A24)` checks the skills a master has granted. It compares each pair's level byte against the levels gained since assignment, which is the level minus the byte at `+0x84`. Masters 11 to 14 are special cases that grant a reward after three levels gained; the other masters follow the skill pairs.
 - The names are 17 packed null-terminated strings in the game's text encoding. Byte `0x8E` is the apostrophe in `D'lonzo`.
 - `DragonPointers` is ten `u32` addresses in the `0x801D5xxx` range of the status overlay window. What they point to is `[unknown]`.
 
@@ -178,7 +178,7 @@ Each row names an archive and an entry: `AREA112/13` is entry 13 of `AREA112.EMI
 
 The save file is a 1-block memory-card file ([memory card save](../formats/save.md)). Its payload is a copy of one block of RAM, so a save offset maps to a RAM address by a fixed bias: RAM address = save offset + `0x801446D8` for every offset from `0x200`. The frame origin `0x801446D8` is virtual. Only the part from `+0x200` exists in live RAM, as the block at `0x801448D8`.
 
-`CardBuildFileHeader` (`emi/etc/start/09@0x801EF27C`) writes the `SC` magic to the staging buffer at `0x800C1800`. `SAVE_BuildSlotImage` (`emi/etc/shop/00@0x801D69E0`) then copies the block at `0x801448D8` to staging `+0x200` (`g_SaveBuffer`, `0x800C1A00`). On load, `SAVE_RunLoadVerify` (`emi/etc/start/08@0x801E5A00`) zeroes the halfword at `+0x270`, byte-sums `0x10B0` bytes from `+0x200` into a 32-bit accumulator and compares the low halfword.
+`CardBuildFileHeader (emi/etc/start/09@0x801EF27C)` writes the `SC` magic to the staging buffer at `0x800C1800`. `SAVE_BuildSlotImage (emi/etc/shop/00@0x801D69E0)` then copies the block at `0x801448D8` to staging `+0x200` (`g_SaveBuffer`, `0x800C1A00`). On load, `SAVE_RunLoadVerify (emi/etc/start/08@0x801E5A00)` zeroes the halfword at `+0x270`, byte-sums `0x10B0` bytes from `+0x200` into a 32-bit accumulator and compares the low halfword.
 
 Community save editors use a second origin that starts at the zenny field, so an editor offset is the save offset minus `0x878`. The table lists both. Rows with no tag have a named global at that address. `[inferred]` rows rest on community notes only.
 
@@ -227,28 +227,28 @@ An encounter is eight enemy slots (`+0x00`..`+0x07`, `0xFF` empty) and an appear
 
 ### The enemy record
 
-| Offset        | Width    | Field                                             |
-| ------------- | -------- | ------------------------------------------------- |
-| `0x00`        | 8 bytes  | name                                              |
-| `0x08`        | u16      | enemy id                                          |
-| `0x0A`        | u8       | choice AI                                         |
-| `0x0B`        | 3 bytes  | unknown                                           |
-| `0x0E`        | u8       | target preference                                 |
-| `0x0F`        | u8       | unknown                                           |
-| `0x10`        | u16      | zenny                                             |
-| `0x12`        | u16      | experience                                        |
-| `0x14`        | u8       | level                                             |
-| `0x15`        | 3 bytes  | unknown                                           |
-| `0x18`        | 8 × u8   | initial skills                                    |
-| `0x20`-`0x2A` | 6 × u16  | HP, AP, power, defense, agility, intellect        |
-| `0x2C`        | u8, u8   | first item row: item index, item type             |
-| `0x2E`        | u16      | first item row: rate                              |
-| `0x30`        | u8, u8   | second item row: item index, item type            |
-| `0x32`        | u16      | second item row: rate                             |
-| `0x34`        | 4 × 0x10 | AI blocks: condition (u8), 7 parameters, 8 skills |
-| `0x74`        | 4 bytes  | unknown                                           |
-| `0x78`        | 9 × u8   | resistances                                       |
-| `0x81`        | 7 bytes  | unknown                                           |
+| Offset      | Type      | Field                                             |
+| ----------- | --------- | ------------------------------------------------- |
+| `0x00`      | `char[8]` | name                                              |
+| `0x08`      | `u16`     | enemy id                                          |
+| `0x0A`      | `u8`      | choice AI                                         |
+| `0x0B`      | `u8[3]`   | unknown                                           |
+| `0x0E`      | `u8`      | target preference                                 |
+| `0x0F`      | `u8`      | unknown                                           |
+| `0x10`      | `u16`     | zenny                                             |
+| `0x12`      | `u16`     | experience                                        |
+| `0x14`      | `u8`      | level                                             |
+| `0x15`      | `u8[3]`   | unknown                                           |
+| `0x18`      | 8 × u8    | initial skills                                    |
+| `0x20-0x2A` | 6 × u16   | HP, AP, power, defense, agility, intellect        |
+| `0x2C`      | `u8[2]`   | first item row: item index, item type             |
+| `0x2E`      | `u16`     | first item row: rate                              |
+| `0x30`      | `u8[2]`   | second item row: item index, item type            |
+| `0x32`      | `u16`     | second item row: rate                             |
+| `0x34`      | 4 × 0x10  | AI blocks: condition (u8), 7 parameters, 8 skills |
+| `0x74`      | `u8[4]`   | unknown                                           |
+| `0x78`      | 9 × u8    | resistances                                       |
+| `0x81`      | `u8[7]`   | unknown                                           |
 
 Notes on the fields:
 
@@ -316,7 +316,7 @@ Four values occur with no established meaning: `0x00` (the empty row), `0x06`, `
 
 ### Drops
 
-A drop row's rate is an index into the eight-byte chance table `g_BattleDropChances` (`emi/battle/battle/03@0x801D0CB8`): `0, 0, 1, 3, 7, 0x1F, 0x7F, 0xFF`. The roll passes when `chance[rate] >= rand() & 0xFF`, so the probability is `(chance + 1) / 256`. Rate 0 and item 0 never drop. The roll is in `func_801E531C` (`emi/battle/battle/03@0x801E531C`).
+A drop row's rate is an index into the eight-byte chance table `g_BattleDropChances (emi/battle/battle/03@0x801D0CB8)`: `0, 0, 1, 3, 7, 0x1F, 0x7F, 0xFF`. The roll passes when `chance[rate] >= rand() & 0xFF`, so the probability is `(chance + 1) / 256`. Rate 0 and item 0 never drop. The roll is in `func_801E531C (emi/battle/battle/03@0x801E531C)`.
 
 | Rate        |     0 |     1 |     2 |     3 |     4 |      5 |       6 |      7 |
 | ----------- | ----: | ----: | ----: | ----: | ----: | -----: | ------: | -----: |

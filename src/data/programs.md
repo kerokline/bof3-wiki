@@ -61,7 +61,7 @@ A battle-effect module starts with its id and then a table of callbacks, which a
 
 The game has one resident map engine. The world map and the town and dungeon maps are all area images that this engine runs. A flag in each area's load entry selects the world-map variant.
 
-`g_AreaLoads` (`exe/slus_004_22@0x8017F974`) holds 200 pointers, one per area. Each points to an `AreaLoad` entry inside that area's own program. Byte `+0x32` of the entry is the map-kind flag, which the game copies to `g_GameRequestFlags` when it loads the area. The table gives the kinds over all 200 areas.
+`g_AreaLoads (exe/slus_004_22@0x8017F974)` holds 200 pointers, one per area. Each points to an `AreaLoad` entry inside that area's own program. Byte `+0x32` of the entry is the map-kind flag, which the game copies to `g_GameRequestFlags` when it loads the area. The table gives the kinds over all 200 areas.
 
 | Value  | Kind                        | Areas                                       |
 | ------ | --------------------------- | ------------------------------------------- |

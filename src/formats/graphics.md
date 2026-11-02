@@ -8,12 +8,12 @@ The game draws with the PsyQ primitive records: `SPRT` (free size), `SPRT_8` and
 
 The type-3 handler `EMI_LoaderLoadGraphics (exe/slus_004_22@0x80162698)` reads the load argument as masked fields.
 
-| Bits                 | Meaning                            | Unit                  |
-| -------------------- | ---------------------------------- | --------------------- |
-| `31:24`, mask `0x3F` | first rectangle column             | 32 VRAM words         |
-| `23:16`, mask `0x1F` | first rectangle row                | 32 VRAM rows          |
-| `15:8`, mask `0x3F`  | rectangles per row                 | 32x32-word rectangles |
-| `7:0`                | unused (`0` in 592 of 593 entries) |                       |
+| Bits                    | Meaning                            | Unit                  |
+| ----------------------- | ---------------------------------- | --------------------- |
+| `24 to 31`, mask `0x3F` | first rectangle column             | 32 VRAM words         |
+| `16 to 23`, mask `0x1F` | first rectangle row                | 32 VRAM rows          |
+| `8 to 15`, mask `0x3F`  | rectangles per row                 | 32x32-word rectangles |
+| `0 to 7`                | unused (`0` in 592 of 593 entries) |                       |
 
 For example, the argument `0x1A080400` has column `0x1A` = 26 (VRAM x = 832), row `0x08` = 8 (VRAM y = 256) and `0x04` rectangles per row. A 65,536-byte payload holds 32 rectangles, so it fills 8 rectangle rows of 4 rectangles, 128 words wide and 256 rows tall, from (832, 256).
 
@@ -89,29 +89,29 @@ The palette arena is not the only palette writer. The frontend keeps three more 
 
 `PaletteFade` (`0x0C` bytes):
 
-| Offset | Width | Meaning                                                  |
-| -----: | ----: | -------------------------------------------------------- |
-| `0x00` |     1 | flags                                                    |
-| `0x01` |     1 | unknown                                                  |
-| `0x02` |     1 | red offset                                               |
-| `0x03` |     1 | green offset                                             |
-| `0x04` |     1 | blue offset                                              |
-| `0x05` |     1 | table index                                              |
-| `0x06` |     1 | step                                                     |
-| `0x07` |     1 | unknown                                                  |
-| `0x08` |     4 | target pointer (the target pattern at `+0x08` sets size) |
+| Offset | Size | Meaning                                                  |
+| -----: | ---: | -------------------------------------------------------- |
+| `0x00` |    1 | flags                                                    |
+| `0x01` |    1 | unknown                                                  |
+| `0x02` |    1 | red offset                                               |
+| `0x03` |    1 | green offset                                             |
+| `0x04` |    1 | blue offset                                              |
+| `0x05` |    1 | table index                                              |
+| `0x06` |    1 | step                                                     |
+| `0x07` |    1 | unknown                                                  |
+| `0x08` |    4 | target pointer (the target pattern at `+0x08` sets size) |
 
 `GraphicsPaletteAnimation` (`0x10` bytes):
 
-| Offset | Width | Meaning                                                  |
-| -----: | ----: | -------------------------------------------------------- |
-| `0x00` |     1 | flags (bit 0: slot in use)                               |
-| `0x01` |     1 | frames left on the current entry                         |
-| `0x02` |     1 | last owner animation id (`0xFF` on start)                |
-| `0x03` |     1 | initial value, copied from owner `+0x27` on start        |
-| `0x04` |     4 | pointer to the source table                              |
-| `0x08` |     4 | pointer to the current entry                             |
-| `0x0C` |     4 | pointer to the owner (owner `+0x4B` is the animation id) |
+| Offset | Size | Meaning                                                  |
+| -----: | ---: | -------------------------------------------------------- |
+| `0x00` |    1 | flags (bit 0: slot in use)                               |
+| `0x01` |    1 | frames left on the current entry                         |
+| `0x02` |    1 | last owner animation id (`0xFF` on start)                |
+| `0x03` |    1 | initial value, copied from owner `+0x27` on start        |
+| `0x04` |    4 | pointer to the source table                              |
+| `0x08` |    4 | pointer to the current entry                             |
+| `0x0C` |    4 | pointer to the owner (owner `+0x4B` is the animation id) |
 
 The cell map has one byte per cell, and `0xFF` is empty. `GFX_StepPaletteAnimation` selects the source-table entry named by the owner's animation id and advances four bytes at a time (entry byte 3 is the frame count). It wraps when the next entry starts with `0xFF`: that entry's second byte is the back-step, a count of four-byte entries. The battle overlay views the same address `0x80145BD4` differently, as a `0x0C`-byte `BattleSpriteSlot` that reads bytes `+0x02` (a second copy of the shared sprite value), `+0x03` and `+0x04`. The same address is not the same object in another overlay.
 

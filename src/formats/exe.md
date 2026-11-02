@@ -12,7 +12,7 @@ Five files outside the [EMI](emi.md) archives start the game: the system file, t
 | `LOGO/CAPCOM30.STR` |           2,365,440 | 186252 | MDEC video and XA, see [STR](str.md)   | `LOGO.EXE`, by a fixed sector number  |
 | license sectors     | 28,032 (12 x 2,336) |   0-11 | license text and logo, outside ISO9660 | the BIOS only                         |
 
-The disc also has one CDDA track (track 2, 37,044,044 bytes). Every sample in it is zero (`measured`). No game function that was read issues `CdlPlay` (`measured` by search), so nothing in the code read so far plays it. Code that was not read is not covered by that search, so "nothing plays it" is `inferred`.
+The disc also has one CDDA track (track 2, 37,044,044 bytes). Every sample in it is zero. No game function that was read issues `CdlPlay` (found by searching every function read), so nothing in the code read so far plays it. Code that was not read is not covered by that search, so "nothing plays it" is `[inferred]`.
 
 ## PS-X EXE header
 
@@ -29,7 +29,7 @@ Both executables begin with the standard 0x800-byte PS-X EXE header: the `PS-X E
 | `0x34` | `s_size`                       |             `0` |          `0` |
 | `0x4C` | region marker                  | "North America" |      "Japan" |
 
-All of this is `measured` on both files:
+All of this holds on both files:
 
 - The file size equals `0x800 + t_size` (1,445,888 and 122,880 bytes).
 - Header bytes `0x83` to `0x7FF` are zero.
@@ -39,16 +39,16 @@ All of this is `measured` on both files:
 
 ## SYSTEM.CNF
 
-The file has four lines of the form `KEY = value` (`measured`):
+The file has four lines of the form `KEY = value`:
 
 | Key     | Value                  |
 | ------- | ---------------------- |
 | `BOOT`  | `cdrom:\SLUS_004.22;1` |
 | `TCB`   | `4`                    |
 | `EVENT` | `16`                   |
-| `STACK` | `0X801FFF00`           |
+| `STACK` | `0x801FFF00`           |
 
-The BIOS reads the file and the game never opens it. `TCB` and `EVENT` size the kernel's thread control block and event tables, and `STACK` is the initial stack pointer (`inferred` from the PsyQ boot convention).
+The BIOS reads the file and the game never opens it. `TCB` and `EVENT` size the kernel's thread control block and event tables, and `STACK` is the initial stack pointer (`[inferred]` from the PsyQ boot convention).
 
 ## Boot chain
 
@@ -64,24 +64,24 @@ flowchart LR
     R --> F["frontend and game"]
 ```
 
-`SYS_RunLogo` passes the string `\LOGO\LOGO.EXE;1` to `SYS_LoadExec` (`read`). That function calls `CdSearchFile`, reads the first sector (the header) into a staging buffer and copies 40 bytes of header fields to the boot scratch area (`D_80143E70`). It then reads `t_size` bytes from the next sector to `t_addr` through `SYS_ReadCd`, and retries up to 10 times. `SYS_RunLogo` then sets the new stack top to `0x801FF000`, runs `Exec` inside a critical section and restores the boot display (`SYS_InitHardware`, `ClearOTag`, `DrawOTag`, `GFX_ClearRect`).
+`SYS_RunLogo` passes the string `\LOGO\LOGO.EXE;1` to `SYS_LoadExec` . That function calls `CdSearchFile`, reads the first sector (the header) into a staging buffer and copies 40 bytes of header fields to the boot scratch area (`D_80143E70`). It then reads `t_size` bytes from the next sector to `t_addr` through `SYS_ReadCd`, and retries up to 10 times. `SYS_RunLogo` then sets the new stack top to `0x801FF000`, runs `Exec` inside a critical section and restores the boot display (`SYS_InitHardware`, `ClearOTag`, `DrawOTag`, `GFX_ClearRect`).
 
-`LOGO.EXE` finds the video by sector number, not by file name. It stores the start LBA as the 32-bit constant `D_801D8BB0 (exe/logo@0x801D8BB0)`, which is `0x0002D78C` (186,252), the LBA of `CAPCOM30.STR` (`read`, and `measured` against the directory). Moving the STR file requires the same change in `LOGO.EXE`.
+`LOGO.EXE` finds the video by sector number, not by file name. It stores the start LBA as the 32-bit constant `D_801D8BB0 (exe/logo@0x801D8BB0)`, which is `0x0002D78C` (186,252), the LBA of `CAPCOM30.STR` (checked against the directory). Moving the STR file requires the same change in `LOGO.EXE`.
 
 ## The disc file table
 
-`g_EmiSlotLbas` in `SLUS_004.22` is an array of 887 `u32` start sector numbers, one per disc file. `EMI_LoaderSlotLba` (`exe/slus_004_22@0x80162160`) returns `g_EmiSlotLbas[slot_id]`. Every EMI, XA and logo read goes through it ([EMI slot ids](emi.md#disc-slot-ids)). The table is the only place where the game learns where a file starts.
+`g_EmiSlotLbas` in `SLUS_004.22` is an array of 887 `u32` start sector numbers, one per disc file. `EMI_LoaderSlotLba (exe/slus_004_22@0x80162160)` returns `g_EmiSlotLbas[slot_id]`. Every EMI, XA and logo read goes through it ([EMI slot ids](emi.md#disc-slot-ids)). The table is the only place where the game learns where a file starts.
 
-| Fact                                                   | Value                                                   | Evidence   |
-| ------------------------------------------------------ | ------------------------------------------------------- | ---------- |
-| File offset of slot 0                                  | `0xEC444` (the address minus `0x80096000`)              | `measured` |
-| Entries                                                | 887, 4 bytes each, 3,548 bytes                          | `measured` |
-| Order                                                  | ascending LBA                                           | `measured` |
-| The set of values equals the LBAs of the ISO9660 files | yes, 887 of 887                                         | `measured` |
-| Slots 0-882                                            | the 883 files under `BIN/`                              | `measured` |
-| Slots 883-886                                          | `CAPCOM30.STR`, `LOGO.EXE`, `SYSTEM.CNF`, `SLUS_004.22` | `measured` |
+| Fact                                                   | Value                                                   |
+| ------------------------------------------------------ | ------------------------------------------------------- |
+| File offset of slot 0                                  | `0xEC444` (the address minus `0x80096000`)              |
+| Entries                                                | 887, 4 bytes each, 3,548 bytes                          |
+| Order                                                  | ascending LBA                                           |
+| The set of values equals the LBAs of the ISO9660 files | yes, 887 of 887                                         |
+| Slots 0-882                                            | the 883 files under `BIN/`                              |
+| Slots 883-886                                          | `CAPCOM30.STR`, `LOGO.EXE`, `SYSTEM.CNF`, `SLUS_004.22` |
 
-The table follows the on-disc order, not the directory-record order. The directory lists `SLUS_004.22` before `SYSTEM.CNF`, and the table lists them the other way. The `u32` after the last slot (`0x0002E03A`) is not a file: it is not the LBA of any file (`measured`).
+The table follows the on-disc order, not the directory-record order. The directory lists `SLUS_004.22` before `SYSTEM.CNF`, and the table lists them the other way. The `u32` after the last slot (`0x0002E03A`) is not a file: it is not the LBA of any file.
 
 A file may shrink in place. A file that moves, or one that must grow, needs both its ISO9660 directory record and this table rewritten ([sector layout](conversion.md#sector-sealing)).
 
@@ -89,10 +89,10 @@ A file may shrink in place. A file that moves, or one that must grow, needs both
 
 Some tables that editors look for sit in the main executable, and some do not.
 
-| Data                           | Address                                                         | Shape                                                       | Evidence                             |
-| ------------------------------ | --------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------ |
-| XA stream slot ids             | `D_80183230` = `{0x2A9, 0x1B2, 0x2AA}` (S_XA00, MAGIC00, VOICE) | 3 `u32` slot ids                                            | `read` (`SND_ResolveXaStream`)       |
-| XA cue-array pointers          | `D_8018323C` = `{0x801839C4, 0x801832C4, 0x80183298}`           | 3 pointers to `u16` arrays, see [STR](str.md#xa-cue-tables) | `read`, `measured`                   |
-| BGM id to slot table           | `D_80181EB8[id]`                                                | slot ids `0xD1`-`0x121`                                     | `read` ([EMI](emi.md#disc-slot-ids)) |
-| Item, ability and level data   | not here: `ETC/GAME.EMI` entry 0                                | [game records](../data/records.md)                          | `read`                               |
-| Save frame, checksum constants | not here                                                        | [save format](save.md)                                      | `read`                               |
+| Data                           | Address                                                         | Shape                                                       | Reader or page                                     |
+| ------------------------------ | --------------------------------------------------------------- | ----------------------------------------------------------- | -------------------------------------------------- |
+| XA stream slot ids             | `D_80183230` = `{0x2A9, 0x1B2, 0x2AA}` (S_XA00, MAGIC00, VOICE) | 3 `u32` slot ids                                            | `SND_ResolveXaStream (exe/slus_004_22@0x80163744)` |
+| XA cue-array pointers          | `D_8018323C` = `{0x801839C4, 0x801832C4, 0x80183298}`           | 3 pointers to `u16` arrays, see [STR](str.md#xa-cue-tables) | -                                                  |
+| BGM id to slot table           | `D_80181EB8[id]`                                                | slot ids `0xD1`-`0x121`                                     | [EMI](emi.md#disc-slot-ids)                        |
+| Item, ability and level data   | not here: `ETC/GAME.EMI` entry 0                                | [game records](../data/records.md)                          | -                                                  |
+| Save frame, checksum constants | not here                                                        | [save format](save.md)                                      | -                                                  |

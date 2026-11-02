@@ -61,7 +61,7 @@ These values live outside the block. The game rebuilds or resets each one.
 | `g_PartySize`                             | `0x80146254`               | party size, recomputed from the order array by `Party_CountOrder` |
 | Area, scene and actor tables              | overlay windows            | reloaded with the area and scenario overlays `[inferred]`         |
 
-`g_GameState` is not a record of game progress despite its name. `func_801E3EC4` (`emi/etc/start/08@0x801E3EC4`) points it at a `g_BattlePartyBattlers` row for the camp menu, and `Party_BuildBattlers (emi/etc/game/00@0x801C1400)` points it at one row per party member for the field.
+`g_GameState` is not a record of game progress despite its name. `func_801E3EC4 (emi/etc/start/08@0x801E3EC4)` points it at a `g_BattlePartyBattlers` row for the camp menu, and `Party_BuildBattlers (emi/etc/game/00@0x801C1400)` points it at one row per party member for the field.
 
 ## How the block changes
 
@@ -114,15 +114,15 @@ Game progress lives in the block or in the executable's work variables. An overl
 
 ## What the game rebuilds
 
-| Trigger                       | What is rebuilt                                                                                  | Function (image@address)                                |
-| ----------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------- |
-| Field entry after boot / load | `g_BattlePartyBattlers` rows from `g_Characters` and the field order; `g_PartySize`              | `Party_BuildBattlers` (`emi/etc/game/00@0x801C1400`)    |
-| Field entry after boot / load | `g_GameAreaId` set to `0xFFFF`, then the area load; entry context and position from the block    | `Game_ResetGameState` (`emi/etc/game/00@0x801970EC`)    |
-| Field entry                   | `g_GameStateIndex = 5`, so the next field step is the entry step                                 | `Game_RequestAreaChange` (`emi/etc/game/00@0x8019FA28`) |
-| Load                          | live stats for all 8 records: base `+0x3C` block copied over `+0x1C`, then fatigue and equipment | `Char_RebuildStats` (`exe/slus_004_22@0x80164A44`)      |
-| Load                          | character code and graphics archives for `g_EmiLoadedCharacterIndex`                             | `SAVE_RunLoadRestore` (`emi/etc/start/08@0x801E5FD4`)   |
-| Load                          | scenario overlay for `g_SceneState.scenario_id`                                                  | `Scene_RequestOverlay` via `func_801E5FD4`              |
-| Entering the save screen      | nothing; the shop overlay streams in and the field frame keeps running under it                  | `Game_LoadShopOverlay` (`emi/etc/game/00@0x80198270`)   |
+| Trigger                       | What is rebuilt                                                                                  | Function (image@address)                              |
+| ----------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------- |
+| Field entry after boot / load | `g_BattlePartyBattlers` rows from `g_Characters` and the field order; `g_PartySize`              | `Party_BuildBattlers (emi/etc/game/00@0x801C1400)`    |
+| Field entry after boot / load | `g_GameAreaId` set to `0xFFFF`, then the area load; entry context and position from the block    | `Game_ResetGameState (emi/etc/game/00@0x801970EC)`    |
+| Field entry                   | `g_GameStateIndex = 5`, so the next field step is the entry step                                 | `Game_RequestAreaChange (emi/etc/game/00@0x8019FA28)` |
+| Load                          | live stats for all 8 records: base `+0x3C` block copied over `+0x1C`, then fatigue and equipment | `Char_RebuildStats (exe/slus_004_22@0x80164A44)`      |
+| Load                          | character code and graphics archives for `g_EmiLoadedCharacterIndex`                             | `SAVE_RunLoadRestore (emi/etc/start/08@0x801E5FD4)`   |
+| Load                          | scenario overlay for `g_SceneState.scenario_id`                                                  | `Scene_RequestOverlay` via `func_801E5FD4`            |
+| Entering the save screen      | nothing; the shop overlay streams in and the field frame keeps running under it                  | `Game_LoadShopOverlay (emi/etc/game/00@0x80198270)`   |
 
 `Game_ResetGameState` also clears the battle options and encounter bytes, sets the pending-entry bit in `g_AreaWalkFlags`, and, when the play clock is nonzero, saves the current music id as the area music request before it clears `g_SndBgmId` ([audio](audio.md#music)).
 

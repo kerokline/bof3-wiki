@@ -108,17 +108,17 @@ A type-8 entry is one bank's cue table for sound effects. It is a list of 4-byte
 
 [EMI load argument](emi.md#load-argument) lists the bank selectors by archive kind. A record has these fields:
 
-| Byte | Bits | Field            | Meaning                                                                                                                                        |
-| ---: | ---: | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-|  `0` |  2-0 | `alias_bank`     | bank whose record supplies the voice index; `0` own bank, `1`-`4` that bank; also takes its VAB volume, pan and tune; `0` in all 8,608 records |
-|  `0` |  7-3 | -                | zero in all 8,608; role unknown                                                                                                                |
-|  `1` |    7 | `use_cue_volume` | set in 8,584 of 8,608: follow the key-on with `SsUtSetDetVVol`; clear keeps the tone volume                                                    |
-|  `1` |  6-0 | `program`        | VAB program 0 to 7; `SsUtKeyOnV` argument 3                                                                                                    |
-|  `2` |  7-4 | `tone`           | tone slot 0 to 14; `SsUtKeyOnV` argument 4                                                                                                     |
-|  `2` |  3-0 | -                | copied to voice state and compared with the previous cue; `0x10` (8,342), `0x11` (239), other values in 27; role unknown                       |
-|  `3` |    7 | -                | zero in all 8,608                                                                                                                              |
-|  `3` |  6-5 | `layers`         | extra voices: 0 (525), 1 (7,662), 2 (248), 3 (173)                                                                                             |
-|  `3` |  4-0 | `voice`          | first SPU voice 0 to 23, mostly 16, 18, 20 and 22; values of 24 or more wrap modulo 24 when `layers > 0`                                       |
+| Byte |   Bits | Field            | Meaning                                                                                                                                        |
+| ---: | -----: | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+|  `0` | 0 to 2 | `alias_bank`     | bank whose record supplies the voice index; `0` own bank, `1`-`4` that bank; also takes its VAB volume, pan and tune; `0` in all 8,608 records |
+|  `0` | 3 to 7 | -                | zero in all 8,608; role unknown                                                                                                                |
+|  `1` |      7 | `use_cue_volume` | set in 8,584 of 8,608: follow the key-on with `SsUtSetDetVVol`; clear keeps the tone volume                                                    |
+|  `1` | 0 to 6 | `program`        | VAB program 0 to 7; `SsUtKeyOnV` argument 3                                                                                                    |
+|  `2` | 4 to 7 | `tone`           | tone slot 0 to 14; `SsUtKeyOnV` argument 4                                                                                                     |
+|  `2` | 0 to 3 | -                | copied to voice state and compared with the previous cue; `0x10` (8,342), `0x11` (239), other values in 27; role unknown                       |
+|  `3` |      7 | -                | zero in all 8,608                                                                                                                              |
+|  `3` | 5 to 6 | `layers`         | extra voices: 0 (525), 1 (7,662), 2 (248), 3 (173)                                                                                             |
+|  `3` | 0 to 4 | `voice`          | first SPU voice 0 to 23, mostly 16, 18, 20 and 22; values of 24 or more wrap modulo 24 when `layers > 0`                                       |
 
 To set up a voice, the reader indexes the bank's VAB header at `0x820 + 512*program + 32*tone` and copies `VagAtr` bytes 2 (volume), 3 (pan), 5 (pitch tune) and 6 (min note) into voice state. It keys the base voice with `note = min note` and `fine = pitch tune`, plus `layers` extra voices on `voice + n` with tone slot `tone + n`. Tone volume and pan become SPU volumes only in the layered paths, as `vol * (128 - pan) / 128` and `vol * pan / 128`. The record has no envelope, so `adsr1` and `adsr2` come from the `VagAtr`.
 
@@ -143,11 +143,11 @@ The file header is 6 bytes: the magic `70 51 45 53` (`pQES` in file order, `SEQp
 
 | Offset | Size | Field                                                           |
 | -----: | ---: | --------------------------------------------------------------- |
-|    `0` |    2 | `seq_id` (`u16` big-endian)                                     |
-|    `2` |    2 | resolution (`u16` big-endian, always 48 ticks per quarter note) |
-|    `4` |    3 | tempo (big-endian, microseconds per quarter note)               |
-|    `7` |    2 | time signature (numerator, then log2 of the denominator)        |
-|    `9` |    4 | `data_size` (`u32` big-endian)                                  |
+| `0x00` |    2 | `seq_id` (`u16` big-endian)                                     |
+| `0x02` |    2 | resolution (`u16` big-endian, always 48 ticks per quarter note) |
+| `0x04` |    3 | tempo (big-endian, microseconds per quarter note)               |
+| `0x07` |    2 | time signature (numerator, then log2 of the denominator)        |
+| `0x09` |    4 | `data_size` (`u32` big-endian)                                  |
 
 The headers and payloads tile the package exactly in all 119 packages. Each payload is a stream of MIDI-like events: variable-length delta times, running status, note on and off, program change, control change and pitch bend. Only the tempo and end-of-track events are meta events, and meta events carry a Standard MIDI File length. The end-of-track event is `FF 2F 00` and it closes all 476 sequences. No sequence contains a tempo meta event, so the tempo is the header field. A pitch-bend event has two MIDI data bytes. The linked renderer uses the second as the 7-bit coarse value, centered at 64, and ignores the first.
 
@@ -179,11 +179,11 @@ All are in `exe/slus_004_22`. `SND_Exit` is not the music scheduler or the boots
 
 ## Open questions
 
-| Question                                               | What would settle it                                                                                                                                                     |
-| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Role of type-8 cue byte 0 bits 7-3 and byte 2 bits 3-0 | the voice-state consumer of the compared nibble                                                                                                                          |
-| The bank and sequence tables a standalone player needs | the code that fills them: the linked `SsSepSetCrescendo` (`0x8016AE7C`), `SsSepPlay` (`0x8016B9CC`), `SsSepStop` (`0x8016D6C4`) and `SsSepSetVol` (`0x8016DBA0`) callers |
-| SPU RAM base addresses for each bank                   | a trace of the transfer calls                                                                                                                                            |
-| Which BGM an area plays                                | the area-to-BGM table                                                                                                                                                    |
+| Question                                                     | What would settle it                                                                                                                                                     |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Role of type-8 cue byte 0 bits 3 to 7 and byte 2 bits 0 to 3 | the voice-state consumer of the compared nibble                                                                                                                          |
+| The bank and sequence tables a standalone player needs       | the code that fills them: the linked `SsSepSetCrescendo` (`0x8016AE7C`), `SsSepPlay` (`0x8016B9CC`), `SsSepStop` (`0x8016D6C4`) and `SsSepSetVol` (`0x8016DBA0`) callers |
+| SPU RAM base addresses for each bank                         | a trace of the transfer calls                                                                                                                                            |
+| Which BGM an area plays                                      | the area-to-BGM table                                                                                                                                                    |
 
 The SPU hardware model (ADPCM, ADSR, interpolation, reverb) follows [psx-spx](https://psx-spx.consoledev.net/soundprocessingunitspu/) ([sources](../appendix/sources.md)). The record layouts are the PsyQ 3.7 `libsnd` structures.

@@ -76,16 +76,16 @@ The one caller found is `func_801FA7D8` in `emi/scenario/scena00/00`. Calls in s
 
 `Game_RunFieldState` case 3 zeroes `g_BattleMode`, `g_BattleStep` and `g_BattleSubStep`, increments `g_BattleCount`, and sets `g_GameEntryState = 5` and `g_GameEntrySubstate = 0`. `Game_RunBattleState (emi/etc/game/00@0x80197A24)` then calls `g_GameModeHandlers[g_GameEntrySubstate]` once per frame. The eight substates are the field-side wrapper around the battle:
 
-| Substate | Function (`emi/etc/game/00`)                        | Work                                                                                                                               |
-| -------: | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-|        0 | `func_80197A60`                                     | `func_801BEDD0`, field redraw, advance.                                                                                            |
-|        1 | `func_80197AA4`                                     | Wait for the field to be ready, change the camera pitch, stream `BPLU` (scroll direction bit 1) or `BPLD` character bank, advance. |
-|        2 | `func_80197C1C`                                     | Wait for the loader and the camera.                                                                                                |
-|        3 | `func_80197C94`                                     | Pause BGM, save the sequence table, stream the battle archive, reset the battle bytes.                                             |
-|        4 | `func_80197E54`                                     | Wait for the archive and set `g_BattlePartyCount = Party_CountOrder(1)`.                                                           |
-|        5 | `Battle_Update` (`emi/battle/battle/03@0x801D1014`) | The battle itself, every frame.                                                                                                    |
-|        6 | `func_80197EFC`                                     | Field-side redraw, advance.                                                                                                        |
-|        7 | `func_80197F48`                                     | Restore BGM and scroll, clear `g_BattleOptions` and `g_BattleEncounter`, return to state 2.                                        |
+| Substate | Function (`emi/etc/game/00`)                      | Work                                                                                                                               |
+| -------: | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+|        0 | `func_80197A60`                                   | `func_801BEDD0`, field redraw, advance.                                                                                            |
+|        1 | `func_80197AA4`                                   | Wait for the field to be ready, change the camera pitch, stream `BPLU` (scroll direction bit 1) or `BPLD` character bank, advance. |
+|        2 | `func_80197C1C`                                   | Wait for the loader and the camera.                                                                                                |
+|        3 | `func_80197C94`                                   | Pause BGM, save the sequence table, stream the battle archive, reset the battle bytes.                                             |
+|        4 | `func_80197E54`                                   | Wait for the archive and set `g_BattlePartyCount = Party_CountOrder(1)`.                                                           |
+|        5 | `Battle_Update (emi/battle/battle/03@0x801D1014)` | The battle itself, every frame.                                                                                                    |
+|        6 | `func_80197EFC`                                   | Field-side redraw, advance.                                                                                                        |
+|        7 | `func_80197F48`                                   | Restore BGM and scroll, clear `g_BattleOptions` and `g_BattleEncounter`, return to state 2.                                        |
 
 `func_80197C94` picks the archive to stream. For a scripted battle it is `D_801CD86C[s_BattleModeRecords[g_BattleEncounter * 4 + 3]]`. For a random battle it is slot 6 (`BATTLE`) when `g_SceneState.scenario_id < 8` and slot 7 (`BATTLE2`) otherwise. `D_801CD86C` has 42 `u16` entries: slot 6, then the `BOSS` slots `0x1B3` to `0x1DA` in a game-specific order, then `0xFFFF`.
 

@@ -41,11 +41,11 @@ After the first entry, `Game_RunFieldState (emi/etc/game/00@0x80197378)` runs `G
 
 Three places start a scenario:
 
-| Caller                                                  | Argument                       | When                                                                                                                             |
-| ------------------------------------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| `Game_StartSelectedGame` (`emi/etc/game/01@0x801D0E54`) | 16                             | The title selection ends. It also registers `Game_RunMainLoop` in callback slot 0.                                               |
-| `Start_RunNewGame` (`emi/etc/start/08@0x801E2584`)      | 0                              | New Game. It sets `D_801448EA = 0`, `g_GameAreaId = 0xFFFF`, clears the 20 flag words, then `CallbackReplace(Game_RunMainLoop)`. |
-| `func_8019FAA0` (`emi/etc/game/00@0x8019FAA0`)          | `scenario_id + 1`, skipping 16 | Chapter advance, below.                                                                                                          |
+| Caller                                                | Argument                       | When                                                                                                                             |
+| ----------------------------------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| `Game_StartSelectedGame (emi/etc/game/01@0x801D0E54)` | 16                             | The title selection ends. It also registers `Game_RunMainLoop` in callback slot 0.                                               |
+| `Start_RunNewGame (emi/etc/start/08@0x801E2584)`      | 0                              | New Game. It sets `D_801448EA = 0`, `g_GameAreaId = 0xFFFF`, clears the 20 flag words, then `CallbackReplace(Game_RunMainLoop)`. |
+| `func_8019FAA0 (emi/etc/game/00@0x8019FAA0)`          | `scenario_id + 1`, skipping 16 | Chapter advance, below.                                                                                                          |
 
 ## The controller overlay
 
@@ -57,11 +57,11 @@ The pointer in `g_SceneScenes` leads to a handler block of five code pointers. T
 
 | Offset | Slot       | Called by                                          | Contract                                                                                                                      |
 | -----: | ---------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-|   0x00 | `entry_00` | `Game_RunScenarioEntry`                            | Per-frame controller. `SCENA00` and `SCENA16` read `mode_02` and jump through a mode table.                                   |
-|   0x04 | `entry_04` | `Game_DispatchScenarioRecord`                      | `void (record)`. The player talks to or touches an entity whose `callback_index` is set.                                      |
-|   0x08 | `entry_08` | `func_801B0E44` through `Area_IsStepBlocked`       | `s8 (x, y)`. A nonzero result blocks the step into the cell. Zero falls back to `func_801A8728`, a switch on the area id.     |
-|   0x0C | `entry_0C` | `func_801B146C` through `func_801A79A4`            | `s8 (x, y)`. A nonzero result overrides the cell test. Zero falls back to `func_801A8B84`.                                    |
-|   0x10 | `entry_10` | `func_801B6258` through `Game_CallScenarioHandler` | `s8 (a, b)`, optional. A negative or null result falls back to `func_801A8CB4`, which reads the area hook table `D_801C86F8`. |
+| `0x00` | `entry_00` | `Game_RunScenarioEntry`                            | Per-frame controller. `SCENA00` and `SCENA16` read `mode_02` and jump through a mode table.                                   |
+| `0x04` | `entry_04` | `Game_DispatchScenarioRecord`                      | `void (record)`. The player talks to or touches an entity whose `callback_index` is set.                                      |
+| `0x08` | `entry_08` | `func_801B0E44` through `Area_IsStepBlocked`       | `s8 (x, y)`. A nonzero result blocks the step into the cell. Zero falls back to `func_801A8728`, a switch on the area id.     |
+| `0x0C` | `entry_0C` | `func_801B146C` through `func_801A79A4`            | `s8 (x, y)`. A nonzero result overrides the cell test. Zero falls back to `func_801A8B84`.                                    |
+| `0x10` | `entry_10` | `func_801B6258` through `Game_CallScenarioHandler` | `s8 (a, b)`, optional. A negative or null result falls back to `func_801A8CB4`, which reads the area hook table `D_801C86F8`. |
 
 The wrappers are `Area_IsStepBlocked (emi/etc/game/00@0x801A7914)`, `func_801A79A4`, `Game_CallScenarioHandler (emi/etc/game/00@0x801A7A34)` and `Game_DispatchScenarioRecord (emi/etc/game/00@0x801A7878)`. A scenario therefore only has to override what differs from the default; the fallbacks cover the rest.
 
@@ -150,7 +150,7 @@ A rebuilt or relocated scenario has to respect these limits.
 - **Fallback signals.** `entry_08` and `entry_0C` return zero to let the resident fallback run. `entry_10` returns a negative value for the same.
 - **Flag budget.** 64 bits per scenario word, as above.
 - **Handler addresses.** A handler address in `g_SceneEvents` or `g_SceneObjects` that lies in the area window runs whatever the loaded area program places there ([area](areas.md#data-and-limits)).
-- **Slot range.** Scenario code uses EMI slots `0x295..0x2A8`. The effect overlays use `0x290..0x294`.
+- **Slot range.** Scenario code uses EMI slots `0x295-0x2A8`. The effect overlays use `0x290-0x294`.
 - **Save compatibility.** `scenario_id` and the flag words are part of the state restored on load ([saving](saving.md)).
 
 See also the [editor guide](../guides/editing.md) and [disc and files](../formats/disc.md).

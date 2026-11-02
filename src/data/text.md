@@ -28,9 +28,9 @@ space. The plain ASCII space `0x20` belongs to the interface font of
 
 ### Glyph atlas
 
-`UI_DrawTextGlyphs` (exe/slus_004_22@0x8014F84C) maps a byte to a cell of the 31-column message
+`UI_DrawTextGlyphs (exe/slus_004_22@0x8014F84C)` maps a byte to a cell of the 31-column message
 atlas: `u = ((c - 0x30) % 31) * 8` and `v = ((c - 0x30) / 31) * 12 + 0x48`. The cell number is
-`c - 0x30`, so the digit row starts at slot 0. `func_8014FC00` (exe/slus_004_22@0x8014FC00) selects the
+`c - 0x30`, so the digit row starts at slot 0. `func_8014FC00 (exe/slus_004_22@0x8014FC00)` selects the
 font texture page.
 
 | Byte range    | Characters | Glyph slots |
@@ -57,7 +57,7 @@ round trip must keep which slot it used.
 
 ### Other glyph sheets
 
-Two more sheets exist. `UI_DrawGlyphString` (exe/slus_004_22@0x80150098) draws 8 by 8 glyphs from a
+Two more sheets exist. `UI_DrawGlyphString (exe/slus_004_22@0x80150098)` draws 8 by 8 glyphs from a
 sheet of 32 columns that starts at `0x20`, so its bytes are plain ASCII. Control code `0x15` in
 `UI_DrawTextGlyphs` draws a number glyph from a third sheet of 21 columns and 12 px cells. The
 operand `n` selects the cell `n + 0x5B`, at `u = ((n + 0x5B) % 21) * 12`. The row base is not read
@@ -70,8 +70,8 @@ the string: `0x48` is `H`, `0x69` is `i`, `0x5D` is `!`, `0x01` starts a new lin
 
 ## Control codes
 
-Both text drawers switch on the same byte. `UI_DrawTextGlyphs` (exe/slus_004_22@0x8014F84C) draws a
-line. The message engine, `func_8015083C` (exe/slus_004_22@0x8015083C) with `UI_DrawMessageScript`
+Both text drawers switch on the same byte. `UI_DrawTextGlyphs (exe/slus_004_22@0x8014F84C)` draws a
+line. The message engine, `func_8015083C (exe/slus_004_22@0x8015083C)` with `UI_DrawMessageScript`
 (exe/slus_004_22@0x80150470), steps the window state. This page writes a control byte as a tag such as
 `{NEWLINE}`; an operand byte follows the tag as `{COLOR:03}`.
 
@@ -89,7 +89,7 @@ The table lists each code, how many operand bytes it takes and what it does.
 | `0x07 n` | `{VAR:nn}`    | prints the 32-byte string at `0x801490D8 + n * 32`, budget 33                                               |
 | `0x08 n` | `{LINK:nn}`   | redirects to the string that `u16[2 * n]` of the table at `0x80010000 + u32[0x80010004]` selects, budget 17 |
 | `0x09`   | `{NOP09}`     | no effect; the shared tail advances one byte                                                                |
-| `0x0A n` | `{SE:nn}`     | plays the cue `n \| 0x200` through `SND_PlayCue` (exe/slus_004_22@0x8015DF18)                               |
+| `0x0A n` | `{SE:nn}`     | plays the cue `n \| 0x200` through `SND_PlayCue (exe/slus_004_22@0x8015DF18)`                               |
 | `0x0B`   | `{GAP}`       | the engine enters state 1 and adds 8 frames to the glyph delay; the line drawer ignores the code            |
 | `0x0C n` | `{BOX:nn}`    | starts a box; the operand is the window style                                                               |
 | `0x0D`   | `{NOP0D}`     | `UI_DrawMessageScript` draws the following glyphs at the state's `x` and `y` plus deltas                    |
@@ -136,7 +136,7 @@ ends with a `{END}`. Slot 3 starts at `0x14` and runs to the end of the payload.
 
 A payload is a message bank when `offset[0]` is even, at least 4 and no larger than the payload, every slot is at least `offset[0]` and no larger than the payload, and the slots never decrease. A bank is a text bank when at least half of its first 64 distinct records read as text. A record reads as text when, after its trailing zeros, it has at least 3 bytes and either 4 letters that make up 40 percent or more of it, or 3 letters and a `0xFF` space.
 
-The 200 entries that load at `0x80010000` hold 152 distinct payloads. 197 entries are banks. The three fishing entries (`AREA030`, `AREA089` and `AREA129`, entry 18) are one identical 4,293-byte payload whose slots do not ascend, so they hold other data in that slot. 165 of the 197 banks are text banks: 162 at entry 11, 2 at entry 7 and 1 at entry 12, and 33, 33, 29, 30 and 40 in WORLD00 to WORLD04. The other 32 banks (31 of 1,022 bytes and one of 512 bytes) hold only short or empty records. The 165 text banks hold 10,510 messages, a message being one distinct slot value below the payload size. 10,494 of them are proven strings: they do not start with a zero byte and have at least 3 bytes before their terminator. All 197 banks hold 11,006 messages, and the three other payloads add 330, which makes 11,336 for the 200 entries (`measured`). The engine resolves a message as
+The 200 entries that load at `0x80010000` hold 152 distinct payloads. 197 entries are banks. The three fishing entries (`AREA030`, `AREA089` and `AREA129`, entry 18) are one identical 4,293-byte payload whose slots do not ascend, so they hold other data in that slot. 165 of the 197 banks are text banks: 162 at entry 11, 2 at entry 7 and 1 at entry 12, and 33, 33, 29, 30 and 40 in WORLD00 to WORLD04. The other 32 banks (31 of 1,022 bytes and one of 512 bytes) hold only short or empty records. The 165 text banks hold 10,510 messages, a message being one distinct slot value below the payload size. 10,494 of them are proven strings: they do not start with a zero byte and have at least 3 bytes before their terminator. All 197 banks hold 11,006 messages, and the three other payloads add 330, which makes 11,336 for the 200 entries. The engine resolves a message as
 `u16[0x80010000 + 2 * g_MessageRequest] + 0x80010000`, and the loader descriptor table at
 `0x8014677C` stages the payload. The largest bank is 21,547 bytes.
 
@@ -172,7 +172,7 @@ where it sits and what it reaches.
 | `absolute-u32` | `u32` | code or data of any payload                         | the string's runtime address                       |
 | `resource-id`  | `u16` | the group table of a payload loaded at `0x8001A000` | the string that the id resolves to                 |
 
-`Resource_Resolve` (exe/slus_004_22@0x801502D0) turns a resource id into a runtime address. It
+`Resource_Resolve (exe/slus_004_22@0x801502D0)` turns a resource id into a runtime address. It
 works on the payload loaded at `0x8001A000`.
 
 1. `id >> 14` selects one of four base words, at `0x8001A000 + 4 * (id >> 14)`.

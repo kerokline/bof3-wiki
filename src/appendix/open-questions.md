@@ -143,7 +143,7 @@ Pages: [audio runtime](../systems/audio.md#gaps), [audio formats](../formats/aud
 | XA group sizes, group 2 callers, and the content of each table entry                        | Read the three tables against the XA file sector map.                                 |
 | The seven bank readers' per-bank differences                                                | Read `func_8015E994` to `func_80160E38`.                                              |
 | Opcode `0xBD` (`func_8015D820`) in event scripts                                            | Read `func_8015D820`.                                                                 |
-| Role of type-8 cue byte 0 bits 7-3 and byte 2 bits 3-0                                      | The voice-state consumer of the compared nibble.                                      |
+| Role of type-8 cue byte 0 bits 3 to 7 and byte 2 bits 0 to 3                                | The voice-state consumer of the compared nibble.                                      |
 | Consumer of the BGM cue tables in BGM004, BGM108 and BGM117                                 | The sound-request code that indexes bank cue tables.                                  |
 | Which BGM an area plays                                                                     | The area-to-BGM table.                                                                |
 | The use of the 29,665 non-zero Form 1 sectors of `S_XA00.STR` and `MAGIC00.STR`             | A reader that bypasses the hardware filter, or proof that none exists.                |

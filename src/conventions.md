@@ -50,6 +50,9 @@ shown "in file order" lists its bytes as stored, such as `70 42 41 56` for the V
 | `char[n]`     | `n` bytes of text; the game's own byte encoding ([text](data/text.md)) unless the page says ASCII           |
 | `s32 (16.16)` | fixed point: the high 16 bits are the integer part and the low 16 bits the fraction, so `0x00018000` is 1.5 |
 
+A `u32` that holds a RAM address is written `u32` pointer. A run of bytes with no known structure is
+`u8[n]`.
+
 The MIPS terms **halfword** (16 bits) and **word** (32 bits) appear in prose about code. In prose about VRAM
 and palettes, a *word* is one 16-bit VRAM cell, as in "a 16-bit CLUT word". Layout tables use `u16` and `u32`
 for fields, so one field type has one name on every page.

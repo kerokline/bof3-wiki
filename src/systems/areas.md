@@ -59,14 +59,14 @@ An exit is a 12-byte rectangle record. `func_801A0048 (emi/etc/game/00@0x801A004
 
 | Offset | Field  | Meaning                                                                                                                        |
 | -----: | ------ | ------------------------------------------------------------------------------------------------------------------------------ |
-|   0x00 | `cx`   | First cell x.                                                                                                                  |
-|   0x01 | `cy`   | First cell y.                                                                                                                  |
-|   0x02 | `key`  | Destination area id, or `0xFFFF` for a conditional destination.                                                                |
-|   0x04 | `idx`  | Destination x as `(idx << 8) & 0xFF8000`, a 16.16 position.                                                                    |
-|   0x06 | `alt`  | Destination y, same encoding. For `0xFFFF` keys it is the index of the conditional list instead.                               |
-|   0x08 | `mode` | 0: the span runs along x. Otherwise it runs along y.                                                                           |
-|   0x09 | `span` | Number of cells from `(cx, cy)`.                                                                                               |
-|   0x0A | `kind` | Bits 4 to 6 go to byte 1 of the scratchpad work record. The low bits and bit 7 go to `g_GameContextKind` (masked with `0x8F`). |
+| `0x00` | `cx`   | First cell x.                                                                                                                  |
+| `0x01` | `cy`   | First cell y.                                                                                                                  |
+| `0x02` | `key`  | Destination area id, or `0xFFFF` for a conditional destination.                                                                |
+| `0x04` | `idx`  | Destination x as `(idx << 8) & 0xFF8000`, a 16.16 position.                                                                    |
+| `0x06` | `alt`  | Destination y, same encoding. For `0xFFFF` keys it is the index of the conditional list instead.                               |
+| `0x08` | `mode` | 0: the span runs along x. Otherwise it runs along y.                                                                           |
+| `0x09` | `span` | Number of cells from `(cx, cy)`.                                                                                               |
+| `0x0A` | `kind` | Bits 4 to 6 go to byte 1 of the scratchpad work record. The low bits and bit 7 go to `g_GameContextKind` (masked with `0x8F`). |
 
 The exit table hangs off the area record: `AreaLoad` offset `0x20` points to the entries, `0x24` to the conditional lists, `0x28` to their row counts, and byte `0x30` holds the index of the last entry, so an area has `outer + 1` entries.
 

@@ -1,6 +1,6 @@
 # Memory
 
-The console has 2 MB of main RAM at `0x80000000..0x80200000`, and the game uses all of it. Some ranges are permanent. The main executable and the resident game program stay in RAM from boot to power-off. Other ranges are windows, and each window holds one overlay at a time. A load writes the new overlay over whatever the window held. This page gives the map: which image or data owns each range, which overlays share a window, and where the scratchpad, stacks, CD ring and sound banks sit. [Loading](loading.md) explains how each range gets filled.
+The console has 2 MiB of main RAM at `0x80000000..0x80200000`, and the game uses all of it. Some ranges are permanent. The main executable and the resident game program stay in RAM from boot to power-off. Other ranges are windows, and each window holds one overlay at a time. A load writes the new overlay over whatever the window held. This page gives the map: which image or data owns each range, which overlays share a window, and where the scratchpad, stacks, CD ring and sound banks sit. [Loading](loading.md) explains how each range gets filled.
 
 Sizes in this page that say "up to" are the largest entry measured over every archive on the disc. Overlay addresses are image-local. `exe/logo` and `exe/slus_004_22` are separate programs that share this one RAM.
 
@@ -90,7 +90,7 @@ The logo (`0x801CE000..0x801EB800`) overlaps only the character window and the s
 
 ## Scratchpad
 
-The scratchpad is the 1 KB of fast RAM at `0x1F800000`. `g_SpadWork` is a pointer cell at `0x1F800044`, which the overlay handlers use to reach the record they step ([scheduler](scheduler.md)). `EMI_DecodeBegin (exe/slus_004_22@0x80164028)` points the LZ77 source at scratchpad offset 6 and its limit at `0x400`, so the decoder treats the whole scratchpad as a sector window. How the two uses share the space is `[unknown]`. The decoder runs only during a load.
+The scratchpad is the 1 KiB of fast RAM at `0x1F800000`. `g_SpadWork` is a pointer cell at `0x1F800044`, which the overlay handlers use to reach the record they step ([scheduler](scheduler.md)). `EMI_DecodeBegin (exe/slus_004_22@0x80164028)` points the LZ77 source at scratchpad offset 6 and its limit at `0x400`, so the decoder treats the whole scratchpad as a sector window. How the two uses share the space is `[unknown]`. The decoder runs only during a load.
 
 ## Stacks
 
@@ -108,7 +108,7 @@ The scratchpad is the 1 KB of fast RAM at `0x1F800000`. `g_SpadWork` is a pointe
 - **Primitive banks.** `SYS_PrepareFrame` sets `g_GfxPrimCursor` to `0x80020000 + buffer_index * 0x9000`. Two banks end at `0x80032000`. Each bank accepts primitives only up to `0x8FCC` bytes ([frame loop](frame-loop.md)).
 - **CD ring.** `g_EmiRingBase` is `0x800E4800`. The 23 ring slots of `0x800` bytes end at `0x800F0800`, and slot 0 receives the header sector of the archive. `SYS_LoadExec` reads its header sector to the same address.
 - **Area work window.** `AREA_WORK_WINDOW` is also `0x800E4800`. It shares the range with the CD ring, so no area work data is safe there while an archive streams. `[inferred]` `D_801459FC` holds `0x800F5000`, the area code base.
-- **Palettes.** `GFX_ResetPalette` zeroes rows 28 to 31 of the 16 KB arena at `0x80033800`, then copies 32 rows of `0x200` bytes to the work area at `0x80037800`. `GFX_UploadPalette` sends the rectangle (0, 0x1E0, 0x100, 0x20) from there to VRAM whenever `g_GfxPalettePending` is set.
+- **Palettes.** `GFX_ResetPalette` zeroes rows 28 to 31 of the 16 KiB arena at `0x80033800`, then copies 32 rows of `0x200` bytes to the work area at `0x80037800`. `GFX_UploadPalette` sends the rectangle (0, 0x1E0, 0x100, 0x20) from there to VRAM whenever `g_GfxPalettePending` is set.
 
 ## Sound memory
 

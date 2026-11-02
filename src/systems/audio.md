@@ -58,7 +58,7 @@ The active layout decides what fits in SPU RAM:
 | -----: | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -----------: | ---------------------------- |
 |      0 | `SYS_StartFrontend`, `Game_StartSelectedGame` and `Game_LeaveTitle` (`emi/etc/game/01`), `func_801D6A14` and `func_801D6F28` (`emi/battle/battle/03`) |            3 | Menus, field, after a battle |
 |      1 | `func_80197AA4` (`emi/etc/game/00`)                                                                                                                   |            7 | Battle                       |
-|      2 | `Game_BeginTitle` (`emi/etc/game/01@0x801D0C90`)                                                                                                      |            2 | Title screen                 |
+|      2 | `Game_BeginTitle (emi/etc/game/01@0x801D0C90)`                                                                                                        |            2 | Title screen                 |
 
 Bank 0 carries the music in every layout, with a different window size in each. Layout sizes are in [Data and limits](#data-and-limits) and in [memory](memory.md#sound-memory) and [loading](loading.md#audio-banks).
 

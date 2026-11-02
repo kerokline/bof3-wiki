@@ -21,7 +21,7 @@ The load argument of a bank entry tells which part of the bank it holds ([EMI lo
 | `PLCHAR`        |    1 | `0x8003B800`  |      19 | whole container, LZ77, per-character sizes                                      |
 | `ETC` (`START`) |    1 | `0x8003B800`  |       1 | whole container, LZ77, per-character sizes                                      |
 | `BMAGIC`        |    0 | `0x8003B800`  |       3 | one 34,924-byte block with head `u32 4`; identical in `KAIZAR_D`, `_F` and `_N` |
-| `PLCHAR`        |    0 | `0x801CE400`  |      19 | not bank data: 4.6 to 9.9 KB of MIPS code                                       |
+| `PLCHAR`        |    0 | `0x801CE400`  |      19 | not bank data: 4,676 to 9,932 bytes of MIPS code                                |
 
 The five `BPLCHAR` section addresses are `0x8003B800` plus the container offsets `0x0C`, `0x1B00C`, `0x2400C`, `0x3600C` and `0x3F00C`. A `BPLCHAR` archive ships either the whole container at `0x8003B800` or one section at its position. `PLCHAR` splits the bank from its code. `PLxxx.EMI` holds the audio entries and the packed container, and `PLPxxx.EMI` holds a per-character code overlay at `0x801CE400` (6,616 bytes and 27 functions for `PLP012`). The overlay's entry point is a dispatcher through its own tail table (`0x801CE404`, `0x801CFD80`). No `PLP` payload reads the bank.
 
@@ -38,7 +38,7 @@ A container is a three-word header followed by three sections:
      section 2
 ```
 
-Section *n* runs to the start of section *n+1*, and section 2 runs to the end of the body. This is `measured` over the 65 decoded type-1 payloads and `BPLU349`, a raw container: `header[0] == 0x0C` in 66 of 66, and the three offsets tile the body exactly. `BPLU349` shows the header without the decoder. Its 331,788-byte payload is the offsets `0x0C`, `0x1B00C` and `0x3600C`, then 3 x 110,592 bytes.
+Section *n* runs to the start of section *n+1*, and section 2 runs to the end of the body. This holds for all 65 decoded type-1 payloads and `BPLU349`, a raw container: `header[0] == 0x0C` in 66 of 66, and the three offsets tile the body exactly. `BPLU349` shows the header without the decoder. Its 331,788-byte payload is the offsets `0x0C`, `0x1B00C` and `0x3600C`, then 3 x 110,592 bytes.
 
 Section sizes depend on the family. The packed-only banks (`PLCHAR` 19, `ETC/START` 1) use per-character sizes (75,724, 73,708, 120,724, 59,252, 82,728 and so on). `BPLCHAR` banks use slot sizes of 110,592 (`0x1B000`) or 147,456 (`0x24000`) bytes in 136 of their 138 sections, and two `DRG*` sections are smaller (11,796 and 17,400). The fixed slot size lets a `BPLCHAR` archive ship one section at a fixed address.
 
