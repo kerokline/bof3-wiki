@@ -1,6 +1,6 @@
 # Memory card save format
 
-A save is one file on a PlayStation memory card. The file is a standard memory card save frame: a 0x200-byte header that the BIOS card menu reads (title and animated icon), followed by a copy of the game's live state. The game keeps no separate save structure. It copies a block of RAM to the card and copies it back on load. [Saving](../game/architecture/saving.md) describes the menu flow around this, and [game records](../game/records.md#save-layout) names the fields inside the copied block. This page describes the file around those fields: its name, header, icons, checksum and the card calls that move it. All of it is `read` from the `etc/start/08`, `etc/start/09` and `etc/shop/00` overlays unless a row says otherwise.
+A save is one file on a PlayStation memory card. The file is a standard memory card save frame: a 0x200-byte header that the BIOS card menu reads (title and animated icon), followed by a copy of the game's live state. The game keeps no separate save structure. It copies a block of RAM to the card and copies it back on load. [Saving](../systems/saving.md) describes the menu flow around this, and [game records](../data/records.md#save-layout) names the fields inside the copied block. This page describes the file around those fields: its name, header, icons, checksum and the card calls that move it. All of it is `read` from the `etc/start/08`, `etc/start/09` and `etc/shop/00` overlays unless a row says otherwise.
 
 ## File summary
 
@@ -36,7 +36,7 @@ A save is one file on a PlayStation memory card. The file is a standard memory c
 
 `CardBuildFileHeader (emi/etc/start/09@0x801EF27C)` writes bytes `0x00` to `0x1FF`. The call `SAVE_BuildSlotImage (emi/etc/shop/00@0x801D69E0)` passes block count 1 and flag `0x13`.
 
-The payload is the 4,272-byte span of live game state that starts at `0x801448D8`, the save work block. The scene event flags `g_SceneEventFlags (exe/slus_004_22@0x80144F28)` are at `+0x650` in it. A file offset `n` of `0x200` or more is RAM address `0x801446D8 + n`, and the field offsets in [game records](../game/records.md#save-layout) use that frame.
+The payload is the 4,272-byte span of live game state that starts at `0x801448D8`, the save work block. The scene event flags `g_SceneEventFlags (exe/slus_004_22@0x80144F28)` are at `+0x650` in it. A file offset `n` of `0x200` or more is RAM address `0x801446D8 + n`, and the field offsets in [game records](../data/records.md#save-layout) use that frame.
 
 ### Icons
 
@@ -64,7 +64,7 @@ The records sit at payload offsets `0x1254`, `0x1314` and `0x13D4` (RAM `0x801EF
 
 The title shown by the card menu is built when the save is written. `g_UiFormatBuffer (exe/slus_004_22@0x80145AD4)` is cleared over 64 bytes and filled by `sprintf` with a full-width Shift-JIS format string (`D_801D0C98`, `0x44` bytes). The format takes seven `%s` arguments, in this order (1 + 2 + 2 + 1 + 1):
 
-1. an area label from the table at `D_801E5434` (whether this argument is an area label or the slot digit is `[unknown]`; [saving](../game/architecture/saving.md) lists the same seven arguments);
+1. an area label from the table at `D_801E5434` (whether this argument is an area label or the slot digit is `[unknown]`; [saving](../systems/saving.md) lists the same seven arguments);
 2. two hour digits;
 3. two minute digits;
 4. the tens digit of Ryu's level;
@@ -95,13 +95,13 @@ The overlay `etc/start/09` holds the card routines. The save menu and the shop o
 | `CardScanDirectory (@0x801EFCA8)`   | `firstfile` and `nextfile` over the `BASLUS-00422BOF3` pattern into `D_8018E990` (24-byte entries: name 20, size 4)                                                                        |
 | `CardBuildFileHeader (@0x801EF27C)` | writes bytes 0 to 3, the title, the palette and the frames                                                                                                                                 |
 
-The save menu fills its rows with a read of 28 bytes at file offset `0xEA0`. The transfer rounds the offset down to `0xE80` and the size up to `0x80`, so it fetches `0xE80` to `0xEFF`. That span holds the save name (`+0xEA0`), portrait ids (`+0xEA5`), level (`+0xEA8`), timer (`+0xEAC`) and fairy job (`+0xEF0`). The BIOS owns the card's own directory (block 0 and its 128-byte frames), and the game never writes it. The frame layout and the directory block follow [psx-spx](https://psx-spx.consoledev.net/memorycards/) ([sources](../sources.md)). Raw 128 KiB emulator images and DexDrive headers wrap this format and are outside the game. The community save editor listed in [sources](../sources.md) agrees on the checksum region.
+The save menu fills its rows with a read of 28 bytes at file offset `0xEA0`. The transfer rounds the offset down to `0xE80` and the size up to `0x80`, so it fetches `0xE80` to `0xEFF`. That span holds the save name (`+0xEA0`), portrait ids (`+0xEA5`), level (`+0xEA8`), timer (`+0xEAC`) and fairy job (`+0xEF0`). The BIOS owns the card's own directory (block 0 and its 128-byte frames), and the game never writes it. The frame layout and the directory block follow [psx-spx](https://psx-spx.consoledev.net/memorycards/) ([sources](../appendix/sources.md)). Raw 128 KiB emulator images and DexDrive headers wrap this format and are outside the game. The community save editor listed in [sources](../appendix/sources.md) agrees on the checksum region.
 
 ## Open questions
 
 | Question                                            | What would settle it                                                                 |
 | --------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Meaning of unnamed payload bytes                    | [records](../game/records.md#save-layout) lists the named ones; readers for the rest |
+| Meaning of unnamed payload bytes                    | [records](../data/records.md#save-layout) lists the named ones; readers for the rest |
 | Whether the load path rejects a wrong `"SC"` header | a load test with a damaged header (the BIOS may reject it; the game code does not)   |
 | Source of the seventh title digit                   | the writer of the byte at `0x8014496E`                                               |
 | Behavior when two files share a slot digit          | a card with two such files                                                           |

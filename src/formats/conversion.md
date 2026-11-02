@@ -27,15 +27,15 @@ One record has one layout, and these pages own the byte offsets and field names.
 
 | Record                                          | Layout                                                                          |
 | ----------------------------------------------- | ------------------------------------------------------------------------------- |
-| items, vital items, weapons, armor, accessories | [game records](../game/records.md#gameemi-fixed-tables)                         |
-| abilities, shops, level growth                  | [game records](../game/records.md#gameemi-fixed-tables)                         |
-| base stats                                      | [game records](../game/records.md#character-and-master-data)                    |
+| items, vital items, weapons, armor, accessories | [game records](../data/records.md#gameemi-fixed-tables)                         |
+| abilities, shops, level growth                  | [game records](../data/records.md#gameemi-fixed-tables)                         |
+| base stats                                      | [game records](../data/records.md#character-and-master-data)                    |
 | encounters, enemies                             | [encounters and enemy records](area.md#0x800e4000-encounters-and-enemy-records) |
 | scene records                                   | [scene/step table](area.md#0x800e3800-scenestep-table)                          |
 | cue records                                     | [cue records](audio.md#emi-type-8-cue-records)                                  |
 | VAB bank                                        | [VAB bank](audio.md#vab-bank)                                                   |
 | character bank                                  | [character bank](character.md)                                                  |
-| message banks, strings                          | [game text](../game/text.md)                                                    |
+| message banks, strings                          | [game text](../data/text.md)                                                    |
 
 The second ability byte of a `level-growth` record is `extra_ability` in the layout. The two packed stat bytes are `power << 4 | defense` and `agility << 4 | intellect`.
 

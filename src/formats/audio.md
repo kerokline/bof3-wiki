@@ -1,6 +1,6 @@
 # Audio
 
-Breath of Fire III plays sound by two routes. Voice lines, magic effects and the logo soundtrack stream from the disc as XA ADPCM through the CD hardware. Music and sound effects are synthesized on the SPU by the PsyQ `libsnd` and `libspu` runtime. That route uses three kinds of data: a sound bank (VAB), sound-effect cue tables, and music sequences (SEP). This page describes the sample data and the three kinds. The sector layout of the streamed files is in [STR and XA](str.md). How the game requests and schedules sound is in [audio (runtime)](../game/architecture/audio.md). How the loader moves these entries into RAM is in the [EMI loader chain](emi.md#loader-chain).
+Breath of Fire III plays sound by two routes. Voice lines, magic effects and the logo soundtrack stream from the disc as XA ADPCM through the CD hardware. Music and sound effects are synthesized on the SPU by the PsyQ `libsnd` and `libspu` runtime. That route uses three kinds of data: a sound bank (VAB), sound-effect cue tables, and music sequences (SEP). This page describes the sample data and the three kinds. The sector layout of the streamed files is in [STR and XA](str.md). How the game requests and schedules sound is in [audio (runtime)](../systems/audio.md). How the loader moves these entries into RAM is in the [EMI loader chain](emi.md#loader-chain).
 
 ## Content on disc
 
@@ -186,4 +186,4 @@ All are in `exe/slus_004_22`. `SND_Exit` is not the music scheduler or the boots
 | SPU RAM base addresses for each bank                   | a trace of the transfer calls                                                                                                                                            |
 | Which BGM an area plays                                | the area-to-BGM table                                                                                                                                                    |
 
-The SPU hardware model (ADPCM, ADSR, interpolation, reverb) follows [psx-spx](https://psx-spx.consoledev.net/soundprocessingunitspu/) ([sources](../sources.md)). The record layouts are the PsyQ 3.7 `libsnd` structures.
+The SPU hardware model (ADPCM, ADSR, interpolation, reverb) follows [psx-spx](https://psx-spx.consoledev.net/soundprocessingunitspu/) ([sources](../appendix/sources.md)). The record layouts are the PsyQ 3.7 `libsnd` structures.

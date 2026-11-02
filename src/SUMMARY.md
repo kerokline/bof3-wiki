@@ -1,60 +1,60 @@
 # Summary
 
 [Introduction](index.md)
-[Glossary](glossary.md)
 
-# How the game is built
+# Getting started
 
-- [Overview](game/architecture/index.md)
-- [Runtime](game/runtime.md)
-- [Disc and files](game/architecture/disc-and-files.md)
-- [Memory](game/architecture/memory.md)
-- [Loading](game/architecture/loading.md)
-- [Where the code lives](game/architecture/responsibilities.md)
+- [How the game is built](overview.md)
 
-# How the game runs
+# How the game works
 
-- [Boot](game/architecture/boot.md)
-- [Frame loop](game/architecture/frame-loop.md)
-- [Scheduler and tasks](game/architecture/scheduler.md)
-- [Game phases](game/architecture/phases.md)
-- [Scenario engine](game/architecture/scenario.md)
-- [Areas and the field](game/architecture/area.md)
-- [Battle flow](game/architecture/battle.md)
-- [Screens](game/architecture/screens.md)
-- [UI and text drawing](game/architecture/ui.md)
-- [Rendering](game/architecture/rendering.md)
-- [Audio](game/architecture/audio.md)
-- [Saving and loading](game/architecture/saving.md)
-- [Persistent state](game/architecture/state.md)
-
-# Game data
-
-- [Game records](game/records.md)
-- [Game text](game/text.md)
-- [Battle records](game/battle.md)
-- [Field and party records](game/field.md)
+- [Boot](systems/boot.md)
+- [Frame loop](systems/frame-loop.md)
+- [Scheduler and tasks](systems/scheduler.md)
+- [Memory map](systems/memory.md)
+- [Loading](systems/loading.md)
+- [Game phases](systems/phases.md)
+- [Scenario engine](systems/scenario.md)
+- [Areas and the field](systems/areas.md)
+- [Battle flow](systems/battle.md)
+- [Screens](systems/screens.md)
+- [UI and text drawing](systems/ui.md)
+- [Rendering](systems/rendering.md)
+- [Audio](systems/audio.md)
+- [Saving and loading](systems/saving.md)
+- [Persistent state](systems/state.md)
 
 # File formats
 
+- [Asset kinds](formats/assets.md)
+- [Disc and files](formats/disc.md)
 - [EMI container](formats/emi.md)
-- [Executables and boot files](formats/exe.md)
 - [Type-1 LZ77 payload](formats/lz77.md)
+- [Executables and boot files](formats/exe.md)
 - [Graphics](formats/graphics.md)
 - [Character bank](formats/character.md)
 - [Area formats](formats/area.md)
 - [Audio formats](formats/audio.md)
 - [STR and XA playback](formats/str.md)
 - [Memory card save](formats/save.md)
-- [Asset kinds](formats/assets.md)
 - [Converting game data](formats/conversion.md)
 
-# For editors
+# Game data
 
-- [Editor guide](game/architecture/editor-guide.md)
+- [Programs and load addresses](data/programs.md)
+- [Game records](data/records.md)
+- [Game text](data/text.md)
+- [Battle records](data/battle.md)
+- [Field and party records](data/field.md)
+- [Code map](data/code-map.md)
 
-# Reference
+# Guides
 
-- [Open questions](game/architecture/gaps.md)
-- [Documentation coverage](formats/coverage.md)
-- [Sources](sources.md)
+- [Editing the game](guides/editing.md)
+
+# Appendix
+
+- [Glossary](appendix/glossary.md)
+- [Open questions](appendix/open-questions.md)
+- [Documentation coverage](appendix/coverage.md)
+- [Sources](appendix/sources.md)

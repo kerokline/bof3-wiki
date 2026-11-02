@@ -184,4 +184,4 @@ A reading of a texture without a join is limited. Read as 16bpp, each VRAM word 
 
 ## Sources
 
-Chunk, palette and VRAM facts are measured from the retail payloads. The community [BoF3-Data-Doc](https://github.com/GlitchedDragon-dev/BoF3-Data-Doc) (texture and palette notes) is confirmation only. The runtime primitives are PsyQ 3.7 ([sources](../sources.md)).
+Chunk, palette and VRAM facts are measured from the retail payloads. The community [BoF3-Data-Doc](https://github.com/GlitchedDragon-dev/BoF3-Data-Doc) (texture and palette notes) is confirmation only. The runtime primitives are PsyQ 3.7 ([sources](../appendix/sources.md)).

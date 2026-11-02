@@ -1,6 +1,6 @@
 # Area working set
 
-An area is a town, dungeon, world map or battlefield. Each one is an archive `BIN/WORLDnn/AREAnnn.EMI`, and loading an area means loading a fixed set of data blocks and one program into fixed RAM addresses. Every area archive uses the same addresses. The address, not the archive, identifies the format, and the payload does not name its area. A type-0 entry's load argument is its RAM destination, so the next area's block loads straight over the previous one. This page describes each block of the working set. [Areas and the field](../game/architecture/area.md) describes how the engine uses them, and the [EMI page](emi.md#world-shapes) lists which slot holds which block.
+An area is a town, dungeon, world map or battlefield. Each one is an archive `BIN/WORLDnn/AREAnnn.EMI`, and loading an area means loading a fixed set of data blocks and one program into fixed RAM addresses. Every area archive uses the same addresses. The address, not the archive, identifies the format, and the payload does not name its area. A type-0 entry's load argument is its RAM destination, so the next area's block loads straight over the previous one. This page describes each block of the working set. [Areas and the field](../systems/areas.md) describes how the engine uses them, and the [EMI page](emi.md#world-shapes) lists which slot holds which block.
 
 | Address      |   Entry size | Role                                 |
 | ------------ | -----------: | ------------------------------------ |
@@ -30,9 +30,9 @@ The message bank holds the area's dialogue. It starts with a little-endian `u16`
 +slot[0] .. end          ; records, delimited by consecutive distinct slots
 ```
 
-A message is addressed by its slot index. Two slots may share one record, and unused slots point at the end of the payload. 185 of the 200 payloads have at least one such slot, and 182 have two or more. All 200 area entries load at this address. 197 are message banks and 165 of those are text banks, the ones this page and the [text kinds](assets.md#message-banks) describe; 162 are at entry 11, 2 at entry 7 and 1 at entry 12. The other 35 payloads are the 32 non-text banks at entry 11 and the 3 fishing payloads at entry 18, which are not banks. [Game text](../game/text.md#message-bank) defines both terms.
+A message is addressed by its slot index. Two slots may share one record, and unused slots point at the end of the payload. 185 of the 200 payloads have at least one such slot, and 182 have two or more. All 200 area entries load at this address. 197 are message banks and 165 of those are text banks, the ones this page and the [text kinds](assets.md#message-banks) describe; 162 are at entry 11, 2 at entry 7 and 1 at entry 12. The other 35 payloads are the 32 non-text banks at entry 11 and the 3 fishing payloads at entry 18, which are not banks. [Game text](../data/text.md#message-bank) defines both terms.
 
-The engine finds the active message itself. The code at `@0x801514D0` forms `D_80010000[g_MessageRequest] + 0x80010000`, and `@0x8014F800` is the text draw entry. The bytes of a record and the control codes are described in [game text](../game/text.md).
+The engine finds the active message itself. The code at `@0x801514D0` forms `D_80010000[g_MessageRequest] + 0x80010000`, and `@0x8014F800` is the text draw entry. The bytes of a record and the control codes are described in [game text](../data/text.md).
 
 ## `0x80032000`: packed 4-bit cell grid
 
@@ -98,7 +98,7 @@ Bytes 1 to 3 of the count are always zero, so the code reads it with `lbu`. The 
 | `+0x6` |     1 | stored to `work+0x28`; read by the CLUT and texture code                |
 | `+0x7` |     1 | stored to `work+0x2C`; the scene's section in the archive's script bank |
 
-`+0x7` is a section index, not a record ordinal. With `L = u32[script_bank] / 4`, `max(+0x7) < L` in 200 of 200 payloads and the values cover `0` to `L-1` in 200 of 200. The "9 and 10 special" cases are not this byte. They belong to the actor member `+0x06` ([actor members](../game/field.md)), which `func_80167E00` reads: 9 gates the draw mode and 10 calls `func_8015A944`.
+`+0x7` is a section index, not a record ordinal. With `L = u32[script_bank] / 4`, `max(+0x7) < L` in 200 of 200 payloads and the values cover `0` to `L-1` in 200 of 200. The "9 and 10 special" cases are not this byte. They belong to the actor member `+0x06` ([actor members](../data/field.md)), which `func_80167E00` reads: 9 gates the draw mode and 10 calls `func_8015A944`.
 
 ## `0x800E4000`: encounters and enemy records
 
@@ -133,9 +133,9 @@ An enemy record has these fields, at offsets inside the 0x88-byte record. Field 
 | `0x34` | 0x40 | four action blocks at `0x34`, `0x44`, `0x54` and `0x64`                                        |
 | `0x78` |    9 | `resistances`: fire, frost, thunder, earth, wind, holy, psionic, status, death (levels 0 to 7) |
 
-An action block is 16 bytes: a condition byte, seven AI parameters and eight ability indexes. Condition `0x63` marks an unused block. [Game records](../game/records.md#area-data) lists the same fields by group.
+An action block is 16 bytes: a condition byte, seven AI parameters and eight ability indexes. Condition `0x63` marks an unused block. [Game records](../data/records.md#area-data) lists the same fields by group.
 
-HP `0xFFFF` appears in 10 of the 448 non-empty enemy records (`measured`): Worker (two blocks), Operator, Miner, Engineer, Foreman, Gary, Mogu, Nina and Garr (`enemy_id` 1108, the party-member variant that [records](../game/records.md) lists). It is a sentinel, not a large HP value. The battle setup `func_800AC218 (emi/battle/battle/15@0x800AC218)` loads the halfword at `0x800E4068 + index x 0x88` (`@0x800AC448`) and stores it at battler `+0xC0` and in the `D_801EB6C4` row (`@0x800AC450` and `@0x800AC45C`) without a check. The damage step `Battle_ApplyDamage (emi/battle/battle/03@0x801DBB78)` then skips the whole enemy HP change when the battler's HP at `+0x94` is `0xFFFF`, so the battler takes no damage. Two boss handlers also test it: `func_800C1A00 (emi/boss/boss002/16@0x800C1A00)` and `func_800C1CDC (emi/boss/boss033/16@0x800C1CDC)` set the action type to 3 when the current enemy's HP is `0xFFFF`. The other `0xFFFF` immediates in the battle overlays are the default-element argument of `Battle_CalcDamage (emi/battle/battle/03@0x801DC044)`. The script that ends these fights is `[unknown]`.
+HP `0xFFFF` appears in 10 of the 448 non-empty enemy records (`measured`): Worker (two blocks), Operator, Miner, Engineer, Foreman, Gary, Mogu, Nina and Garr (`enemy_id` 1108, the party-member variant that [records](../data/records.md) lists). It is a sentinel, not a large HP value. The battle setup `func_800AC218 (emi/battle/battle/15@0x800AC218)` loads the halfword at `0x800E4068 + index x 0x88` (`@0x800AC448`) and stores it at battler `+0xC0` and in the `D_801EB6C4` row (`@0x800AC450` and `@0x800AC45C`) without a check. The damage step `Battle_ApplyDamage (emi/battle/battle/03@0x801DBB78)` then skips the whole enemy HP change when the battler's HP at `+0x94` is `0xFFFF`, so the battler takes no damage. Two boss handlers also test it: `func_800C1A00 (emi/boss/boss002/16@0x800C1A00)` and `func_800C1CDC (emi/boss/boss033/16@0x800C1CDC)` set the action type to 3 when the current enemy's HP is `0xFFFF`. The other `0xFFFF` immediates in the battle overlays are the default-element argument of `Battle_CalcDamage (emi/battle/battle/03@0x801DC044)`. The script that ends these fights is `[unknown]`.
 
 ## Neighboring buffers
 
@@ -295,7 +295,7 @@ The `+0x20` and `+0x22` lists use a header word whose byte 3 is the dispatcher o
 The names behind a byte-code value, the operand meanings of the `+0x20` and `+0x22` records, the renderer fields beyond the descriptor bit map, and `scroll` are open. Two kinds of candidate data are located but their loaders are not identified:
 
 - Battle backgrounds. They are type-3 uploads in `BIN/BATTLE/BATL_DRA`, `BATL_OVR`, `BATL_RET` and `BATL_RE2`. Each is `0x8000` bytes, and `BATL_OVR` has one of `0x10000` bytes. Their descriptors (`0x1A080200`, `0x1C080200`, `0x1E080200`, and `0x1A080400` for the `BATL_OVR` upload) place them at VRAM columns 26, 28 and 30 on the row at y = 256, which are texture pages 13 to 15 ([load argument](graphics.md#type-3-load-argument)). The same archives hold a shared 512-byte overlay at `0x80036E00` (`BATTLE/BATL_RE2.EMI#1`). Which upload a battle draws as its background, and its palette, are `[unknown]`.
-- World map. `BIN/WORLD00/AREA000` is McNeil, a walked area, not the world map. The world map is the 11 areas whose `AreaLoad` flag byte at `+0x32` has bit 0 set: 016, 033, 045, 065, 087, 088, 104, 115, 121, 151 and 152 ([runtime](../game/runtime.md#map-kinds)). `AREA000` is a 100 by 80 bundle with six objects. Its entries 5 and 7 are uploads of `0x40000` bytes each, which is 512 by 256 words at 16 bits. Read as 16bpp they look like indexed data, and their palette is `[unknown]`.
+- World map. `BIN/WORLD00/AREA000` is McNeil, a walked area, not the world map. The world map is the 11 areas whose `AreaLoad` flag byte at `+0x32` has bit 0 set: 016, 033, 045, 065, 087, 088, 104, 115, 121, 151 and 152 ([runtime](../data/programs.md#map-kinds)). `AREA000` is a 100 by 80 bundle with six objects. Its entries 5 and 7 are uploads of `0x40000` bytes each, which is 512 by 256 words at 16 bits. Read as 16bpp they look like indexed data, and their palette is `[unknown]`.
 
 ## `0x80117000`: auxiliary module window
 
@@ -322,4 +322,4 @@ Nineteen payloads hold no `addiu $sp` and no `jr $ra` at any word offset, so the
 | The loader and palette of the world-map uploads in `AREA000` and the 11 world-map areas | the code that reads entries 5 and 7                                  |
 | The script that ends the 10 enemies with HP `0xFFFF`                                    | a trace of one such fight                                            |
 
-The opcodes that the community [bof3-script-editor](https://github.com/glitch-in-the-herring/bof3-script-editor) (MIT) lists are a lead for the script bank, not evidence ([sources](../sources.md)).
+The opcodes that the community [bof3-script-editor](https://github.com/glitch-in-the-herring/bof3-script-editor) (MIT) lists are a lead for the script bank, not evidence ([sources](../appendix/sources.md)).

@@ -1,6 +1,6 @@
 # STR and XA playback
 
-The disc carries one video and three banks of streamed audio, stored as CD-ROM XA sectors outside the ISO9660 data. `LOGO/CAPCOM30.STR` is the Capcom logo movie: MDEC-compressed video interleaved with stereo XA audio. The three `.STR` files under `BIN/` are not movies. They are audio banks that hold many short sounds (magic effects and voice) as interleaved XA channels, and the game plays one by sector range. The video plays at boot from `LOGO.EXE` ([executables](exe.md#boot-chain)). The audio banks play through `SND_StartXaStream` ([audio](../game/architecture/audio.md)). This page covers the sector layout of the files, the table that maps a sound request to a sector range, and the logo movie.
+The disc carries one video and three banks of streamed audio, stored as CD-ROM XA sectors outside the ISO9660 data. `LOGO/CAPCOM30.STR` is the Capcom logo movie: MDEC-compressed video interleaved with stereo XA audio. The three `.STR` files under `BIN/` are not movies. They are audio banks that hold many short sounds (magic effects and voice) as interleaved XA channels, and the game plays one by sector range. The video plays at boot from `LOGO.EXE` ([executables](exe.md#boot-chain)). The audio banks play through `SND_StartXaStream` ([audio](../systems/audio.md)). This page covers the sector layout of the files, the table that maps a sound request to a sector range, and the logo movie.
 
 ## Sector layout
 

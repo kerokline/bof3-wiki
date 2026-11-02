@@ -230,7 +230,7 @@ A WORLD archive holds one sound bank, its type-3 uploads and the type-0 [area wo
 | F     |        1 |      15 | AREA004: area program at 9, extra type-3 upload `0x1A080400` at 14                                                         |
 | G     |        1 |      15 | AREA024: extra type-3 upload `0x1A080400` at 9, area program at 14                                                         |
 
-The area program is code in 181 archives. The other 19 payloads at `0x801F2C00` have no stack prologue and no `jr $ra`, so they are data ([area](area.md#0x801f2c00-area-program-code-arena)). Format details per load address are in [area](area.md) and [character](character.md). Which overlay is resident in which window is in [runtime](../game/runtime.md).
+The area program is code in 181 archives. The other 19 payloads at `0x801F2C00` have no stack prologue and no `jr $ra`, so they are data ([area](area.md#0x801f2c00-area-program-code-arena)). Format details per load address are in [area](area.md) and [character](character.md). Which overlay is resident in which window is in [runtime](../data/programs.md).
 
 ### Data-only code-window payloads
 
@@ -255,4 +255,4 @@ Two type-0 images with code-style addresses hold no code. Both are 512-byte CLUT
 
 ## Sources
 
-The container, header, TOC and padding are measured from the retail archives. The community [BoF3-Data-Doc](https://github.com/GlitchedDragon-dev/BoF3-Data-Doc) (EMI and overlay notes) is confirmation only ([sources](../sources.md)).
+The container, header, TOC and padding are measured from the retail archives. The community [BoF3-Data-Doc](https://github.com/GlitchedDragon-dev/BoF3-Data-Doc) (EMI and overlay notes) is confirmation only ([sources](../appendix/sources.md)).

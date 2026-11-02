@@ -15,14 +15,14 @@ The game has three parts.
 
 1. **One resident program.** `SLUS_004.22` loads at boot and stays in RAM until power-off. It holds
    the main loop, the loader, the graphics and sound drivers and the shared helpers. See
-   [runtime](game/runtime.md).
+   [runtime](data/programs.md).
 2. **Overlays.** Everything else is code that the loader streams from `.EMI` archives on the disc
    into fixed RAM windows. Each window holds one overlay at a time, such as the battle program, a
-   scenario controller or the program of one map. See [loading](game/architecture/loading.md) and
-   [memory](game/architecture/memory.md).
+   scenario controller or the program of one map. See [loading](systems/loading.md) and
+   [memory](systems/memory.md).
 3. **Data tables.** Items, abilities, enemies, text, maps and sound are payloads inside the archives.
-   The game reads them through fixed tables and offsets. See [game records](game/records.md) and
-   [game text](game/text.md).
+   The game reads them through fixed tables and offsets. See [game records](data/records.md) and
+   [game text](data/text.md).
 
 An EMI archive is a sector-aligned list of typed entries ([EMI container](formats/emi.md)). Each
 entry names the RAM address it loads at, so one archive can carry code, data, textures and audio.
@@ -43,22 +43,22 @@ The pages go from overview to detail.
 
 A fact about the code cites the function as `Name (image@0xADDR)`: the name, the program that holds
 it and its address. A claim with no tag was read in the code or data. A claim tagged `[inferred]` is a
-lead, and one tagged `[unknown]` is not established. The [glossary](glossary.md) defines the citation
-format, the two tags and every term, and [open questions](game/architecture/gaps.md) collects the
+lead, and one tagged `[unknown]` is not established. The [glossary](appendix/glossary.md) defines the citation
+format, the two tags and every term, and [open questions](appendix/open-questions.md) collects the
 gaps.
 
 ## Start with your goal
 
-| You want to                             | Read                                                                                                                                          |
-| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Understand how the game runs            | [Architecture overview](game/architecture/index.md), then [boot](game/architecture/boot.md) and [frame loop](game/architecture/frame-loop.md) |
-| Read a file format                      | [EMI container](formats/emi.md), then [graphics](formats/graphics.md), [audio](formats/audio.md), [areas](formats/area.md)                    |
-| Edit items, skills, enemies or shops    | [Game records](game/records.md), [editor guide](game/architecture/editor-guide.md)                                                            |
-| Edit text or dialogue                   | [Game text](game/text.md), [asset kinds](formats/assets.md#message-banks)                                                                     |
-| Edit music, sound effects or voices     | [Audio formats](formats/audio.md), [STR and XA](formats/str.md), [audio runtime](game/architecture/audio.md)                                  |
-| Edit maps and scenes                    | [Area formats](formats/area.md), [areas and the field](game/architecture/area.md), [scenario engine](game/architecture/scenario.md)           |
-| Edit characters and sprites             | [Character bank](formats/character.md), [graphics](formats/graphics.md)                                                                       |
-| Edit or inspect a save                  | [Memory card save](formats/save.md), [saving](game/architecture/saving.md)                                                                    |
-| Look up the battle or field data in RAM | [Battle records](game/battle.md), [field and party records](game/field.md)                                                                    |
-| Find a term                             | [Glossary](glossary.md)                                                                                                                       |
-| See where a fact comes from             | [Sources](sources.md)                                                                                                                         |
+| You want to                             | Read                                                                                                                       |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Understand how the game runs            | [Architecture overview](overview.md), then [boot](systems/boot.md) and [frame loop](systems/frame-loop.md)                 |
+| Read a file format                      | [EMI container](formats/emi.md), then [graphics](formats/graphics.md), [audio](formats/audio.md), [areas](formats/area.md) |
+| Edit items, skills, enemies or shops    | [Game records](data/records.md), [editor guide](guides/editing.md)                                                         |
+| Edit text or dialogue                   | [Game text](data/text.md), [asset kinds](formats/assets.md#message-banks)                                                  |
+| Edit music, sound effects or voices     | [Audio formats](formats/audio.md), [STR and XA](formats/str.md), [audio runtime](systems/audio.md)                         |
+| Edit maps and scenes                    | [Area formats](formats/area.md), [areas and the field](systems/areas.md), [scenario engine](systems/scenario.md)           |
+| Edit characters and sprites             | [Character bank](formats/character.md), [graphics](formats/graphics.md)                                                    |
+| Edit or inspect a save                  | [Memory card save](formats/save.md), [saving](systems/saving.md)                                                           |
+| Look up the battle or field data in RAM | [Battle records](data/battle.md), [field and party records](data/field.md)                                                 |
+| Find a term                             | [Glossary](appendix/glossary.md)                                                                                           |
+| See where a fact comes from             | [Sources](appendix/sources.md)                                                                                             |

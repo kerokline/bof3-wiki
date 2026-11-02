@@ -1,6 +1,6 @@
 # Executables and boot files
 
-Five files outside the [EMI](emi.md) archives start the game: the system file, two executables, the logo video and the license sectors. One more thing lives in the main executable and matters to every file on the disc: the table of start sectors that lets the game find each file. This page describes these files and that table. The boot sequence that runs them is in [boot](../game/architecture/boot.md).
+Five files outside the [EMI](emi.md) archives start the game: the system file, two executables, the logo video and the license sectors. One more thing lives in the main executable and matters to every file on the disc: the table of start sectors that lets the game find each file. This page describes these files and that table. The boot sequence that runs them is in [boot](../systems/boot.md).
 
 ## Files
 
@@ -35,7 +35,7 @@ All of this is `measured` on both files:
 - Header bytes `0x83` to `0x7FF` are zero.
 - `SLUS_004.22` starts at `stup2` (the PsyQ `2MBYTE.OBJ` start-up code). `LOGO.EXE` starts at `__SN_ENTRY_POINT (exe/logo@0x801CE724)`.
 - The `LOGO.EXE` region marker is the Japanese string, and the US executable keeps it. No reader looks at it.
-- The main executable image spans `0x80096800` to `0x801F7000`. The module windows from `0x801EEC00` and `0x801F2C00` lie inside that range, and overlays overwrite them at run time ([runtime](../game/runtime.md#module-windows)). The last 17,408 bytes of the file (the `0x801F2C00` window) hold only the byte values 0, 14 and 15.
+- The main executable image spans `0x80096800` to `0x801F7000`. The module windows from `0x801EEC00` and `0x801F2C00` lie inside that range, and overlays overwrite them at run time ([runtime](../data/programs.md#module-windows)). The last 17,408 bytes of the file (the `0x801F2C00` window) hold only the byte values 0, 14 and 15.
 
 ## SYSTEM.CNF
 
@@ -94,5 +94,5 @@ Some tables that editors look for sit in the main executable, and some do not.
 | XA stream slot ids             | `D_80183230` = `{0x2A9, 0x1B2, 0x2AA}` (S_XA00, MAGIC00, VOICE) | 3 `u32` slot ids                                            | `read` (`SND_ResolveXaStream`)       |
 | XA cue-array pointers          | `D_8018323C` = `{0x801839C4, 0x801832C4, 0x80183298}`           | 3 pointers to `u16` arrays, see [STR](str.md#xa-cue-tables) | `read`, `measured`                   |
 | BGM id to slot table           | `D_80181EB8[id]`                                                | slot ids `0xD1`-`0x121`                                     | `read` ([EMI](emi.md#disc-slot-ids)) |
-| Item, ability and level data   | not here: `ETC/GAME.EMI` entry 0                                | [game records](../game/records.md)                          | `read`                               |
+| Item, ability and level data   | not here: `ETC/GAME.EMI` entry 0                                | [game records](../data/records.md)                          | `read`                               |
 | Save frame, checksum constants | not here                                                        | [save format](save.md)                                      | `read`                               |
