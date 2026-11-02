@@ -6,7 +6,7 @@ Which mode owns which slot at which moment is the subject of [phases](phases.md)
 
 ## Callback slots
 
-A slot is a 0x80-byte record in the table at `D_80143B40 (exe/slus_004_22@0x80143B40)`. It holds a state, a yield counter, the callback function, a thread id and the two values that start the thread. A callback is an ordinary function that runs as a PsyQ kernel thread (`OpenTh`, `ChangeTh`, `CloseTh`). The kernel does not pre-empt it. The thread runs until it calls one of three functions and hands control back to `CallbackRun`:
+A slot is a 128-byte record in the table at `D_80143B40 (exe/slus_004_22@0x80143B40)`. It holds a state, a yield counter, the callback function, a thread id and the two values that start the thread. A callback is an ordinary function that runs as a PsyQ kernel thread (`OpenTh`, `ChangeTh`, `CloseTh`). The kernel does not pre-empt it. The thread runs until it calls one of three functions and hands control back to `CallbackRun`:
 
 | Function                                       | Effect on the slot                                                                          |
 | ---------------------------------------------- | ------------------------------------------------------------------------------------------- |
@@ -48,7 +48,7 @@ The state values are `EMPTY` 0, `YIELD` 1, `OPEN` 2, `SWITCH` 4 and `IDLE` 0x7F.
 
 Because the walk goes from slot 0 to slot 3, a callback in slot 0 that registers slot 1 gets slot 1 started in the same pass. The boot does exactly this ([boot](boot.md)).
 
-`CallbackInitThreads (exe/slus_004_22@0x8014B6B4)` prepares the slots at boot. For slot i it clears the state, links the kernel work block i + 1 (block size 0xC0, based on the word at `0x80000110`) and sets the thread stack top to `0x801FF400 + (i + 1) * 0x200`. The four stack tops are `0x801FF600`, `0x801FF800`, `0x801FFA00` and `0x801FFC00`. Each stack is 0x200 bytes and the four sit side by side, so a call chain deeper than that overruns the next slot's stack. Whether any real chain does is `[unknown]`.
+`CallbackInitThreads (exe/slus_004_22@0x8014B6B4)` prepares the slots at boot. For slot i it clears the state, links the kernel work block i + 1 (block size 192, based on the word at `0x80000110`) and sets the thread stack top to `0x801FF400 + (i + 1) * 0x200`. The four stack tops are `0x801FF600`, `0x801FF800`, `0x801FFA00` and `0x801FFC00`. Each stack is 512 bytes and the four sit side by side, so a call chain deeper than that overruns the next slot's stack. Whether any real chain does is `[unknown]`.
 
 ## Who runs in each slot
 
@@ -102,19 +102,19 @@ The effect table is a table of transitions and not of game phases. Phase code ca
 
 ## Limits
 
-| Limit            | Value                                                 | Source                                       |
-| ---------------- | ----------------------------------------------------- | -------------------------------------------- |
-| Callback slots   | 4                                                     | `CallbackInitThreads`, `CallbackStopAll`     |
-| Thread stack     | `0x200` bytes per slot, tops `0x801FF600..0x801FFC00` | `CallbackInitThreads`                        |
-| Title states     | 8                                                     | `s_TitleStates`                              |
-| UI local modes   | 21                                                    | `UI_DispatchLocalMode`                       |
-| Panel tasks      | 22 tasks, 9 handlers                                  | `Menu_ResetPanelTasks`, `Menu_RunPanelTasks` |
-| Field actor rows | 30 rows of `0x98` bytes                               | `Actor_FindFree`                             |
-| Actor slots      | 20                                                    | `Actor_FindFreeSlot`                         |
+| Limit            | Value                                             | Source                                       |
+| ---------------- | ------------------------------------------------- | -------------------------------------------- |
+| Callback slots   | 4                                                 | `CallbackInitThreads`, `CallbackStopAll`     |
+| Thread stack     | 512 bytes per slot, tops `0x801FF600..0x801FFC00` | `CallbackInitThreads`                        |
+| Title states     | 8                                                 | `s_TitleStates`                              |
+| UI local modes   | 21                                                | `UI_DispatchLocalMode`                       |
+| Panel tasks      | 22 tasks, 9 handlers                              | `Menu_ResetPanelTasks`, `Menu_RunPanelTasks` |
+| Field actor rows | 30 rows of 152 bytes                              | `Actor_FindFree`                             |
+| Actor slots      | 20                                                | `Actor_FindFreeSlot`                         |
 
 ## Gaps
 
-| Gap                                                        | What would settle it                                                                                               |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Whether 0x200 bytes of stack suffice for the deepest chain | Worst-case stack analysis, or a run with stack watermarks                                                          |
-| Any writer of the `SWITCH` state, and any use of slot 3    | Search the overlays for stores of 4 to a slot state halfword, and for stores into the slot at `D_80143B40 + 0x180` |
+| Gap                                                      | What would settle it                                                                                               |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Whether 512 bytes of stack suffice for the deepest chain | Worst-case stack analysis, or a run with stack watermarks                                                          |
+| Any writer of the `SWITCH` state, and any use of slot 3  | Search the overlays for stores of 4 to a slot state halfword, and for stores into the slot at `D_80143B40 + 0x180` |

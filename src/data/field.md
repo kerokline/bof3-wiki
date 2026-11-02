@@ -16,22 +16,22 @@ executable image is `exe/slus_004_22`. Terms such as actor row and field slot ar
 The table gives the address, row size and row count of each object. Several objects are the same
 data seen from different overlays, so a reader may be an overlay function and not an executable one.
 
-| Object                  |      Address |    Size | Count | Readers                                                                                                    |
-| ----------------------- | -----------: | ------: | ----: | ---------------------------------------------------------------------------------------------------------- |
-| actor rows              | `0x80146888` |  `0x98` |    30 | `func_801A06D8 (emi/etc/game/00@0x801A06D8)`, area, plchar and scenario overlays                           |
-| published actor pointer | `0x80146884` |     `4` |     1 | `Area_RunParty (exe/slus_004_22@0x8015A758)`, `func_8015A7E8 (exe/slus_004_22@0x8015A7E8)`                 |
-| scratchpad work pointer | `0x1F800044` |     `4` |     1 | every field, plchar, world and scenario overlay                                                            |
-| field slots             | `0x80143FC8` |  `0x74` |    20 | `Actor_FindFreeSlot (emi/etc/game/00@0x8019601C)`, scene overlays and the setup stream's type-`E` record   |
-| party records           | `0x80144968` |  `0xA4` |     8 | see [records](records.md#character-and-master-data)                                                        |
-| inventory ids           | `0x8014504C` | `0x200` | 4x128 | `Party_CountItem (exe/slus_004_22@0x8016628C)`, item menu                                                  |
-| inventory counts        | `0x8014524C` | `0x200` | 4x128 | item menu, `func_801D8364 (emi/world00/area030/04@0x801D8364)`                                             |
-| vital items             | `0x8014544C` |  `0x20` |    32 | `func_80166140 (exe/slus_004_22@0x80166140)`, `func_80166180 (exe/slus_004_22@0x80166180)`                 |
-| zenny                   | `0x80144F50` |     `4` |     1 | `Party_SpendZenny (exe/slus_004_22@0x8016663C)`, `Party_AddZenny (exe/slus_004_22@0x8016666C)`, every shop |
-| play clock              | `0x80144FC0` |     `4` |     1 | `func_80198CAC (emi/etc/game/00@0x80198CAC)`, status, save and shop panels                                 |
-| fairy jobs              | `0x801455C8` |     `8` |    60 | `Fairy_JoinVillage (emi/etc/commu00/00@0x801F00D4)`, `func_801F01F4 (emi/etc/commu00/00@0x801F01F4)`       |
-| best catches            | `0x80144FE4` |     `1` |    32 | `func_801DB554 (emi/world00/area030/04@0x801DB554)`, `func_801E0B6C (emi/world00/area030/04@0x801E0B6C)`   |
-| fishing rod table       | `0x801E2748` |  `0x0A` |     6 | `func_801DDE2C (emi/world00/area030/04@0x801DDE2C)`                                                        |
-| fishing lure table      | `0x801E2720` |  `0x14` |     - | `func_801DDE2C (emi/world00/area030/04@0x801DDE2C)`                                                        |
+| Object                  |      Address | Size | Count | Readers                                                                                                    |
+| ----------------------- | -----------: | ---: | ----: | ---------------------------------------------------------------------------------------------------------- |
+| actor rows              | `0x80146888` |  152 |    30 | `func_801A06D8 (emi/etc/game/00@0x801A06D8)`, area, plchar and scenario overlays                           |
+| published actor pointer | `0x80146884` |    4 |     1 | `Area_RunParty (exe/slus_004_22@0x8015A758)`, `func_8015A7E8 (exe/slus_004_22@0x8015A7E8)`                 |
+| scratchpad work pointer | `0x1F800044` |    4 |     1 | every field, plchar, world and scenario overlay                                                            |
+| field slots             | `0x80143FC8` |  116 |    20 | `Actor_FindFreeSlot (emi/etc/game/00@0x8019601C)`, scene overlays and the setup stream's type-`E` record   |
+| party records           | `0x80144968` |  164 |     8 | see [records](records.md#character-and-master-data)                                                        |
+| inventory ids           | `0x8014504C` |  512 | 4x128 | `Party_CountItem (exe/slus_004_22@0x8016628C)`, item menu                                                  |
+| inventory counts        | `0x8014524C` |  512 | 4x128 | item menu, `func_801D8364 (emi/world00/area030/04@0x801D8364)`                                             |
+| vital items             | `0x8014544C` |   32 |    32 | `func_80166140 (exe/slus_004_22@0x80166140)`, `func_80166180 (exe/slus_004_22@0x80166180)`                 |
+| zenny                   | `0x80144F50` |    4 |     1 | `Party_SpendZenny (exe/slus_004_22@0x8016663C)`, `Party_AddZenny (exe/slus_004_22@0x8016666C)`, every shop |
+| play clock              | `0x80144FC0` |    4 |     1 | `func_80198CAC (emi/etc/game/00@0x80198CAC)`, status, save and shop panels                                 |
+| fairy jobs              | `0x801455C8` |    8 |    60 | `Fairy_JoinVillage (emi/etc/commu00/00@0x801F00D4)`, `func_801F01F4 (emi/etc/commu00/00@0x801F01F4)`       |
+| best catches            | `0x80144FE4` |    1 |    32 | `func_801DB554 (emi/world00/area030/04@0x801DB554)`, `func_801E0B6C (emi/world00/area030/04@0x801E0B6C)`   |
+| fishing rod table       | `0x801E2748` |   10 |     6 | `func_801DDE2C (emi/world00/area030/04@0x801DDE2C)`                                                        |
+| fishing lure table      | `0x801E2720` |   20 |     - | `func_801DDE2C (emi/world00/area030/04@0x801DDE2C)`                                                        |
 
 The area archive feeds these rows. The diagram shows the entries of `WORLDnn/AREAnnn.EMI` and where
 each one loads.
@@ -55,7 +55,7 @@ program between slots 9, 13 and 14 ([EMI](../formats/emi.md#archive-shapes)).
 
 ## Actor rows
 
-An actor row is one map object or interaction slot. The table has 30 rows of `0x98` bytes, and the
+An actor row is one map object or interaction slot. The table has 30 rows of 152 bytes, and the
 update walks only rows whose in-use bit is set. The scratchpad work cell at `0x1F800044` points into
 the table, and the pointer cell at `0x80146884` publishes the current row. Every overlay reads the
 same rows. The area overlays place objects and run their scripts, the communication minigame indexes
@@ -156,7 +156,7 @@ record starts a new task at state 0.
 ## Field slots
 
 A field slot belongs to the scene. The scene and frontend code claim, fill and clear slots, while the
-actor rows are the live map objects. There are twenty slots of `0x74` bytes at `0x80143FC8`
+actor rows are the live map objects. There are twenty slots of 116 bytes at `0x80143FC8`
 (`g_ActorSlots`).
 
 | Offset | Type          | Meaning                                                                                                                                         | Evidence                                                                                                                                                         |

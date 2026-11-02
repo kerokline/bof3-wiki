@@ -4,18 +4,18 @@ This page maps stored game bytes to common interchange formats, for someone who 
 
 ## Conversion map
 
-| Stored bytes                    | What the game does with it                    | Standard form                                                        | What to check                                                          |
-| ------------------------------- | --------------------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| EMI archive                     | sector-aligned container and TOC              | the original `.EMI`, plus entry bytes and a TOC listing              | entry hashes; the container rebuilds byte for byte                     |
-| type 0                          | direct RAM payload                            | raw `.bin`                                                           | entry hash and load argument                                           |
-| types 1, 2                      | queued RAM transfer                           | raw `.bin`                                                           | [LZ77](lz77.md) decode for type 1                                      |
-| type 3                          | packed VRAM upload descriptor plus raw chunks | raw words plus the descriptor; PNG once depth and palette are proven | `0x800` chunk geometry ([graphics](graphics.md))                       |
-| type-0 palette bytes            | PSX colour words selected by draw state       | little-endian `u16` words plus the RAM destination; PNG strip        | 16 colours are `0x20` bytes, 256 colours `0x200`; the words round-trip |
-| indexed texture with TPage/CLUT | GPU texture sampling                          | texture words, palette words, TPage, CLUT and UV rectangle; PNG      | the draw site that names the row                                       |
-| STR and XA sectors              | 2,336-byte sectors                            | the original stream, wrapped in 2,352-byte raw sectors               | sector round trip; [timing](str.md#capcom30-timing)                    |
-| types 6, 7                      | VAB header and body                           | original `.vh` and `.vb`; SoundFont for desktop players              | header and body identity, selector                                     |
-| type 10                         | SEP package                                   | original `.seq`; Standard MIDI File for playback                     | package size, selector                                                 |
-| PSX TIM, if one is found        | self-describing image                         | `.tim`; PNG                                                          | TIM magic, dimensions and block sizes                                  |
+| Stored bytes                    | What the game does with it                    | Standard form                                                        | What to check                                                      |
+| ------------------------------- | --------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| EMI archive                     | sector-aligned container and TOC              | the original `.EMI`, plus entry bytes and a TOC listing              | entry hashes; the container rebuilds byte for byte                 |
+| type 0                          | direct RAM payload                            | raw `.bin`                                                           | entry hash and load argument                                       |
+| types 1, 2                      | queued RAM transfer                           | raw `.bin`                                                           | [LZ77](lz77.md) decode for type 1                                  |
+| type 3                          | packed VRAM upload descriptor plus raw chunks | raw words plus the descriptor; PNG once depth and palette are proven | `0x800` chunk geometry ([graphics](graphics.md))                   |
+| type-0 palette bytes            | PSX colour words selected by draw state       | little-endian `u16` words plus the RAM destination; PNG strip        | 16 colours are 32 bytes, 256 colours `0x200`; the words round-trip |
+| indexed texture with TPage/CLUT | GPU texture sampling                          | texture words, palette words, TPage, CLUT and UV rectangle; PNG      | the draw site that names the row                                   |
+| STR and XA sectors              | 2,336-byte sectors                            | the original stream, wrapped in 2,352-byte raw sectors               | sector round trip; [timing](str.md#capcom30-timing)                |
+| types 6, 7                      | VAB header and body                           | original `.vh` and `.vb`; SoundFont for desktop players              | header and body identity, selector                                 |
+| type 10                         | SEP package                                   | original `.seq`; Standard MIDI File for playback                     | package size, selector                                             |
+| PSX TIM, if one is found        | self-describing image                         | `.tim`; PNG                                                          | TIM magic, dimensions and block sizes                              |
 
 Converting a SEP sequence to MIDI is not lossless. Type 9 has no shipped entry on this disc.
 

@@ -19,7 +19,7 @@ Entry 0 of `BIN/ETC/GAME.EMI` is 229,720 bytes and loads at `0x80195800`. It hol
 | abilities    | `0x3570C` | `0x34F0C` | `0x801CA70C` | 228 × `0x14` |
 | level growth | `0x368DC` | `0x360DC` | `0x801CB8DC` | 693 × `0x08` |
 
-The tables follow each other with one gap. A `0xE8`-byte block at runtime `0x801CA624` separates the shops from the abilities; its first 32 bytes are zero and its use is `[unknown]`. The ability table ends exactly where level growth starts, and level growth ends at archive `0x37E84`. The archive is `0x3A800` bytes. The runtime names are `g_Items`, `g_VitalItems`, `g_Weapons`, `g_Armors`, `g_Accessories`, `g_GameShopStock`, `g_Abilities` and `g_LevelGrowth`.
+The tables follow each other with one gap. A 232-byte block at runtime `0x801CA624` separates the shops from the abilities; its first 32 bytes are zero and its use is `[unknown]`. The ability table ends exactly where level growth starts, and level growth ends at archive `0x37E84`. The archive is 239,616 bytes. The runtime names are `g_Items`, `g_VitalItems`, `g_Weapons`, `g_Armors`, `g_Accessories`, `g_GameShopStock`, `g_Abilities` and `g_LevelGrowth`.
 
 The item, vital item, weapon, armor and accessory tables each start with a `Nothing` row, and ability 0 is zeroed. Names fill 12 bytes and need no terminator when they use the whole field (`Healing Herb` is 12 bytes in a 12-byte field).
 
@@ -27,16 +27,16 @@ The item, vital item, weapon, armor and accessory tables each start with a `Noth
 
 Each row below shows the offset of its fields. Widths are one byte unless a column says otherwise. A `description` is a 16-bit resource id in the `0x4000`-based id space of `Resource_Resolve` ([text](text.md#references)). It is a little-endian `u16`.
 
-| Table        | Size   | Fields (offset)                                                                                                                                                                                   |
-| ------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Item         | `0x12` | name `[12]` (0), flags (`0x0C`), unknown (`0x0D`), description `u16` (`0x0E`), price `u16` (`0x10`)                                                                                               |
-| Vital item   | `0x10` | name `[12]`, description `u16` (`0x0C`), unknown `u16` (`0x0E`)                                                                                                                                   |
-| Weapon       | `0x18` | name, equipability (`0x0C`), flags (`0x0D`), kind (`0x0E`), element (`0x0F`), weight (`0x10`), sound (`0x11`), power (`0x12`), unknown (`0x13`), description `u16` (`0x14`), price `u16` (`0x16`) |
-| Armor        | `0x16` | name, equipability (`0x0C`), flags (`0x0D`), equip type (`0x0E`), weight (`0x0F`), power (`0x10`), unknown (`0x11`), description `u16` (`0x12`), price `u16` (`0x14`)                             |
-| Accessory    | `0x14` | name, equipability (`0x0C`), flags (`0x0D`), kind (`0x0E`), weight (`0x0F`), description `u16` (`0x10`), price `u16` (`0x12`)                                                                     |
-| Ability      | `0x14` | name, targeting flags (`0x0C`), type (`0x0D`), cost (`0x0E`), power (`0x0F`), element (`0x10`), flags (`0x11`), description `u16` (`0x12`)                                                        |
-| Shop stock   | `0x17` | item count (`0x00`), then eleven item references of two bytes from `0x01`: item type, item index                                                                                                  |
-| Level growth | `0x08` | experience `u16` (`0x00`), HP (`0x02`), AP (`0x03`), power and defense (`0x04`), agility and intellect (`0x05`), ability (`0x06`), extra ability (`0x07`)                                         |
+| Table        | Size | Fields (offset)                                                                                                                                                                                   |
+| ------------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Item         | 18   | name `[12]` (0), flags (`0x0C`), unknown (`0x0D`), description `u16` (`0x0E`), price `u16` (`0x10`)                                                                                               |
+| Vital item   | 16   | name `[12]`, description `u16` (`0x0C`), unknown `u16` (`0x0E`)                                                                                                                                   |
+| Weapon       | 24   | name, equipability (`0x0C`), flags (`0x0D`), kind (`0x0E`), element (`0x0F`), weight (`0x10`), sound (`0x11`), power (`0x12`), unknown (`0x13`), description `u16` (`0x14`), price `u16` (`0x16`) |
+| Armor        | 22   | name, equipability (`0x0C`), flags (`0x0D`), equip type (`0x0E`), weight (`0x0F`), power (`0x10`), unknown (`0x11`), description `u16` (`0x12`), price `u16` (`0x14`)                             |
+| Accessory    | 20   | name, equipability (`0x0C`), flags (`0x0D`), kind (`0x0E`), weight (`0x0F`), description `u16` (`0x10`), price `u16` (`0x12`)                                                                     |
+| Ability      | 20   | name, targeting flags (`0x0C`), type (`0x0D`), cost (`0x0E`), power (`0x0F`), element (`0x10`), flags (`0x11`), description `u16` (`0x12`)                                                        |
+| Shop stock   | 23   | item count (`0x00`), then eleven item references of two bytes from `0x01`: item type, item index                                                                                                  |
+| Level growth | 8    | experience `u16` (`0x00`), HP (`0x02`), AP (`0x03`), power and defense (`0x04`), agility and intellect (`0x05`), ability (`0x06`), extra ability (`0x07`)                                         |
 
 How to read the fields:
 
@@ -53,11 +53,11 @@ The item dispatcher (`func_80165D48`, `exe/slus_004_22@0x80165D48`) masks an ite
 
 | Category | Family     |         Base | Stride |
 | -------: | ---------- | -----------: | -----: |
-|      `0` | item       | `0x801C8964` | `0x12` |
-|      `1` | weapon     | `0x801C90DC` | `0x18` |
-|      `2` | armor      | `0x801C98A4` | `0x16` |
-|      `3` | accessory  | `0x801C9E7C` | `0x14` |
-|      `4` | vital item | `0x801C8FDC` | `0x10` |
+|      `0` | item       | `0x801C8964` |     18 |
+|      `1` | weapon     | `0x801C90DC` |     24 |
+|      `2` | armor      | `0x801C98A4` |     22 |
+|      `3` | accessory  | `0x801C9E7C` |     20 |
+|      `4` | vital item | `0x801C8FDC` |     16 |
 
 ```mermaid
 flowchart LR
@@ -70,7 +70,7 @@ flowchart LR
 
 ## Character and master data
 
-A party member is one `Character` record of `0xA4` bytes. The game keeps eight of them at `g_Characters` (`0x80144968`): Ryu, Nina, Garr, Teepo, Rei, Momo, Peco and Whelp. The starting values come from a table in the camp-menu archive, and a new game copies it into `g_Characters` (`Party_InitDefaults`, `emi/etc/start/08@0x801D15C0`). The status archive carries a byte-identical second copy.
+A party member is one `Character` record of 164 bytes. The game keeps eight of them at `g_Characters` (`0x80144968`): Ryu, Nina, Garr, Teepo, Rei, Momo, Peco and Whelp. The starting values come from a table in the camp-menu archive, and a new game copies it into `g_Characters` (`Party_InitDefaults`, `emi/etc/start/08@0x801D15C0`). The status archive carries a byte-identical second copy.
 
 | Table             | Archive               |    Offset |                Rows × size |
 | ----------------- | --------------------- | --------: | -------------------------: |
@@ -86,7 +86,7 @@ The base-stat table is entry 8 of `START.EMI` (payload `0x1A914`, load address `
 
 ### The character record
 
-The table gives the offset, width and meaning of each field. The runtime record at `g_Characters` has the same layout. The block's header byte at `0x80144952` (`0x16` bytes before the first record) holds the window style.
+The table gives the offset, width and meaning of each field. The runtime record at `g_Characters` has the same layout. The block's header byte at `0x80144952` (22 bytes before the first record) holds the window style.
 
 | Offset      | Type      | Field                                                                |
 | ----------- | --------- | -------------------------------------------------------------------- |
@@ -178,7 +178,7 @@ Each row names an archive and an entry: `AREA112/13` is entry 13 of `AREA112.EMI
 
 The save file is a 1-block memory-card file ([memory card save](../formats/save.md)). Its payload is a copy of one block of RAM, so a save offset maps to a RAM address by a fixed bias: RAM address = save offset + `0x801446D8` for every offset from `0x200`. The frame origin `0x801446D8` is virtual. Only the part from `+0x200` exists in live RAM, as the block at `0x801448D8`.
 
-`CardBuildFileHeader (emi/etc/start/09@0x801EF27C)` writes the `SC` magic to the staging buffer at `0x800C1800`. `SAVE_BuildSlotImage (emi/etc/shop/00@0x801D69E0)` then copies the block at `0x801448D8` to staging `+0x200` (`g_SaveBuffer`, `0x800C1A00`). On load, `SAVE_RunLoadVerify (emi/etc/start/08@0x801E5A00)` zeroes the halfword at `+0x270`, byte-sums `0x10B0` bytes from `+0x200` into a 32-bit accumulator and compares the low halfword.
+`CardBuildFileHeader (emi/etc/start/09@0x801EF27C)` writes the `SC` magic to the staging buffer at `0x800C1800`. `SAVE_BuildSlotImage (emi/etc/shop/00@0x801D69E0)` then copies the block at `0x801448D8` to staging `+0x200` (`g_SaveBuffer`, `0x800C1A00`). On load, `SAVE_RunLoadVerify (emi/etc/start/08@0x801E5A00)` zeroes the halfword at `+0x270`, byte-sums 4,272 bytes from `+0x200` into a 32-bit accumulator and compares the low halfword.
 
 Community save editors use a second origin that starts at the zenny field, so an editor offset is the save offset minus `0x878`. The table lists both. Rows with no tag have a named global at that address. `[inferred]` rows rest on community notes only.
 
@@ -208,18 +208,18 @@ Community save editors use a second origin that starts at the zenny field, so an
 
 ## Area data
 
-Each `WORLDn/AREAnnn.EMI` is the only source for its area. Its entry loaded at `0x800E4000` is the encounter block: 1,160 bytes in all 200 archives. The block begins with eight encounters of 9 bytes (72 bytes), followed by eight enemy records of `0x88` bytes. A row is addressed by its slot, 0 to 7. The other record families sit in other entries of the area archive. The table lists the families, their record sizes and what is established about their number.
+Each `WORLDn/AREAnnn.EMI` is the only source for its area. Its entry loaded at `0x800E4000` is the encounter block: 1,160 bytes in all 200 archives. The block begins with eight encounters of 9 bytes (72 bytes), followed by eight enemy records of 136 bytes. A row is addressed by its slot, 0 to 7. The other record families sit in other entries of the area archive. The table lists the families, their record sizes and what is established about their number.
 
 | Family        | Record size | Rows                                                         |
 | ------------- | ----------: | ------------------------------------------------------------ |
-| encounters    |      `0x09` | 1,600 slots (8 per area); 544 have a nonzero appearance rate |
-| enemies       |      `0x88` | 1,600 slots (8 per area); 448 are filled                     |
-| chests        |      `0x03` | 224 `[inferred]`                                             |
-| genes         |      `0x01` | 17 `[inferred]`                                              |
-| chrysms       |      `0x01` | 13 `[inferred]`                                              |
-| fairies       |      `0x09` | 720 in 12 archives (60 per archive)                          |
-| Manillo items |      `0x08` | 165 `[inferred]`                                             |
-| Manillo stock |      `0x0A` | 16 in `AREA030.EMI` at `0x3E53E`                             |
+| encounters    |           9 | 1,600 slots (8 per area); 544 have a nonzero appearance rate |
+| enemies       |         136 | 1,600 slots (8 per area); 448 are filled                     |
+| chests        |           3 | 224 `[inferred]`                                             |
+| genes         |           1 | 17 `[inferred]`                                              |
+| chrysms       |           1 | 13 `[inferred]`                                              |
+| fairies       |           9 | 720 in 12 archives (60 per archive)                          |
+| Manillo items |           8 | 165 `[inferred]`                                             |
+| Manillo stock |          10 | 16 in `AREA030.EMI` at `0x3E53E`                             |
 
 The chest, gene, chrysm and Manillo counts are `[inferred]`; the entries that hold these rows would settle them. A chest is a memory byte (`+0x00`), an item id (`+0x01`) and an item type (`+0x02`). A gene or chrysm is one gene index. A fairy is a 5-byte name and four stat bytes. A Manillo trade is an item id (`+0x00`), an item type (`+0x01`), three fish indexes (`+0x02`) and three fish quantities (`+0x05`), and a Manillo stock row is ten trade indexes. The Manillo stock at `AREA030.EMI+0x3E53E` holds ten-byte rows with `0xFF` padding.
 

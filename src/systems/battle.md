@@ -89,7 +89,7 @@ The one caller found is `func_801FA7D8` in `emi/scenario/scena00/00`. Calls in s
 
 `func_80197C94` picks the archive to stream. For a scripted battle it is `D_801CD86C[s_BattleModeRecords[g_BattleEncounter * 4 + 3]]`. For a random battle it is slot 6 (`BATTLE`) when `g_SceneState.scenario_id < 8` and slot 7 (`BATTLE2`) otherwise. `D_801CD86C` has 42 `u16` entries: slot 6, then the `BOSS` slots `0x1B3` to `0x1DA` in a game-specific order, then `0xFFFF`.
 
-Unless `g_BattleOptions & 0x40` is set, substate 3 copies `0x560` bytes of the sequence table (`D_80148A50` to `D_8018E268`) away, and substate 7 copies them back ([audio](audio.md)).
+Unless `g_BattleOptions & 0x40` is set, substate 3 copies 1,376 bytes of the sequence table (`D_80148A50` to `D_8018E268`) away, and substate 7 copies them back ([audio](audio.md)).
 
 `Battle_Update` never changes the entry substate. The advance from 5 to 6 happens in `func_801D7350` (mode 5, step 4, sub-step 2).
 
@@ -226,13 +226,13 @@ The enemy record fields and the party battler layout are in [battle records](../
 
 | Limit                       | Value                                                               | Source                                                                |
 | --------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| Party battlers              | 3, row stride `0x140`                                               | `Battle_RunParty`, `func_801D1228`                                    |
-| Enemy battlers              | 8, row stride `0x118` at `0x801EB630`                               | `Battle_RunEnemies`                                                   |
+| Party battlers              | 3, row stride 320                                                   | `Battle_RunParty`, `func_801D1228`                                    |
+| Enemy battlers              | 8, row stride 280 at `0x801EB630`                                   | `Battle_RunEnemies`                                                   |
 | Formations per area         | 8 records of 9 bytes at `0x800E4000`                                | `func_801C6A7C`                                                       |
 | Formation weights           | Roll 1 to 16 against the running sum of the eight weights           | `func_801C6A7C`; a roll above the total gives formation 0             |
 | Enemy slots per formation   | 8 ids, `0xFF` empty                                                 | `func_801C6AEC`                                                       |
 | Enemy slot spawn chance     | `16, 16, 16, 10, 8, 6, 4, 2` out of 16                              | `s_EntitySpawnChances`                                                |
-| Enemy records per area      | 8 of `0x88` bytes at `0x800E4048`                                   | `func_801C6BB4`, `Area_BuildEncounter`                                |
+| Enemy records per area      | 8 of 136 bytes at `0x800E4048`                                      | `func_801C6BB4`, `Area_BuildEncounter`                                |
 | Enemy position slots        | 36 (`1 + 2 + ... + 8`), 49 candidate cells each                     | `D_801CD620[36]`, `s_EntitySpawnOffsets`                              |
 | Step threshold              | Base `0x00` to `0x78`, random part capped by the pair's second byte | `s_EncounterStepThresholds[16]`                                       |
 | Zone `rate`                 | 0 to 7 (index `rate * 2` into a 16-byte table)                      | `Area_RollEncounterThreshold`                                         |
@@ -244,7 +244,7 @@ The enemy record fields and the party battler layout are in [battle records](../
 | Battle modes                | 6                                                                   | `g_BattlePhases[6]`                                                   |
 | Entrance sub-steps          | 4                                                                   | `g_BattleEntrances[4]`                                                |
 | End-of-battle item queue    | 16 entries (member sizes 32 and 16 bytes) `[inferred]`              | `PartyGrantQueue` in `Battle_GrantQueuedItems`                        |
-| Sequence table copy         | `0x560` bytes at `0x80148A50`                                       | `func_80197C94`, `func_80197F48`                                      |
+| Sequence table copy         | 1,376 bytes at `0x80148A50`                                         | `func_80197C94`, `func_80197F48`                                      |
 | Target pick tables          | Partial party `{9,7}, {12,4}, {8,8}`; full party six rows of 3      | `s_BattlePartialPartyTargetWeights`, `s_BattleFullPartyTargetWeights` |
 | Random ability pools        | 32 slots each (`Recall`, `MagicShuffle`)                            | `g_BattleRecallAbilities`, `g_BattleMagicShuffleAbilities`            |
 

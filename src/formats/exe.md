@@ -16,7 +16,7 @@ The disc also has one CDDA track (track 2, 37,044,044 bytes). Every sample in it
 
 ## PS-X EXE header
 
-Both executables begin with the standard 0x800-byte PS-X EXE header: the `PS-X EXE` magic at offset 0 and fields as `u32` from `0x10` ([psx-spx](https://psx-spx.consoledev.net/cdromformat/)). The BIOS copies `t_size` bytes from sector 1 of the file to `t_addr`, then jumps to `pc`.
+Both executables begin with the standard 2,048-byte PS-X EXE header: the `PS-X EXE` magic at offset 0 and fields as `u32` from `0x10` ([psx-spx](https://psx-spx.consoledev.net/cdromformat/)). The BIOS copies `t_size` bytes from sector 1 of the file to `t_addr`, then jumps to `pc`.
 
 | Offset | Field                          |   `SLUS_004.22` |   `LOGO.EXE` |
 | -----: | ------------------------------ | --------------: | -----------: |

@@ -80,7 +80,7 @@ In `SCENA00` the five words are at `0x801FC9FC` and the mode table follows at `0
 | `step_05`     |   0x05 | Third-level step.                                                                                |
 | `timer_06`    |   0x06 | Countdown for the step.                                                                          |
 
-`SAVE_RunLoadRestore (emi/etc/start/08@0x801E5FD4)` copies `0x10` bytes from `D_801448D8` into `g_SceneState` on load. The flag words and the event-flag block (see [Flags](#flags)) lie inside the 4,272-byte persistent block that boot zeroes from `D_801448D8` ([boot](boot.md), [state](state.md#one-persistent-block)). Whether the save image carries them is in [saving](saving.md).
+`SAVE_RunLoadRestore (emi/etc/start/08@0x801E5FD4)` copies 16 bytes from `D_801448D8` into `g_SceneState` on load. The flag words and the event-flag block (see [Flags](#flags)) lie inside the 4,272-byte persistent block that boot zeroes from `D_801448D8` ([boot](boot.md), [state](state.md#one-persistent-block)). Whether the save image carries them is in [saving](saving.md).
 
 ## Chapter advance
 
@@ -135,7 +135,7 @@ Story state lives in three bit arrays. All are read with `SYS_TestFlag (exe/slus
 | ------------------- | ------------ | --------------- | ----------------------------------------------------------------------------- |
 | `g_SceneFlagWords`  | `0x80144E88` | 20 words of 8 B | One word per scenario. `Scene_Start` clears bits 0 to 31 of the started word. |
 | `g_SceneFlags`      | `0x8014686C` | pointer         | The active scenario's word. Controllers use `SYS_SetFlag(g_SceneFlags, bit)`. |
-| `g_SceneEventFlags` | `0x80144F28` | `0x28` bytes    | Event flags. `Scene_ResetEventState` resets the first 16 bytes.               |
+| `g_SceneEventFlags` | `0x80144F28` | 40 bytes        | Event flags. `Scene_ResetEventState` resets the first 16 bytes.               |
 
 An exit door can test any scenario's word: `func_801A0048` reads `SYS_TestFlag(g_SceneFlagWords + (b << 3), bit)` for the scenario byte `b` of a door row ([area](areas.md#doors)).
 

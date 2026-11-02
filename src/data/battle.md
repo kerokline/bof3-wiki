@@ -34,23 +34,23 @@ All addresses are fixed RAM. The table gives the address, row size and row count
 and a function that reads it. Several objects are one byte wide: the mode, the step and the
 sub-step are three bytes in a row.
 
-| Object                     |      Address |    Size | Count | Readers                                                     |
-| -------------------------- | -----------: | ------: | ----: | ----------------------------------------------------------- |
-| mode byte                  | `0x801462E0` |     `1` |     1 | `Battle_DispatchMode (emi/battle/battle/03@0x801D112C)`     |
-| main step                  | `0x801462E1` |     `1` |     1 | the mode's step tables                                      |
-| sub-step                   | `0x801462E2` |     `1` |     1 | `Battle_DispatchEntrance (emi/battle/battle/03@0x801D17C4)` |
-| state word `g_BattleState` | `0x801462E8` |     `2` |     1 | both overlays, boss and bmagic handlers                     |
-| acting battler             | `0x80146374` |     `1` |     1 | both overlays                                               |
-| command state              | `0x80146375` |     `1` |     1 | `func_801DD448`, `func_801E020C`                            |
-| target selector            | `0x80146384` |     `1` |     1 | both hit endings (`func_800A9820` takes it as an argument)  |
-| result byte                | `0x80146328` |     `1` |     1 | `func_801D43EC`, boss endings                               |
-| spoils                     | `0x80146326` |  `0x3E` |     1 | `func_801E531C`, `func_801E54EC`                            |
-| candidate entries          | `0x801463DC` |  `0x0C` |     8 | `emi/etc/game/00`, `emi/battle/battle/15`                   |
-| player work rows           | `0x80145E90` | `0x140` |     3 | both overlays                                               |
-| enemy work rows            | `0x801EB630` | `0x118` |     8 | both overlays                                               |
-| queued action slots        | `0x801EC330` |  `0x78` |    48 | `Battle_RunEffects (emi/battle/battle/03@0x801E5824)`       |
-| panel tasks                | `0x80148330` |  `0x24` |    22 | `func_801E9074`, `func_801EA1E0`, `func_801DA69C`           |
-| event slots                | `0x801EB4F0` |  `0x0C` |     - | `Battle_RunEvents (emi/battle/battle/03@0x801DE43C)`        |
+| Object                     |      Address | Size | Count | Readers                                                     |
+| -------------------------- | -----------: | ---: | ----: | ----------------------------------------------------------- |
+| mode byte                  | `0x801462E0` |    1 |     1 | `Battle_DispatchMode (emi/battle/battle/03@0x801D112C)`     |
+| main step                  | `0x801462E1` |    1 |     1 | the mode's step tables                                      |
+| sub-step                   | `0x801462E2` |    1 |     1 | `Battle_DispatchEntrance (emi/battle/battle/03@0x801D17C4)` |
+| state word `g_BattleState` | `0x801462E8` |    2 |     1 | both overlays, boss and bmagic handlers                     |
+| acting battler             | `0x80146374` |    1 |     1 | both overlays                                               |
+| command state              | `0x80146375` |    1 |     1 | `func_801DD448`, `func_801E020C`                            |
+| target selector            | `0x80146384` |    1 |     1 | both hit endings (`func_800A9820` takes it as an argument)  |
+| result byte                | `0x80146328` |    1 |     1 | `func_801D43EC`, boss endings                               |
+| spoils                     | `0x80146326` |   62 |     1 | `func_801E531C`, `func_801E54EC`                            |
+| candidate entries          | `0x801463DC` |   12 |     8 | `emi/etc/game/00`, `emi/battle/battle/15`                   |
+| player work rows           | `0x80145E90` |  320 |     3 | both overlays                                               |
+| enemy work rows            | `0x801EB630` |  280 |     8 | both overlays                                               |
+| queued action slots        | `0x801EC330` |  120 |    48 | `Battle_RunEffects (emi/battle/battle/03@0x801E5824)`       |
+| panel tasks                | `0x80148330` |   36 |    22 | `func_801E9074`, `func_801EA1E0`, `func_801DA69C`           |
+| event slots                | `0x801EB4F0` |   12 |     - | `Battle_RunEvents (emi/battle/battle/03@0x801DE43C)`        |
 
 ### Battler slots
 
@@ -64,7 +64,7 @@ For example, slot 3 is the first enemy: `0x801EB2E8 + 3 * 0x118 = 0x801EB630`. A
 
 ## Player work row
 
-The mode machines step the player work row. There are three rows of `0x140` bytes at `0x80145E90`.
+The mode machines step the player work row. There are three rows of 320 bytes at `0x80145E90`.
 The table lists the fields that a reader proves. A field has a role only when the evidence cell names
 the function that shows it.
 
@@ -83,7 +83,7 @@ the function that shows it.
 | `0x034` | `s32` (16.16) | x; read as one word and as two halfwords                                                                                                                                         | `func_800A8B40`                                                                                                      |
 | `0x038` | `s32` (16.16) | y; read as one word and as two halfwords                                                                                                                                         | `func_800A8B40`                                                                                                      |
 | `0x03C` | `s32`         | 16.16 z word; the physics code reads the height in the high half `+0x3E`; the two overlays read that halfword with opposite signs, and `func_800AF764` projects it negated       | `func_800A8B40`; copied whole by `func_801E72F4` and `func_801DDAF0`; written by `func_801DEF0C` and `func_801E352C` |
-| `0x074` | `u8[164]`     | a copy of the character record ([layout](records.md#character-and-master-data)); `reprisal_chance` is at `stats + 0x35` (`+0xA9`), `critical_chance` at `stats + 0x36` (`+0xAA`) | `func_801DD08C` copies `0xA4` bytes here                                                                             |
+| `0x074` | `u8[164]`     | a copy of the character record ([layout](records.md#character-and-master-data)); `reprisal_chance` is at `stats + 0x35` (`+0xA9`), `critical_chance` at `stats + 0x36` (`+0xAA`) | `func_801DD08C` copies 164 bytes here                                                                                |
 | `0x119` | `u8`          | action state kept while a reprisal is pending; cleared otherwise                                                                                                                 | `func_801E1DD4`                                                                                                      |
 | `0x11A` | `u16`         | command word                                                                                                                                                                     | none found                                                                                                           |
 | `0x11C` | `s16`         | signed HP change that the hit shows; seeded from the current HP in the stats copy                                                                                                | `func_801D527C` seeds it; `func_801DFCB4` tests its sign                                                             |
@@ -103,7 +103,7 @@ cell would settle them.
 
 ## Enemy work row
 
-There are eight rows of `0x118` bytes at `0x801EB630`. `func_800ABCE0 (emi/battle/battle/15@0x800ABCE0)`
+There are eight rows of 280 bytes at `0x801EB630`. `func_800ABCE0 (emi/battle/battle/15@0x800ABCE0)`
 and `func_800AC01C (emi/battle/battle/15@0x800AC01C)` arm a slot and clear the cells from `+0x06` to
 `+0x5F` first. The table lists the proven fields. Widths follow the accesses.
 
@@ -167,7 +167,7 @@ For example, a row with item `0x0012` and rate 4 uses `chance[4] = 7`. The roll 
 7, so the item drops with probability 8 / 256, about 3.1 percent. Rate 7 gives 256 / 256 and always
 drops.
 
-The spoils record collects what a battle yields. It sits at `0x80146326`, is `0x3E` bytes long and is
+The spoils record collects what a battle yields. It sits at `0x80146326`, is 62 bytes long and is
 walked by `func_801E531C (emi/battle/battle/03@0x801E531C)`.
 
 | Offset | Type      | Meaning                                                 |
@@ -179,7 +179,7 @@ walked by `func_801E531C (emi/battle/battle/03@0x801E531C)`.
 
 ## Encounter candidates
 
-Before a wild encounter, the field overlay fills a table of eight candidate entries of `0x0C` bytes
+Before a wild encounter, the field overlay fills a table of eight candidate entries of 12 bytes
 at `0x801463DC`. The battle overlay walks the table and places each live enemy.
 `func_800ABC30 (emi/battle/battle/15@0x800ABC30)` reads the id, x and y of an entry and hands them to
 `func_800ABCE0`.
@@ -187,19 +187,19 @@ at `0x801463DC`. The battle overlay walks the table and places each live enemy.
 | Offset | Type          | Meaning                                                                                                    |
 | -----: | ------------- | ---------------------------------------------------------------------------------------------------------- |
 | `0x00` | `u8`          | live flag; set by `func_801C6AEC (emi/etc/game/00@0x801C6AEC)`, cleared when the candidate is out of reach |
-| `0x01` | `u8`          | index of one `0x88`-byte enemy record (`&D_800E405E + id * 0x88`); `0xFF` means none                       |
+| `0x01` | `u8`          | index of one 136-byte enemy record (`&D_800E405E + id * 0x88`); `0xFF` means none                          |
 | `0x04` | `s32` (16.16) | encounter x; written by `func_801C6BB4 (emi/etc/game/00@0x801C6BB4)`                                       |
 | `0x08` | `s32` (16.16) | encounter y; written by `func_801C6BB4`                                                                    |
 
-The `0x800E4000` encounter block has `0x88`-byte enemy rows. `+0xCA` and `+0xCB` are the two bytes
+The `0x800E4000` encounter block has 136-byte enemy rows. `+0xCA` and `+0xCB` are the two bytes
 that `Area_BuildEncounter` and `func_801E8DD8` read. `func_801C7064` takes them as a reach and a y
 offset. See [game records](records.md#area-data) for the block layout.
 
 ## Panel tasks and queued actions
 
-A panel task draws one window of the battle interface. The 22 slots of `0x24` bytes at `0x80148330`
+A panel task draws one window of the battle interface. The 22 slots of 36 bytes at `0x80148330`
 end at `0x80148648`. `0x80148648` itself is a pointer cell that `func_800B0410` loads and reads
-through. `emi/battle/battle/15` reads only the first `0x0C` bytes of a task and reads x and y signed.
+through. `emi/battle/battle/15` reads only the first 12 bytes of a task and reads x and y signed.
 
 | Offset | Type  | Meaning                                                                                                                                   |
 | -----: | ----- | ----------------------------------------------------------------------------------------------------------------------------------------- |
@@ -216,7 +216,7 @@ through. `emi/battle/battle/15` reads only the first `0x0C` bytes of a task and 
 `func_800B1728` and `func_800B0F9C (emi/battle/battle/15@0x800B0F9C)` also read the cells at `+0x12`
 and `+0x14` as bytes. `+0x12` is the box drawer's scale and `+0x14` is the number of rows it draws.
 
-The queued action slot is one of 48 rows of `0x78` bytes at `0x801EC330`. `emi/battle/battle/03`
+The queued action slot is one of 48 rows of 120 bytes at `0x801EC330`. `emi/battle/battle/03`
 names the head fields and `emi/battle/battle/15` the tail.
 
 | Offset | Type    | Meaning                                                                                                          |
@@ -234,10 +234,10 @@ names the head fields and `emi/battle/battle/15` the tail.
 Three more tables belong to the panels.
 
 - The owner table is the panel task array shifted by 3, so its records start at `0x80148333`. Byte
-  `+0x07` of record i is the kind that `func_801DA69C` walks (`0x8014833A`, stride `0x24`).
+  `+0x07` of record i is the kind that `func_801DA69C` walks (`0x8014833A`, stride 36).
 - The panel-owner table at `0x801ED9B0` has 4-byte entries: the owner index (`u8` at `0x00`), a second
   byte (`0x01`) and the panel id (`u16` at `0x02`).
-- The selection-type table at `0x801CA71C` has `0x14`-byte rows. A `u16` mask is at `0x00`, and
+- The selection-type table at `0x801CA71C` has 20-byte rows. A `u16` mask is at `0x00`, and
   `emi/battle/battle/15` reads the rest byte by byte.
 
 ## State word bits
@@ -358,7 +358,7 @@ Fixed values that the battle code reads. The table lists the source and the mean
 | difficulty thresholds  | `0x800B50DC`, eight bytes `1,2,4,8,12,16,24,48`    | indexed by the ability high nibble `+0x0D`                             |
 | critical chance byte   | character record offset `0x36` (`critical_chance`) | percentage                                                             |
 | reprisal chance byte   | character record offset `0x35` (`reprisal_chance`) | percentage                                                             |
-| palette stage row      | `0x80035600`, `0x40`-byte rows                     | one per battler slot (index << 6); `func_80166C48` copies 32 halfwords |
+| palette stage row      | `0x80035600`, 64-byte rows                         | one per battler slot (index << 6); `func_80166C48` copies 32 halfwords |
 | accessory effect table | `0x80149EC8`, four-byte pointers                   | indexed by `accessory_id - 1`, bound `0x17` (23 entries)               |
 
 Overlays loaded at `0x80096800` (`emi/battle/battle/15` and the boss archives) carry their own copy of

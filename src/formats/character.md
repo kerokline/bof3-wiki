@@ -13,9 +13,9 @@ The load argument of a bank entry tells which part of the bank it holds ([EMI lo
 | `BPLCHAR`       |    1 | `0x8003B800`  |      45 | whole container, LZ77                                                           |
 | `BPLCHAR`       |    0 | `0x8003B800`  |       1 | whole container (raw)                                                           |
 | `BPLCHAR`       |    0 | `0x8003B80C`  |      19 | section 0                                                                       |
-| `BPLCHAR`       |    0 | `0x8005680C`  |      13 | section 1 (section 0 is `0x1B000` bytes)                                        |
-| `BPLCHAR`       |    0 | `0x8005F80C`  |      17 | section 1 (section 0 is `0x24000` bytes)                                        |
-| `BPLCHAR`       |    0 | `0x8007180C`  |      13 | section 2 (sections 0 and 1 are `0x1B000` each)                                 |
+| `BPLCHAR`       |    0 | `0x8005680C`  |      13 | section 1 (section 0 is 110,592 bytes)                                          |
+| `BPLCHAR`       |    0 | `0x8005F80C`  |      17 | section 1 (section 0 is 147,456 bytes)                                          |
+| `BPLCHAR`       |    0 | `0x8007180C`  |      13 | section 2 (sections 0 and 1 are 110,592 bytes each)                             |
 | `BPLCHAR`       |    0 | `0x8007A80C`  |      13 | section 2 (section 1 is `0x24000`)                                              |
 | `BPLCHAR`       |    0 | `0x8003B800`  |      44 | filler of zeros, 16,384 bytes (`reserve`)                                       |
 | `PLCHAR`        |    1 | `0x8003B800`  |      19 | whole container, LZ77, per-character sizes                                      |

@@ -18,7 +18,7 @@ This page follows that path. It covers the primitive arena and ordering table, t
 
 ## Frame pipeline
 
-1. `SYS_PrepareFrame (exe/slus_004_22@0x8014B020)` points `g_GfxPrimCursor` at `0x80020000 + b * 0x9000` (`b` is `g_FrameBufferIndex`). It resets the 8 layer tail pointers `D_801459D0[0..7]` to 8 dummy head words at `D_80145990 + b * 0x20`, and resets 56 scene packet records (`0x30` bytes each at `D_80142CC0`).
+1. `SYS_PrepareFrame (exe/slus_004_22@0x8014B020)` points `g_GfxPrimCursor` at `0x80020000 + b * 0x9000` (`b` is `g_FrameBufferIndex`). It resets the 8 layer tail pointers `D_801459D0[0..7]` to 8 dummy head words at `D_80145990 + b * 0x20`, and resets 56 scene packet records (48 bytes each at `D_80142CC0`).
 2. Game code builds each primitive in place at the cursor and calls `GFX_AddPrim (exe/slus_004_22@0x8014E5A0)` with a layer and a size. The call links the primitive behind the layer's tail and advances the cursor by `size`.
 3. `SYS_SubmitFrame (exe/slus_004_22@0x8014B0F0)` calls the PsyQ `AddPrims` once per layer. Ordering-table entry `i` of the render record (`record + 0x70 + 4 * i`) links to layer `i`'s chain.
 4. On the next loop pass `SYS_Main` calls `DrawOTag(record + 0x8C)`, which is entry 7. Entry 7 starts the chain, so layer 7 draws first (at the back) and layer 0 last (in front). That ordering follows PsyQ `ClearOTagR` semantics, where each entry links to the one below it `[inferred]`.
@@ -80,7 +80,7 @@ flowchart TD
 ### The chain for one colour
 
 1. **Palette bank.** A type-0 EMI entry is copied to the RAM address in its table row. Arena offsets `+0x000`, `+0x200`, `+0x400`, `+0x600`, `+0x2000` and `+0x3600` are used ([area formats](../formats/area.md) has the table).
-2. **Working copy.** `GFX_ResetPalette (exe/slus_004_22@0x8014E284)` zeroes arena rows 28 to 31, then copies all 32 rows (`0x200` bytes each) to `0x80037800`. `GFX_CopyPalette (exe/slus_004_22@0x8014E3A0)` copies one row. Both set `g_GfxPalettePending`. Code that changes a palette (fades, animations, battle row moves) writes the working copy, not the arena.
+2. **Working copy.** `GFX_ResetPalette (exe/slus_004_22@0x8014E284)` zeroes arena rows 28 to 31, then copies all 32 rows (512 bytes each) to `0x80037800`. `GFX_CopyPalette (exe/slus_004_22@0x8014E3A0)` copies one row. Both set `g_GfxPalettePending`. Code that changes a palette (fades, animations, battle row moves) writes the working copy, not the arena.
 3. **VRAM.** `SYS_Main` calls `GFX_UploadPalette (exe/slus_004_22@0x8014E22C)` every frame. It uploads the whole 256 by 32 rectangle only if `g_GfxPalettePending` is set. A palette edit takes effect one frame later.
 4. **Texture.** Pixels reach a texture page through the loader or the sprite-sheet queue. The page and the bit depth are chosen when the primitive is built, not stored with the pixels.
 5. **CLUT word.** The primitive's `clut` field names the palette row and column. For sprite records it comes from `Area_BuildClut`; for text it is `0x7800 | n`.
@@ -127,7 +127,7 @@ The last four stage palette rows are handed out dynamically to sprites that need
 | Object          | Address      | Size                              | Role                                                                              |
 | --------------- | ------------ | --------------------------------- | --------------------------------------------------------------------------------- |
 | Cell map        | `D_80145D54` | 4 rows by 16 bytes, `0xFF` = free | One byte per 16-colour cell. It holds the fade record id that owns it.            |
-| Fade records    | `D_80145BD4` | 32 records of `0x0C` bytes        | `GFX_AllocPaletteFade` fills the first record with bit 0 clear.                   |
+| Fade records    | `D_80145BD4` | 32 records of 12 bytes            | `GFX_AllocPaletteFade` fills the first record with bit 0 clear.                   |
 | Animation slots | `D_80145D94` | 8 slots                           | `GFX_StartPaletteAnimation` starts one. `GFX_UpdatePaletteAnimations` steps them. |
 
 `GFX_AllocPaletteCell (emi/etc/game/00@0x801968BC)` takes a mode and scans the map row by row, returning the first run of free cells that fits. Mode 0 is one cell, 1 a whole row, 2 two cells (even column), 3 four cells (column multiple of 4) and 4 eight cells. The result is a selector for `Area_BuildClut` of the same kind. Mode 0 returns `cell - 0x40` as a byte. With record flag `0x04` set, `Area_BuildClut` turns that into rows `0x1FC` to `0x1FF`. Those are the same rows (28 to 31) that `GFX_ResetPalette` zeroes, so the dynamic cells live in the last four rows of the stage palette `[inferred]`.
@@ -148,7 +148,7 @@ Palette animations read 4-byte steps (`dst`, `src`, `count`, `wait`) and copy `c
 
 1. `Area_RunBundleRecords (exe/slus_004_22@0x801584A4)`: when `g_AreaDrawFlags` bit 2 (cell layers) is set, walks the map-bundle record list at `0x80104000 + D_80104022 * 4`, dispatching each record's opcode through `D_8017F8FC`.
 2. `Area_DrawActors (exe/slus_004_22@0x8014BB20)`: when flag bit 0 is set, bubble-sorts the active records (`D_80148214`) by depth and calls `Area_DrawObjectSprite` for each.
-3. `func_8014BC70 (exe/slus_004_22@0x8014BC70)`: sorts the object list by layer key and depth, and for each of `0x37` scenes merges objects with the packet list `D_80143740` into the ordering table `[inferred]`. This comes from a partial reading.
+3. `func_8014BC70 (exe/slus_004_22@0x8014BC70)`: sorts the object list by layer key and depth, and for each of 55 scenes merges objects with the packet list `D_80143740` into the ordering table `[inferred]`. This comes from a partial reading.
 
 `Area_DrawObjectSprite (exe/slus_004_22@0x8014C4D4)` hides records that fall outside a 448 by 368 window, skips flagged records, and emits one primitive per cell. Plain cells go through `Area_DrawSpriteCell`, and flipped or scaled cells become `POLY_FT4`. Cell size comes from `g_SpriteSizes (exe/slus_004_22@0x8017F53C)`, so a cell is one of 16 fixed sizes.
 
@@ -167,23 +167,23 @@ The working copy of the stage palette is the fixed block at `0x80037800`.
 
 ## Data and limits
 
-| Limit                 | Value                                                         | Source                                     | Asset must stay within                                                                           |
-| --------------------- | ------------------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------ |
-| Primitive arena       | `0x8FCC` bytes (36,812) per buffer, `0x80020000 + b * 0x9000` | `SYS_PrepareFrame`, `GFX_AddPrim`          | At most about 920 `POLY_FT4`, 1,840 `SPRT` or 2,300 `SPRT_8` per frame, all primitives together. |
-| Overflow behaviour    | The primitive is dropped; no error.                           | `GFX_AddPrim`                              | Too many cells or glyphs make sprites vanish, not crash.                                         |
-| Primitive size        | One byte                                                      | `GFX_AddPrim` `u8 size`                    | A packet over 255 bytes is not supported.                                                        |
-| Layers                | 8; no range check on the argument                             | `D_801459D0[8]`                            | Sprite record layer byte `+0x29` stays in 0 to 7.                                                |
-| Frame size            | 320 by 240                                                    | `SYS_InitDisplay`                          | UI coordinates are in this space.                                                                |
-| Sprite cull window    | x in -64 to 384, y in -64 to 304                              | `Area_DrawObjectSprite` (`0x1C0`, `0x170`) | Sprites outside are skipped.                                                                     |
-| Stage palette         | 256 by 32 words = 16 KiB, from `0x80037800`                   | `GFX_UploadPalette`                        | All palette banks fit the arena offsets above.                                                   |
-| Dynamic palette cells | 4 rows by 16 cells = 64 cells                                 | `D_80145D54`, `GFX_AllocPaletteCell`       | Fades and animated sprites share these 64 cells; free-run search, no compaction.                 |
-| Fade records          | 32                                                            | `GFX_AllocPaletteFade` (`0x20`)            | Returns `0xFF` when full.                                                                        |
-| Palette animations    | 8                                                             | `GFX_StartPaletteAnimation`                | Returns `0xFF` when full.                                                                        |
-| Sheet upload queue    | 20 per frame                                                  | `GFX_RunTransferQueue`, `D_80145A00`       | At most 20 sprite records change sheets in one frame; no overflow check.                         |
-| Texture pages         | 16 columns by 2 rows of 64 by 256                             | `Area_DrawObjectSprite`                    | Record page byte `+0x25` below 32.                                                               |
-| Cell shapes           | 16 sizes                                                      | `g_SpriteSizes`                            | Sprite sheet cells use these sizes only.                                                         |
-| Scene packet records  | 56 per frame, loop bound `0x37`                               | `SYS_PrepareFrame`, `func_8014BC70`        | At most 55 or 56 scene layers in an area map `[inferred]`.                                       |
-| Graphics block upload | x up to 1000, y up to 500                                     | `EMI_LoaderUploadSector`                   | Type-3 blocks beyond this are not uploaded.                                                      |
+| Limit                 | Value                                              | Source                                     | Asset must stay within                                                                           |
+| --------------------- | -------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| Primitive arena       | 36,812 bytes per buffer, `0x80020000 + b * 0x9000` | `SYS_PrepareFrame`, `GFX_AddPrim`          | At most about 920 `POLY_FT4`, 1,840 `SPRT` or 2,300 `SPRT_8` per frame, all primitives together. |
+| Overflow behaviour    | The primitive is dropped; no error.                | `GFX_AddPrim`                              | Too many cells or glyphs make sprites vanish, not crash.                                         |
+| Primitive size        | One byte                                           | `GFX_AddPrim` `u8 size`                    | A packet over 255 bytes is not supported.                                                        |
+| Layers                | 8; no range check on the argument                  | `D_801459D0[8]`                            | Sprite record layer byte `+0x29` stays in 0 to 7.                                                |
+| Frame size            | 320 by 240                                         | `SYS_InitDisplay`                          | UI coordinates are in this space.                                                                |
+| Sprite cull window    | x in -64 to 384, y in -64 to 304                   | `Area_DrawObjectSprite` (`0x1C0`, `0x170`) | Sprites outside are skipped.                                                                     |
+| Stage palette         | 256 by 32 words = 16 KiB, from `0x80037800`        | `GFX_UploadPalette`                        | All palette banks fit the arena offsets above.                                                   |
+| Dynamic palette cells | 4 rows by 16 cells = 64 cells                      | `D_80145D54`, `GFX_AllocPaletteCell`       | Fades and animated sprites share these 64 cells; free-run search, no compaction.                 |
+| Fade records          | 32                                                 | `GFX_AllocPaletteFade` (`0x20`)            | Returns `0xFF` when full.                                                                        |
+| Palette animations    | 8                                                  | `GFX_StartPaletteAnimation`                | Returns `0xFF` when full.                                                                        |
+| Sheet upload queue    | 20 per frame                                       | `GFX_RunTransferQueue`, `D_80145A00`       | At most 20 sprite records change sheets in one frame; no overflow check.                         |
+| Texture pages         | 16 columns by 2 rows of 64 by 256                  | `Area_DrawObjectSprite`                    | Record page byte `+0x25` below 32.                                                               |
+| Cell shapes           | 16 sizes                                           | `g_SpriteSizes`                            | Sprite sheet cells use these sizes only.                                                         |
+| Scene packet records  | 56 per frame, loop bound 55                        | `SYS_PrepareFrame`, `func_8014BC70`        | At most 55 or 56 scene layers in an area map `[inferred]`.                                       |
+| Graphics block upload | x up to 1000, y up to 500                          | `EMI_LoaderUploadSector`                   | Type-3 blocks beyond this are not uploaded.                                                      |
 
 ## Gaps
 

@@ -99,11 +99,11 @@ The table of contents gives each entry a type from 0 to 10. The type selects a h
 |     8 | `EMI_LoaderLoadVabCues`   | direct               | cue table to the bank record                      |
 | 9, 10 | `EMI_LoaderLoadSequence`  | direct               | music sequence to the bank's sequence buffer      |
 
-Direct types (0, 4, 6, 8, 9, 10) are copied at interrupt time by `EMI_LoaderCopySector`. Ring types (1, 2, 3, 5, 7) go through 23 ring slots of `0x800` bytes at `g_EmiRingBase + (slot << 11)`, where `g_EmiRingBase` is `0x800E4800`. The ring keeps the order. If the target ring slot is still occupied, or the first word of a sector differs from the first word that the table of contents recorded, the loader flags the read for a retry. If a stream makes no progress for about 300 frames, the loader rearms the read. The drain functions, one per ring state, are in `g_EmiSlotDrainFuncs (exe/slus_004_22@0x80149C60)`: 1 `EMI_LoaderStageSector`, 2 `EMI_LoaderReadSector`, 3 `EMI_LoaderUploadSector`, 4 `EMI_LoaderTransferVabBody`.
+Direct types (0, 4, 6, 8, 9, 10) are copied at interrupt time by `EMI_LoaderCopySector`. Ring types (1, 2, 3, 5, 7) go through 23 ring slots of 2,048 bytes at `g_EmiRingBase + (slot << 11)`, where `g_EmiRingBase` is `0x800E4800`. The ring keeps the order. If the target ring slot is still occupied, or the first word of a sector differs from the first word that the table of contents recorded, the loader flags the read for a retry. If a stream makes no progress for about 300 frames, the loader rearms the read. The drain functions, one per ring state, are in `g_EmiSlotDrainFuncs (exe/slus_004_22@0x80149C60)`: 1 `EMI_LoaderStageSector`, 2 `EMI_LoaderReadSector`, 3 `EMI_LoaderUploadSector`, 4 `EMI_LoaderTransferVabBody`.
 
 ### Decode
 
-A compressed entry (types 1 and 2) is decoded as it arrives. `EMI_LoaderReadSector` calls `EMI_DecodeBegin (exe/slus_004_22@0x80164028)` with the destination. `EMI_LoaderStageSector` then copies each sector to the scratchpad as two `0x400`-byte halves and calls `EMI_DecodeStep (exe/slus_004_22@0x80164064)` for each half. The decoder context sits at `0x800327A0`, its source pointer starts at scratchpad offset 6 and its limit is offset `0x400`. The format is in [LZ77](../formats/lz77.md).
+A compressed entry (types 1 and 2) is decoded as it arrives. `EMI_LoaderReadSector` calls `EMI_DecodeBegin (exe/slus_004_22@0x80164028)` with the destination. `EMI_LoaderStageSector` then copies each sector to the scratchpad as two 1,024-byte halves and calls `EMI_DecodeStep (exe/slus_004_22@0x80164064)` for each half. The decoder context sits at `0x800327A0`, its source pointer starts at scratchpad offset 6 and its limit is offset `0x400`. The format is in [LZ77](../formats/lz77.md).
 
 ### The CD steps
 
@@ -155,7 +155,7 @@ The functions `Resource_RequestArea`, `Resource_Resolve`, `Area_RequestCellRows`
 `g_GameModeHandlers` runs eight functions in order: `func_80197A60`, `func_80197AA4`, `func_80197C1C`, `func_80197C94`, `func_80197E54`, `Battle_Update`, `func_80197EFC`, `func_80197F48`. The loads happen in two of them:
 
 1. `func_80197AA4` streams `BPLD` and `BPLU`, the party's battle sprites, and sets sound bank layout 1.
-2. `func_80197C94` pauses the music and saves the sequence state (`0x560` bytes from `D_80148A50` to `D_8018E268`). It streams the battle archive `D_801CD86C[D_801CD78F[encounter * 4]]` for an encounter. Otherwise it streams slot 6 when `scenario_id` is below 8, and slot 7 if not.
+2. `func_80197C94` pauses the music and saves the sequence state (1,376 bytes from `D_80148A50` to `D_8018E268`). It streams the battle archive `D_801CD86C[D_801CD78F[encounter * 4]]` for an encounter. Otherwise it streams slot 6 when `scenario_id` is below 8, and slot 7 if not.
 3. The archive writes `battle/03` to `0x801D0C00`, `battle/15` to `0x80096800` and the script bank to `0x800F0800`. `Battle_Update` then runs each frame.
 4. `func_80197F48` restores the music and returns `g_GameEntryState` to 2.
 
@@ -165,7 +165,7 @@ The functions `Resource_RequestArea`, `Resource_Resolve`, `Area_RequestCellRows`
 
 Three paths reach VRAM:
 
-- **Archive graphics (type 3).** `EMI_LoaderLoadGraphics` unpacks the load argument into a start column, a row and a column count before wrap. `EMI_LoaderUploadSector` then calls `LoadImage` for each `0x800`-byte sector as a 32 by 32 block, bounded to x below 1001 and y below 501.
+- **Archive graphics (type 3).** `EMI_LoaderLoadGraphics` unpacks the load argument into a start column, a row and a column count before wrap. `EMI_LoaderUploadSector` then calls `LoadImage` for each 2,048-byte sector as a 32 by 32 block, bounded to x below 1001 and y below 501.
 - **The palette.** `GFX_UploadPalette` runs each frame. When `g_GfxPalettePending` is set it uploads the rectangle (0, 0x1E0, 0x100, 0x20) from `0x80037800`.
 - **The transfer queue.** `GFX_RunTransferQueue` runs each frame and walks `D_80145A00`. Kind 1 expands RGB555, kind 2 decodes LZSS, anything else is a `LoadImage`.
 
@@ -185,7 +185,7 @@ No wait for `LoadImage` to finish was found in the loader. Whether a `DrawSync` 
 
 XA audio plays straight from the disc to the SPU and never passes through main RAM. `SND_StartXaStream (exe/slus_004_22@0x801636A0)` sets `g_EmiServiceMode` to 2 and `g_EmiServiceState` to 1. It resolves the start and end of the stream with `SND_ResolveXaStream` from the three files' slot ids (`0x2A9`, `0x1B2`, `0x2AA`) and installs `SND_StoreXaSyncResult` as the CD-sync callback.
 
-`SND_ServiceXa (exe/slus_004_22@0x801638B0)` runs one state per frame from `g_XaStateFuncs (exe/slus_004_22@0x80183274)`: 0 idle, 1 seek, 2 seek result, 3 set filter and start reading, 4 progress, 5 read the position until it reaches the end bound, 6 pause with a CD volume fade, 7 pause result, 8 wait for sync. A timeout of `0xB5` ticks allows up to 6 retries. `SND_StartXaStream` clears the state byte, so `EMI_LoaderIsReady` is false until state 7. None of the seven functions that call `SND_StartXaStream` polls `EMI_LoaderIsReady`.
+`SND_ServiceXa (exe/slus_004_22@0x801638B0)` runs one state per frame from `g_XaStateFuncs (exe/slus_004_22@0x80183274)`: 0 idle, 1 seek, 2 seek result, 3 set filter and start reading, 4 progress, 5 read the position until it reaches the end bound, 6 pause with a CD volume fade, 7 pause result, 8 wait for sync. A timeout of 181 ticks allows up to 6 retries. `SND_StartXaStream` clears the state byte, so `EMI_LoaderIsReady` is false until state 7. None of the seven functions that call `SND_StartXaStream` polls `EMI_LoaderIsReady`.
 
 ### Movie
 

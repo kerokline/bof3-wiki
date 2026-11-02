@@ -18,7 +18,7 @@ Three overlays share the work. The resident game image only hands control to the
 
 `SHOP.EMI` and `START.EMI` both carry the driver ([icons](../formats/save.md#icons)). The window at `0x801EEC00` is shared with battle effect modules, so the driver works only while a save or load screen owns it ([memory](memory.md)).
 
-The save staging buffer `g_SaveBuffer (emi/etc/shop/00@0x800C1A00)` is the payload half of the `0x2000`-byte frame at `0x800C1800`. That address is the boss-module window. A boss load overwrites it, and both screens refill it before use `[inferred]`.
+The save staging buffer `g_SaveBuffer (emi/etc/shop/00@0x800C1A00)` is the payload half of the 8,192-byte frame at `0x800C1800`. That address is the boss-module window. A boss load overwrites it, and both screens refill it before use `[inferred]`.
 
 ## Saving
 
@@ -49,9 +49,9 @@ sequenceDiagram
         Sav->>Drv: CardAccessFile mode 0x200 creates one block
     end
     Sav->>Sav: SAVE_BuildSlotImage gathers block, header, checksum
-    Sav->>Drv: CardAccessFile mode 2 size 0x12B0
+    Sav->>Drv: CardAccessFile mode 2 size 4,784
     Drv->>Bios: open, lseek, write, close
-    Bios->>Card: write 0x1300 bytes
+    Bios->>Card: write 4,864 bytes
     Sav->>Sav: g_SaveCardStatus = 8 or 10, func_801D6CE4 updates the row
     Sav-->>Main: state 0x12 func_801D5D98 leaves, func_801983D8 resumes the field
 ```
@@ -59,7 +59,7 @@ sequenceDiagram
 - Scene event 10 is `Scene_RunShopSaveEvent (emi/etc/game/00@0x801A802C)`, entry 10 of `g_SceneEvents (emi/etc/game/00@0x801C84BC)`. Its cases 6 and 23 set `D_8014865C = -2` and `g_GameEntryState = 7`. The scripts or objects that select event 10 are not traced `[unknown]`.
 - `g_GameStates[7]` is `Game_RunShopState`. It runs `g_GameStateHandlers[g_GameEntrySubstate]`. Substate 0, `Game_LoadShopOverlay (emi/etc/game/00@0x80198270)`, streams the `SHOP` slot `0x266`. Substate 1, `func_80199398`, runs the field frame and `func_801D0EA0`. Substate 2, `func_801983D8`, reloads the character archive and returns to entry state 2.
 - `func_801D0EA0` dispatches `D_801E5144` by `D_80148650`. `func_801D0EDC` sets `D_80148650` to `D_80148698 + 2`, which is 3 for the save case. That selects `func_801D39BC`, and entry 3 of its table `D_801E52C4` is `SAVE_DispatchState (emi/etc/shop/00@0x801D46A4)`. It dispatches `D_801E530C` by `D_80148652`.
-- The overwrite path first opens the existing file with mode 1 and size 1, a read of the first `0x80` bytes. Success proves the file exists (`func_801D51B8`).
+- The overwrite path first opens the existing file with mode 1 and size 1, a read of the first 128 bytes. Success proves the file exists (`func_801D51B8`).
 - The new-file path calls `CardAccessFile` with mode `0x200`. The driver creates the file, closes it, reopens it with mode 1 and issues a zero-length read.
 
 ### Building the image
@@ -68,10 +68,10 @@ sequenceDiagram
 
 1. `func_801D7080` builds the title string. `CardBuildFileHeader (emi/etc/start/09@0x801EF27C)` writes the `SC` magic, the icon flag `0x13`, block count 1, the title, the icon palette and three icon frames into the frame at `0x800C1800`.
 2. It refreshes the fields in the live block that the save adds: the script variables, the area id, the entry kind and position, the nine button masks, and the slot summary row. The summary row is five name bytes from the first party record, the three field-order portraits (a portrait of kind 4 shows as `0xB` unless the loaded character index is 5 or `0xC`), the first record's level, the play clock, and the result of testing event flag `0x92`.
-3. It clears the checksum halfword at block `+0x70` in live RAM, stores `g_GameFlags` as a byte in `D_80145025`, copies the `0x10B0` bytes from `0x801448D8` into `g_SaveBuffer`, and sums them in 16 bits.
+3. It clears the checksum halfword at block `+0x70` in live RAM, stores `g_GameFlags` as a byte in `D_80145025`, copies the 4,272 bytes from `0x801448D8` into `g_SaveBuffer`, and sums them in 16 bits.
 4. It zeroes the rest of the buffer up to payload offset `0x1E00`, stores the sum at frame `+0x270`, and publishes the slot row.
 
-The write size is `0x12B0` (header `0x200` plus block `0x10B0`). `CardTransferFile` rounds it up to `0x1300`, so the card gets the zeroed bytes from `0x12B0` to `0x12FF`. The staging fill reaches frame offset `0x2000`, but the card never sees those bytes.
+The write size is 4,784 bytes (a 512-byte header plus the 4,272-byte block). `CardTransferFile` rounds it up to 4,864, so the card gets the zeroed bytes from `0x12B0` to `0x12FF`. The staging fill reaches frame offset `0x2000`, but the card never sees those bytes.
 
 ### Save machine states
 
@@ -126,8 +126,8 @@ sequenceDiagram
     Load->>Drv: state 6 func_801E54A4 CardScanDirectory
     Load->>Drv: func_801E77F0 reads the 0x1C summary row per slot
     Note over Load: state 9 slot select, state 10 confirm
-    Load->>Drv: state 11 SAVE_RunLoadVerify CardAccessFile mode 1 size 0x12B0
-    Load->>Load: copy 0x10B0 bytes to 0x801448D8 and sum them
+    Load->>Drv: state 11 SAVE_RunLoadVerify CardAccessFile mode 1 size 4,784
+    Load->>Load: copy 4,272 bytes to 0x801448D8 and sum them
     alt checksum matches
         Load->>Load: g_SaveCardStatus = 5, state 13 then 15 then 16
         Load->>Load: SAVE_RunLoadRestore rebuilds party rows, scene state, overlay
@@ -176,7 +176,7 @@ After a good read, state 13 shows its message for up to 60 frames or until a but
 2. Set `g_PartySize` from the field order array (`Party_CountOrder(0)`).
 3. Stream the `PLP` and `PL` character archives for `g_EmiLoadedCharacterIndex`.
 4. `Party_BuildBattlers(0)`: build the party rows in `g_BattlePartyBattlers` from the loaded records.
-5. Copy the first `0x10` block bytes into `g_SceneState` and point `g_SceneFlags` at the scenario's flag word.
+5. Copy the first 16 block bytes into `g_SceneState` and point `g_SceneFlags` at the scenario's flag word.
 6. Restore the four script variable bytes.
 7. `Scene_RequestOverlay`: stream the scenario overlay for `scenario_id`.
 8. Set camp substate 4.
@@ -187,9 +187,9 @@ After a good read, state 13 shows its message for up to 60 frames or until a but
 
 ## Validation and errors
 
-The checksum is the low 16 bits of the byte sum of the `0x10B0` payload bytes, with the halfword at payload `+0x70` (frame `+0x270`) taken as zero ([steps](../formats/save.md#checksum)). There is no other check on load: no version field, no per-record check, and no test of the `SC` magic.
+The checksum is the low 16 bits of the byte sum of the 4,272 payload bytes, with the halfword at payload `+0x70` (frame `+0x270`) taken as zero ([steps](../formats/save.md#checksum)). There is no other check on load: no version field, no per-record check, and no test of the `SC` magic.
 
-The load copies before it verifies. `SAVE_RunLoadVerify` copies the `0x10B0` bytes into live RAM and restores `g_GameFlags` while it sums them. A mismatch sets status 7 only after the copy. The load screen runs before a game exists, so the damage stays in the start-menu state, but the live block holds the bad bytes until the next load or a new game overwrites them `[inferred]`.
+The load copies before it verifies. `SAVE_RunLoadVerify` copies the 4,272 bytes into live RAM and restores `g_GameFlags` while it sums them. A mismatch sets status 7 only after the copy. The load screen runs before a game exists, so the damage stays in the start-menu state, but the live block holds the bad bytes until the next load or a new game overwrites them `[inferred]`.
 
 `g_SaveCardStatus (exe/slus_004_22@0x8018E228)` carries two vocabularies. Values 0 to 4 come from the driver. The screens set the higher values, and their meaning differs by image.
 
@@ -235,7 +235,7 @@ How each card state looks to the player:
 | Slots                                | 3 rows. Files are `BASLUS-00422BOF3` plus slot `00`, `01` or `02`, one card block each.                                                      |
 | Free blocks `D_801E60FC` (`shop/00`) | 15 minus the blocks all files on the card use. `func_801D6F00` sums each file as size divided by `0x2000`, plus one if there is a remainder. |
 | `g_SaveCardPort`                     | Selected port 0 or 1. The card id passed to PsyQ is `port * 0x10`.                                                                           |
-| `D_8018E990`                         | 15-entry directory table, `0x18` bytes each (name `0x14`, size). The scan keeps names that match the first 16 characters of the file name.   |
+| `D_8018E990`                         | 15-entry directory table, 24 bytes each (name 20 bytes, size). The scan keeps names that match the first 16 characters of the file name.     |
 | `g_SaveSlots`                        | Three slot-list rows. Byte `0xFF` marks an empty row.                                                                                        |
 | `g_SaveSlotFirst`, `g_SaveSlotCount` | Cursor and count, in both screen images.                                                                                                     |
 | `0x800C1800`, `0x800C1A00`           | Staging buffer, header and payload halves.                                                                                                   |

@@ -107,11 +107,11 @@ Each area carries its own enemies. The block is 1,160 bytes in every area and ti
 |  Offset |  Size | Content                                                        |
 | ------: | ----: | -------------------------------------------------------------- |
 | `0x000` |    72 | 8 `Encounter` (9 bytes: `enemy_indexes[8]`, `appearance_rate`) |
-| `0x048` | 1,088 | 8 `Enemy` (`0x88` bytes: `name[8]` first, `ai[4]` at `+0x34`)  |
+| `0x048` | 1,088 | 8 `Enemy` (136 bytes: `name[8]` first, `ai[4]` at `+0x34`)     |
 
 An encounter lists up to eight enemy indexes into the block's own enemy records (`0xFF` is an empty slot) and an appearance rate. Only indexes 0 to 6 occur on the disc. The picker `emi/etc/game/00@0x801C6A7C` walks the 9-byte records with `sum += base[8]` until the sum reaches a threshold of 1 to 16 from `rand()`. Its caller `@0x801C60E0` stores the selected `0x800E4000 + 9*idx` into `D_801CD8CC`. A battle setup, `@0x800AC218`, copies the enemy record into the 280-byte runtime slot `D_801EB630 + slot*280`, and the byte at `D_801EB710 + slot*280` holds the record index. No store to the block exists in any overlay or resident program.
 
-An enemy record has these fields, at offsets inside the 0x88-byte record. Field sizes marked `-` are not recorded. Unnamed bytes (`0x0B`, `0x0F`, `0x15`, `0x74` and `0x81`) have no known role.
+An enemy record has these fields, at offsets inside the 136-byte record. Field sizes marked `-` are not recorded. Unnamed bytes (`0x0B`, `0x0F`, `0x15`, `0x74` and `0x81`) have no known role.
 
 | Offset | Size | Field                                                                                          |
 | -----: | ---: | ---------------------------------------------------------------------------------------------- |
@@ -149,16 +149,16 @@ Some RAM next to the working set is scratch that individual area programs use.
 
 The world overlays' records:
 
-| Record         | Address      |   Size | Count | Owner                                |
-| -------------- | ------------ | -----: | ----: | ------------------------------------ |
-| `AreaTrail`    | `0x800E4800` | `0x98` |     3 | `world00/area027/13` (`@0x801F2D5C`) |
-| `AreaSlotWork` | `0x800E4800` | `0x10` |    32 | `world00/area028/13` (`@0x801F2F5C`) |
-| `Vec2us`       | `0x800E4A00` | `0x04` |    32 | `world00/area028/13` (`@0x801F2D3C`) |
-| `AreaVertex`   | `0x80147AA8` | `0x28` |     - | `world00/area024/14` (`@0x801F3314`) |
+| Record         | Address      | Size | Count | Owner                                |
+| -------------- | ------------ | ---: | ----: | ------------------------------------ |
+| `AreaTrail`    | `0x800E4800` |  152 |     3 | `world00/area027/13` (`@0x801F2D5C`) |
+| `AreaSlotWork` | `0x800E4800` |   16 |    32 | `world00/area028/13` (`@0x801F2F5C`) |
+| `Vec2us`       | `0x800E4A00` |    4 |    32 | `world00/area028/13` (`@0x801F2D3C`) |
+| `AreaVertex`   | `0x80147AA8` |   40 |     - | `world00/area024/14` (`@0x801F3314`) |
 
 The trail and slot rows are different shapes of one window. Each area program reads its own.
 
-`AreaTrail` (`0x98` bytes):
+`AreaTrail` (152 bytes):
 
 | Offset | Size | Meaning                            |
 | -----: | ---: | ---------------------------------- |
@@ -169,7 +169,7 @@ The trail and slot rows are different shapes of one window. Each area program re
 | `0x16` |    2 | padding                            |
 | `0x18` |  128 | 32 trail points, two `s16` each    |
 
-`AreaSlotWork` (`0x10` bytes):
+`AreaSlotWork` (16 bytes):
 
 | Offset | Size | Meaning                          |
 | -----: | ---: | -------------------------------- |
@@ -181,7 +181,7 @@ The trail and slot rows are different shapes of one window. Each area program re
 | `0x0C` |    2 | projected screen x (`u16`)       |
 | `0x0E` |    2 | projected screen y (`u16`)       |
 
-`Vec2us` is two `u16` halves per entry. `AreaVertex` (`0x28` bytes):
+`Vec2us` is two `u16` halves per entry. `AreaVertex` (40 bytes):
 
 | Offset | Size | Meaning                                 |
 | -----: | ---: | --------------------------------------- |
@@ -191,7 +191,7 @@ The trail and slot rows are different shapes of one window. Each area program re
 
 ## Palette arena
 
-The area's CLUT entries do not own their addresses. They fill slices of one 16 KiB CLUT arena (256 units of `0x40` bytes, 8,192 colour words). The arena has a working copy at `0x80037800`, which the engine uploads as one rectangle. Arena row `r` is VRAM row `480 + r`. A colour word is `STP | B5 | G5 | R5` ([graphics](graphics.md#palettes)).
+The area's CLUT entries do not own their addresses. They fill slices of one 16 KiB CLUT arena (256 units of 64 bytes, 8,192 colour words). The arena has a working copy at `0x80037800`, which the engine uploads as one rectangle. Arena row `r` is VRAM row `480 + r`. A colour word is `STP | B5 | G5 | R5` ([graphics](graphics.md#palettes)).
 
 | Address                    |       Arena offset | Loaded by                                 |
 | -------------------------- | -----------------: | ----------------------------------------- |
@@ -201,20 +201,20 @@ The area's CLUT entries do not own their addresses. They fill slices of one 16 K
 | `0x80035800`               |          `+0x2000` | 200 WORLD archives                        |
 | `0x80036E00`               |          `+0x3600` | BATTLE palettes (shared 512-byte overlay) |
 
-`GFX_ResetPalette (exe/slus_004_22@0x8014E284)` zeroes arena rows 28 to 31 (`+0x3800` to `+0x3FFF`), then copies all 32 rows of `0x200` bytes into the working copy. Its callers are `SYS_StartFrontend`, `etc/game/00` (`@0x80196FFC` and `@0x8019FAA0`), `etc/game/01` `Game_BeginTitle`, `etc/commu00/00` (`@0x801F17A4`) and `scenario/scena17/00` (`@0x801F7750`). `GFX_UploadPalette (exe/slus_004_22@0x8014E22C)` runs once per frame after `VSync` in `SYS_Main`. If `g_GfxPalettePending` is nonzero, it uploads the working copy with `LoadImage(rect(0, 0x1E0, 0x100, 0x20), 0x80037800)` and clears the flag. Every palette writer raises `g_GfxPalettePending`.
+`GFX_ResetPalette (exe/slus_004_22@0x8014E284)` zeroes arena rows 28 to 31 (`+0x3800` to `+0x3FFF`), then copies all 32 rows of 512 bytes into the working copy. Its callers are `SYS_StartFrontend`, `etc/game/00` (`@0x80196FFC` and `@0x8019FAA0`), `etc/game/01` `Game_BeginTitle`, `etc/commu00/00` (`@0x801F17A4`) and `scenario/scena17/00` (`@0x801F7750`). `GFX_UploadPalette (exe/slus_004_22@0x8014E22C)` runs once per frame after `VSync` in `SYS_Main`. If `g_GfxPalettePending` is nonzero, it uploads the working copy with `LoadImage(rect(0, 0x1E0, 0x100, 0x20), 0x80037800)` and clears the flag. Every palette writer raises `g_GfxPalettePending`.
 
 `GFX_CopyPalette (exe/slus_004_22@0x8014E3A0)` copies one arena row into the same working row and raises the flag. `battle/battle/03`, `battle/battle/15`, `battle/batl_ovr/00`, `bmagic/magic057/03`, `etc/game/00` and `scenario/scena17/00` call it. Battle code moves single rows this way:
 
 - `battle/battle/03` `@0x801D1228` copies rows 26 and 27, so the `+0x3600` battle bank (`BATTLE/BATL_RE2.EMI#1`) reaches VRAM row 507.
 - `battle/battle/15` `@0x800AFC54` copies arena row 2 (`0x80033C00`) into working row 2, and `@0x800AFB48` copies CLUT runs inside the working copy into row 2.
 
-Readers take the arena base and index it in `0x40`-byte units. `0x80035800` has no literal reader.
+Readers take the arena base and index it in 64-byte units. `0x80035800` has no literal reader.
 
 The `+0x200` bank (`ETC/BATE.EMI#3` and its copies) is also read on the CPU. `battle/battle/03` (`@0x801D8AE4`, `@0x801D8DF8`, `@0x801D9AB4` and `@0x801D9C80`) and `etc/game/00` (`@0x801AEBA0`) take word 4 of the 16-colour CLUT `D_80144952 * 2 + shade`, at `0x80033A08 + ((D_80144952 * 2 + shade) << 5)`, as the RGB of a flat panel primitive.
 
 ## `0x80104000`: map bundle
 
-The map bundle is the terrain and layout of the area: a grid of cells, with a height for each corner of a cell, a tile for each cell, and lists of objects and render records. It opens with a fixed `0x30`-byte header of section offsets, then the per-cell tables, the tile tables and four record regions.
+The map bundle is the terrain and layout of the area: a grid of cells, with a height for each corner of a cell, a tile for each cell, and lists of objects and render records. It opens with a fixed 48-byte header of section offsets, then the per-cell tables, the tile tables and four record regions.
 
 The header has `u8` width and height at bytes 0 and 1. Every other field is a `u16` at the byte offset shown, and its value is an offset in 4-byte units from the start of the bundle: `(payload byte address - 0x80104000) / 4`.
 
@@ -294,14 +294,14 @@ The `+0x20` and `+0x22` lists use a header word whose byte 3 is the dispatcher o
 
 The names behind a byte-code value, the operand meanings of the `+0x20` and `+0x22` records, the renderer fields beyond the descriptor bit map, and `scroll` are open. Two kinds of candidate data are located but their loaders are not identified:
 
-- Battle backgrounds. They are type-3 uploads in `BIN/BATTLE/BATL_DRA`, `BATL_OVR`, `BATL_RET` and `BATL_RE2`. Each is `0x8000` bytes, and `BATL_OVR` has one of `0x10000` bytes. Their descriptors (`0x1A080200`, `0x1C080200`, `0x1E080200`, and `0x1A080400` for the `BATL_OVR` upload) place them at VRAM columns 26, 28 and 30 on the row at y = 256, which are texture pages 13 to 15 ([load argument](graphics.md#type-3-load-argument)). The same archives hold a shared 512-byte overlay at `0x80036E00` (`BATTLE/BATL_RE2.EMI#1`). Which upload a battle draws as its background, and its palette, are `[unknown]`.
-- World map. `BIN/WORLD00/AREA000` is McNeil, a walked area, not the world map. The world map is the 11 areas whose `AreaLoad` flag byte at `+0x32` has bit 0 set: 016, 033, 045, 065, 087, 088, 104, 115, 121, 151 and 152 ([runtime](../data/programs.md#map-kinds)). `AREA000` is a 100 by 80 bundle with six objects. Its entries 5 and 7 are uploads of `0x40000` bytes each, which is 512 by 256 words at 16 bits. Read as 16bpp they look like indexed data, and their palette is `[unknown]`.
+- Battle backgrounds. They are type-3 uploads in `BIN/BATTLE/BATL_DRA`, `BATL_OVR`, `BATL_RET` and `BATL_RE2`. Each is 32,768 bytes, and `BATL_OVR` has one of 65,536 bytes. Their descriptors (`0x1A080200`, `0x1C080200`, `0x1E080200`, and `0x1A080400` for the `BATL_OVR` upload) place them at VRAM columns 26, 28 and 30 on the row at y = 256, which are texture pages 13 to 15 ([load argument](graphics.md#type-3-load-argument)). The same archives hold a shared 512-byte overlay at `0x80036E00` (`BATTLE/BATL_RE2.EMI#1`). Which upload a battle draws as its background, and its palette, are `[unknown]`.
+- World map. `BIN/WORLD00/AREA000` is McNeil, a walked area, not the world map. The world map is the 11 areas whose `AreaLoad` flag byte at `+0x32` has bit 0 set: 016, 033, 045, 065, 087, 088, 104, 115, 121, 151 and 152 ([runtime](../data/programs.md#map-kinds)). `AREA000` is a 100 by 80 bundle with six objects. Its entries 5 and 7 are uploads of 262,144 bytes each, which is 512 by 256 words at 16 bits. Read as 16bpp they look like indexed data, and their palette is `[unknown]`.
 
 ## `0x80117000`: auxiliary module window
 
 Nine archives ship an extra type-0 entry at `0x80117000`. It is slot 13 in all nine, and the area program is then slot 14: `AREA049`, `AREA067` (WORLD01), `AREA077`, `AREA104`, `AREA108` (WORLD02), `AREA121`, `AREA135`, `AREA145` (WORLD03) and `AREA173` (WORLD04). The sizes are 1,444 to 5,964 bytes.
 
-The destination is a reservation: the executable's layout names it `slot_80117000`, and the whole `0x32800`-byte run holds one nonzero word in the shipped image (`0x00000008` at the base). The loader compares the payload's first `u32` with the TOC's cached first word. The id continues the area-program numbering (`52 + area` for the 200 programs, and `0xFC` to `0x104` for these nine). No code forms the address, and the references are data words in 8-byte-stride tables. Eight payloads are geometry data. The `AREA049` payload is code at `base+4` with a 13-word pointer table.
+The destination is a reservation: the executable's layout names it `slot_80117000`, and the whole 206,848-byte run holds one nonzero word in the shipped image (`0x00000008` at the base). The loader compares the payload's first `u32` with the TOC's cached first word. The id continues the area-program numbering (`52 + area` for the 200 programs, and `0xFC` to `0x104` for these nine). No code forms the address, and the references are data words in 8-byte-stride tables. Eight payloads are geometry data. The `AREA049` payload is code at `base+4` with a 13-word pointer table.
 
 ## `0x801F2C00`: area program code arena
 

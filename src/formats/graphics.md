@@ -19,7 +19,7 @@ For example, the argument `0x1A080400` has column `0x1A` = 26 (VRAM x = 832), ro
 
 ### Chunk layout
 
-Each `0x800`-byte chunk of the payload is one 32x32 rectangle of 16-bit VRAM words: 32 rows of 32 little-endian words. Rectangles fill a row from left to right up to `rectangles per row`. Then the destination moves 32 VRAM rows down. The payload order is the rectangle order.
+Each 2,048-byte chunk of the payload is one 32x32 rectangle of 16-bit VRAM words: 32 rows of 32 little-endian words. Rectangles fill a row from left to right up to `rectangles per row`. Then the destination moves 32 VRAM rows down. The payload order is the rectangle order.
 
 All 593 payloads are a whole number of rectangles, and the count divides into whole rows (54,840 rectangles in all). A rectangle uploads only if its whole 32x32 extent is inside the 1,024 by 512 word frame buffer. The loader drops the rest instead of clipping: `EMI_LoaderUploadSector (exe/slus_004_22@0x80163378)` calls `LoadImage` while `x < 1001` and `y < 501`, which for these 32-aligned destinations means the rectangle fits. `ETC/FIRST.EMI#6` starts at row 15 and spans 8 rectangle rows, so rows 16 to 22 fall outside. All 14 rectangles dropped on the disc are zero.
 
@@ -42,14 +42,14 @@ STP     blue   green red
 
 STP is the semi-transparency bit. A texel of `0x0000` is never drawn. With any other value, STP set marks the texel as semi-transparent when the primitive's blend mode is on. To show a colour on a desktop, expand each 5-bit channel to 8 bits.
 
-A 4bpp texture uses a row of 16 colours and an 8bpp texture a row of 256. A CLUT bank is a whole number of 4bpp rows, so its payload has a multiple of `0x20` bytes. A bank whose word count is also a multiple of 256 is a whole number of 8bpp rows.
+A 4bpp texture uses a row of 16 colours and an 8bpp texture a row of 256. A CLUT bank is a whole number of 4bpp rows, so its payload has a multiple of 32 bytes. A bank whose word count is also a multiple of 256 is a whole number of 8bpp rows.
 
 | Mode | Colours | Row size |
 | ---- | ------: | -------: |
-| 4bpp |      16 |   `0x20` |
-| 8bpp |     256 |  `0x200` |
+| 4bpp |      16 |       32 |
+| 8bpp |     256 |      512 |
 
-Nothing in a bank names its depth, geometry or owner. Palette banks are type-0 entries that load into `0x80033800` to `0x80036E00` and the engine uploads them to VRAM rows 480 to 511 ([palette arena](area.md#palette-arena)). The disc holds 620 such entries: 32 to 6,144 bytes each, 1,121,696 bytes in all, and every size is a multiple of `0x20`. 577 carry 64 bytes or more, and 43 are a single 16-colour row. The arena of one area is a single type-0 entry, and its load argument is `0x80033E00` in most areas.
+Nothing in a bank names its depth, geometry or owner. Palette banks are type-0 entries that load into `0x80033800` to `0x80036E00` and the engine uploads them to VRAM rows 480 to 511 ([palette arena](area.md#palette-arena)). The disc holds 620 such entries: 32 to 6,144 bytes each, 1,121,696 bytes in all, and every size is a multiple of 32. 577 carry 64 bytes or more, and 43 are a single 16-colour row. The arena of one area is a single type-0 entry, and its load argument is `0x80033E00` in most areas.
 
 ## VRAM coordinates
 
@@ -80,14 +80,14 @@ clut = ((y & 0x3FF) << 6) | ((x >> 4) & 0x3F)
 
 The palette arena is not the only palette writer. The frontend keeps three more records beside it:
 
-| Record                     | Address      |   Size | Count | Readers                                                 |
-| -------------------------- | ------------ | -----: | ----: | ------------------------------------------------------- |
-| `PaletteFade`              | `0x80145BD4` | `0x0C` |    32 | `GFX_AllocPaletteFade`, `GFX_MarkPaletteCells`          |
-| cell map                   | `0x80145D54` |    `1` |  4x16 | `GFX_FindPaletteCell`, `GFX_AllocPaletteCell`           |
-| `GraphicsPaletteAnimation` | `0x80145D94` | `0x10` |     8 | `GFX_StartPaletteAnimation`, `GFX_StepPaletteAnimation` |
-| palette stage              | `0x80035600` | `0x40` |     - | `func_80166C48` callers                                 |
+| Record                     | Address      | Size | Count | Readers                                                 |
+| -------------------------- | ------------ | ---: | ----: | ------------------------------------------------------- |
+| `PaletteFade`              | `0x80145BD4` |   12 |    32 | `GFX_AllocPaletteFade`, `GFX_MarkPaletteCells`          |
+| cell map                   | `0x80145D54` |    1 |  4x16 | `GFX_FindPaletteCell`, `GFX_AllocPaletteCell`           |
+| `GraphicsPaletteAnimation` | `0x80145D94` |   16 |     8 | `GFX_StartPaletteAnimation`, `GFX_StepPaletteAnimation` |
+| palette stage              | `0x80035600` |   64 |     - | `func_80166C48` callers                                 |
 
-`PaletteFade` (`0x0C` bytes):
+`PaletteFade` (12 bytes):
 
 | Offset | Size | Meaning                                                  |
 | -----: | ---: | -------------------------------------------------------- |
@@ -101,7 +101,7 @@ The palette arena is not the only palette writer. The frontend keeps three more 
 | `0x07` |    1 | unknown                                                  |
 | `0x08` |    4 | target pointer (the target pattern at `+0x08` sets size) |
 
-`GraphicsPaletteAnimation` (`0x10` bytes):
+`GraphicsPaletteAnimation` (16 bytes):
 
 | Offset | Size | Meaning                                                  |
 | -----: | ---: | -------------------------------------------------------- |
@@ -113,7 +113,7 @@ The palette arena is not the only palette writer. The frontend keeps three more 
 | `0x08` |    4 | pointer to the current entry                             |
 | `0x0C` |    4 | pointer to the owner (owner `+0x4B` is the animation id) |
 
-The cell map has one byte per cell, and `0xFF` is empty. `GFX_StepPaletteAnimation` selects the source-table entry named by the owner's animation id and advances four bytes at a time (entry byte 3 is the frame count). It wraps when the next entry starts with `0xFF`: that entry's second byte is the back-step, a count of four-byte entries. The battle overlay views the same address `0x80145BD4` differently, as a `0x0C`-byte `BattleSpriteSlot` that reads bytes `+0x02` (a second copy of the shared sprite value), `+0x03` and `+0x04`. The same address is not the same object in another overlay.
+The cell map has one byte per cell, and `0xFF` is empty. `GFX_StepPaletteAnimation` selects the source-table entry named by the owner's animation id and advances four bytes at a time (entry byte 3 is the frame count). It wraps when the next entry starts with `0xFF`: that entry's second byte is the back-step, a count of four-byte entries. The battle overlay views the same address `0x80145BD4` differently, as a 12-byte `BattleSpriteSlot` that reads bytes `+0x02` (a second copy of the shared sprite value), `+0x03` and `+0x04`. The same address is not the same object in another overlay.
 
 ```mermaid
 flowchart LR
@@ -126,7 +126,7 @@ flowchart LR
     S --> A
 ```
 
-The arena base holds 256 units of `0x40` bytes (32 rows of `0x200`). `GFX_ResetPalette` zeroes rows 28 to 31 and copies all 32 rows into the working copy. `GFX_CopyPalette(row)` copies one row and raises `g_GfxPalettePending`. `GFX_UploadPalette` uploads the working copy once per frame while the flag is nonzero. `GFX_StepPaletteAnimation` writes one stage entry, so a palette animation changes the arena before the next upload.
+The arena base holds 256 units of 64 bytes (32 rows of 512). `GFX_ResetPalette` zeroes rows 28 to 31 and copies all 32 rows into the working copy. `GFX_CopyPalette(row)` copies one row and raises `g_GfxPalettePending`. `GFX_UploadPalette` uploads the working copy once per frame while the flag is nonzero. `GFX_StepPaletteAnimation` writes one stage entry, so a palette animation changes the arena before the next upload.
 
 ## Load path
 

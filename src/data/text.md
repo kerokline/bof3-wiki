@@ -83,7 +83,7 @@ The table lists each code, how many operand bytes it takes and what it does.
 | `0x01`   | `{NEWLINE}`   | sets `x` to the line origin and adds 12 px to `y`                                                           |
 | `0x02`   | `{PAGE}`      | the engine enters its wait state                                                                            |
 | `0x03`   | `{GOTO}`      | redirects to the character record `0x80144968 + 0xA4 * g_CharSlot[byte[0x80145F09]]`, budget 6              |
-| `0x04 n` | `{INSERT:nn}` | redirects to the `0xA4` character record that operand `n` indexes, budget 6                                 |
+| `0x04 n` | `{INSERT:nn}` | redirects to the 164-byte character record that operand `n` indexes, budget 6                               |
 | `0x05 n` | `{COLOR:nn}`  | loads the colour `0x7800 \| (n & 0xF)`; red is operand `0x02`, blue is `0x03`                               |
 | `0x06`   | `{NOCOLOR}`   | restores the saved colour                                                                                   |
 | `0x07 n` | `{VAR:nn}`    | prints the 32-byte string at `0x801490D8 + n * 32`, budget 33                                               |
@@ -148,11 +148,11 @@ A name table is an array of records with one stride. The strings sit in a name f
   Their strides are `0x12`, `0x18`, `0x16`, `0x14` and `0x14`.
 - Master names in `AFLDKWA.EMI` and `FIRST.EMI`.
 - Fairy names, stride 9, and enemy names. Both sit in the 1,160-byte type-0 payload of each area
-  archive. Enemy records have stride `0x88` and a name field of 8 bytes.
+  archive. Enemy records have stride 136 and a name field of 8 bytes.
 
 A name may fill its field and carry no terminator. Item 3 is 12 bytes in a 12-byte field. The base
 stat character names in `START.EMI` and `STATUS.EMI` are not a table. Each is the first five bytes
-of its `0xA4`-byte [character record](records.md#character-and-master-data).
+of its 164-byte [character record](records.md#character-and-master-data).
 
 ### Loose records
 

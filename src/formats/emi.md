@@ -1,6 +1,6 @@
 # EMI container
 
-Almost all game data lives in `.EMI` archives. An archive is a header, a table of contents (TOC) and a run of payloads, each starting on a CD sector boundary (`0x800` bytes). Each TOC row gives the payload size, a type and a load argument. The type tells the loader what to do with the payload: copy it to RAM, decompress it, upload it to VRAM, or hand it to the sound system. The archive does not say what the payload means. That depends on the archive family and the slot, so extract the entries and classify each one.
+Almost all game data lives in `.EMI` archives. An archive is a header, a table of contents (TOC) and a run of payloads, each starting on a CD sector boundary (2,048 bytes). Each TOC row gives the payload size, a type and a load argument. The type tells the loader what to do with the payload: copy it to RAM, decompress it, upload it to VRAM, or hand it to the sound system. The archive does not say what the payload means. That depends on the archive family and the slot, so extract the entries and classify each one.
 
 The US disc has 880 archives with 6,344 entries and 250,503,535 payload bytes. The [executable page](exe.md#the-disc-file-table) describes how the game finds an archive on the disc. This page describes what is inside one. Graphics payloads are in [graphics](graphics.md), audio payloads in [audio](audio.md), and the compressed type 1 form is [LZ77](lz77.md).
 
@@ -34,7 +34,7 @@ next payload offset = current offset + size rounded up to a multiple of 0x800
 
 The last payload ends exactly at the end of the file, so no archive has a trailing sector.
 
-For example, a TOC row with size `0x488`, load argument `0x800E4000` and type `0` describes a 1,160-byte block that the type-0 handler copies to RAM address `0x800E4000`. It takes one sector, so the next payload starts `0x800` bytes after it.
+For example, a TOC row with size 1,160, load argument `0x800E4000` and type `0` describes a 1,160-byte block that the type-0 handler copies to RAM address `0x800E4000`. It takes one sector, so the next payload starts 2,048 bytes after it.
 
 ### Padding
 
@@ -57,7 +57,7 @@ The type is a loader command. Types 4 and 5 never appear in a TOC (0 of 6,344 ro
 |  `0` | copy to RAM at the load argument; code or data                  |   2,623 |    39,534,564 | 429 code, 98 mixed, 945 data, 1,098 asset, 53 empty  |
 |  `1` | queue for decompression, then copy to RAM                       |      65 |    12,723,580 | all [LZ77](lz77.md); 21,753,944 bytes decoded        |
 |  `2` | same handler as type 1 (`EMI_LoaderQueuePayload`)               |       0 |             - |                                                      |
-|  `3` | raw [graphics](graphics.md#type-3-load-argument) upload to VRAM |     593 |   112,312,320 | every payload is a multiple of `0x800` bytes         |
+|  `3` | raw [graphics](graphics.md#type-3-load-argument) upload to VRAM |     593 |   112,312,320 | every payload is a multiple of 2,048 bytes           |
 |  `6` | VAB header (VH)                                                 |   1,020 |     4,904,832 | every header starts `pBAV`                           |
 |  `7` | VAB body (VB)                                                   |   1,020 |    79,157,504 | header size equals the VH `fsize` field in all 1,020 |
 |  `8` | cue table of one bank                                           |     904 |        34,432 | see [audio](audio.md#emi-type-8-cue-records)         |
@@ -131,7 +131,7 @@ Every archive read runs `EMI_LoaderStreamInitSlot`, `EMI_LoaderSlotLba`, `EMI_Lo
 | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | header    | `EMI_LoaderReadToc` checks `MATH_TBL` and builds the cumulative sector offsets in `D_80146678[]`                                                                                                                                         |
 | `0`       | `EMI_LoaderCopyPayload`, then `EMI_LoaderCopySector` (each sector goes straight to the load argument)                                                                                                                                    |
-| `1`       | `EMI_LoaderQueuePayload`, then `EMI_LoaderReadSector` (`@0x80163238`, starts the decoder with `EMI_DecodeBegin`), then `EMI_LoaderStageSector` (`@0x8016327C`, copies two 0x400-byte halves to the scratchpad and runs `EMI_DecodeStep`) |
+| `1`       | `EMI_LoaderQueuePayload`, then `EMI_LoaderReadSector` (`@0x80163238`, starts the decoder with `EMI_DecodeBegin`), then `EMI_LoaderStageSector` (`@0x8016327C`, copies two 1,024-byte halves to the scratchpad and runs `EMI_DecodeStep`) |
 | `3`       | `EMI_LoaderLoadGraphics` (descriptor `col:row:count`), then `EMI_LoaderUploadSector` (`@0x80163378`, one `LoadImage` of a 32x32-word rectangle)                                                                                          |
 | `6`       | `EMI_LoaderLoadVabHeader` copies the VH and closes the bank's previous owner                                                                                                                                                             |
 | `7`       | `EMI_LoaderLoadVabBody` (`SsVabOpenHeadSticky`), then `EMI_LoaderTransferVabBody` (`SsVabTransBodyPartly`)                                                                                                                               |

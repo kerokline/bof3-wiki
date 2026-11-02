@@ -44,13 +44,13 @@ The CD controller mixes XA into the audio output itself. `SND_SetCdVolume (exe/s
 
 - `SND_Init` calls `SsInit`, `SsSetTableSize(D_80148A50, 2, 4)`, `SsSetTickMode` in 60 Hz mode, turns room reverb on, and calls `SsSetAutoKeyOffMode(0)` and `SsSetReservedVoice(0x10)`. It sets the seven VAB ids `D_80148FB0..FB6` to 0 through 6 and the seven SEP owners `g_SelectionFxVoices[0..6]` (`0x80148FC0`) to `-1`. It then calls `SpuSetVoiceAttr` to set volume `0x3FFF` on voices 16 to 23.
 - The tick mode argument selects a 60 Hz sequencer step, the NTSC frame rate `[inferred]` from the PsyQ meaning of that mode.
-- The first `SsSetTableSize` argument is the sequence table. `func_80197C94` and `func_80197F48` save and restore 1,376 bytes of it, so the table is `0x560` bytes at `0x80148A50`.
+- The first `SsSetTableSize` argument is the sequence table. `func_80197C94` and `func_80197F48` save and restore 1,376 bytes of it, so the table is 1,376 bytes at `0x80148A50`.
 - `SND_Start` calls `SsStart2` and sets the master volume to `0x7F` and the serial (CD) volume to `0x6E`.
 - `SND_Exit (exe/slus_004_22@0x8015CEBC)` keys off all voices, closes the seven VABs and SEP owners, turns reverb off and calls `SsEnd`.
 
 ## Banks
 
-Seven bank records (`0x14` bytes each, at `0x8014677C`) tie a VAB id to a RAM window, an SPU address and a cue table. `SND_SetBankLayout (exe/slus_004_22@0x80161808)` fills them from one of three static layouts. It lays two RAM windows per bank back to back from `0x8011A000`: a header window (`D_8018239C[n][bank]`), then a sequence window (`D_801823F0[n][bank]`). The SPU address comes from `D_80182348[n][bank]`. The cue table pointer is `0x801486A0 + 124 * bank`.
+Seven bank records (20 bytes each, at `0x8014677C`) tie a VAB id to a RAM window, an SPU address and a cue table. `SND_SetBankLayout (exe/slus_004_22@0x80161808)` fills them from one of three static layouts. It lays two RAM windows per bank back to back from `0x8011A000`: a header window (`D_8018239C[n][bank]`), then a sequence window (`D_801823F0[n][bank]`). The SPU address comes from `D_80182348[n][bank]`. The cue table pointer is `0x801486A0 + 124 * bank`.
 
 The active layout decides what fits in SPU RAM:
 
@@ -152,7 +152,7 @@ XA plays speech and long effects from three disc files, selected by a key. `SND_
 |     7 | `SND_XaStatePauseResult`  | Success: state 0, `g_EmiStreamState = 3`, clear the sync callback.                                        |
 |     8 | `SND_XaStateWaitSync`     | Wait for `CdSync`, then back to 6.                                                                        |
 
-A timer above `0xB5` ticks returns to state 1 and counts a retry. The sixth retry, or a CD error bit, sends the machine to state 8. Streaming ends by stopping at the stop bound, not by an end marker in the data. State 7 sets the loader's ready byte to 3, so `EMI_LoaderIsReady` is false for the whole stream, and none of the callers waits for it first ([loading](loading.md#xa-audio)).
+A timer above 181 ticks returns to state 1 and counts a retry. The sixth retry, or a CD error bit, sends the machine to state 8. Streaming ends by stopping at the stop bound, not by an end marker in the data. State 7 sets the loader's ready byte to 3, so `EMI_LoaderIsReady` is false for the whole stream, and none of the callers waits for it first ([loading](loading.md#xa-audio)).
 
 XA callers are the scene scripts (opcode `0x89` in `func_801AB458`, key from the script), `Scene_RunShopSaveEvent` (key 0), `func_801A83DC` (key 9), the shop and save screens (key 0), `commu00` (keys 8 and 10), and battle (`func_801DDF50` in `emi/battle/battle/03`, key `0x1000 + n` from an effect table).
 
@@ -164,13 +164,13 @@ XA callers are the scene scripts (opcode `0x89` in `func_801AB458`, key from the
 | Sequences per package     | 4                                                                                                            | `SsSepOpenJ(.., 4)`, `SND_FindFreeFxVoice` |
 | Open SEP packages         | Seven owner slots, `SsSetTableSize(.., 2, 4)`                                                                | `g_SelectionFxVoices[7]`, `SND_Init`       |
 | Concurrent sequence limit | 2 packages by the table size `[inferred]`; the arguments' meaning is the PsyQ contract                       | `SND_Init`                                 |
-| Sequence table            | `0x560` bytes at `0x80148A50`                                                                                | `func_80197C94`, `func_80197F48`           |
+| Sequence table            | 1,376 bytes at `0x80148A50`                                                                                  | `func_80197C94`, `func_80197F48`           |
 | VAB banks                 | 7 (ids 0 to 6)                                                                                               | `SND_Exit`, `SND_SetBankLayout`            |
 | SPU voices                | 24 polled, 16 reserved, effect voices 16 to 23 prepared `[inferred]`                                         | `SND_UpdateVoiceStatus`, `SND_Init`        |
 | Cue banks and records     | Bank nibble indexes 7 readers. 31 records per bank chunk (`124` bytes). A disc entry has at most 24 records. | `g_SndCueReaders`                          |
 | Voices per cue            | 1 to 4 `SsUtKeyOnV` calls (layer bits)                                                                       | `SND_PlayCue`                              |
 | XA files                  | Three: slots `0x2A9`, `0x1B2`, `0x2AA`. Keys use 12 bits of index.                                           | `D_80183230`, `SND_ResolveXaStream`        |
-| XA timeout                | `0xB5` ticks, 6 retries                                                                                      | `SND_ServiceXa`                            |
+| XA timeout                | 181 ticks, 6 retries                                                                                         | `SND_ServiceXa`                            |
 | Volume                    | Master `0x7F`, serial `0x6E`                                                                                 | `SND_Start`                                |
 
 ### RAM and SPU budget per layout

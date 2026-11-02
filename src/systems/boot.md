@@ -25,7 +25,7 @@ Three stubs prepare the CPU and start the game. `pc0` points at the first, `stup
 | `stup1 (exe/slus_004_22@0x8014AA30)` | sets `sp` to `0x80200000`, `gp` to `0x8018B2B4`, copies `sp` to `fp`, calls `InitHeap(0x80190C64, 0x673A0)` |
 | `stup0 (exe/slus_004_22@0x8014AAAC)` | `jal SYS_Main`, followed by a `break` that is never reached                                                 |
 
-`stup1` takes the stack top from a constant (`0x80200000`, the top of the 2 MiB RAM) and ends the heap 0x8000 bytes below it, which is `0x801F8004`. The heap range overlaps the resident game program at `0x80195800` and the overlay arena at `0x801CE000`. The executable has no `malloc`, `free`, `calloc` or `realloc`, so the heap is declared and never used. `[inferred]` The assembly shows the missing thunks. That no PsyQ library code allocates from it is not shown. `__main (exe/slus_004_22@0x8014AA04)` is a bare `jr $ra`.
+`stup1` takes the stack top from a constant (`0x80200000`, the top of the 2 MiB RAM) and ends the heap 32,768 bytes below it, which is `0x801F8004`. The heap range overlaps the resident game program at `0x80195800` and the overlay arena at `0x801CE000`. The executable has no `malloc`, `free`, `calloc` or `realloc`, so the heap is declared and never used. `[inferred]` The assembly shows the missing thunks. That no PsyQ library code allocates from it is not shown. `__main (exe/slus_004_22@0x8014AA04)` is a bare `jr $ra`.
 
 ## What `SYS_Main` does
 

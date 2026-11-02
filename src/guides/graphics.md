@@ -7,7 +7,7 @@ each one. The formats are in [graphics](../formats/graphics.md) and [character b
 ## Textures
 
 **Where.** The disc holds 593 type-3 entries, 112,312,320 bytes in all. A type-3 payload is a run of
-`0x800`-byte chunks, and each chunk is a 32 by 32 rectangle of 16-bit VRAM words. The load argument gives
+2,048-byte chunks, and each chunk is a 32 by 32 rectangle of 16-bit VRAM words. The load argument gives
 the first VRAM column, the first VRAM row and the number of rectangles per row
 ([type-3 load argument](../formats/graphics.md#type-3-load-argument)).
 
@@ -17,7 +17,7 @@ the colour words.
 
 **Limits.**
 
-- The payload size must stay a multiple of `0x800` and match the rectangle count in the load argument. A
+- The payload size must stay a multiple of 2,048 and match the rectangle count in the load argument. A
   rectangle uploads only if its whole extent lies inside the 1,024 by 512 word VRAM.
 - Several sheets can cover the same VRAM words, for example slots 5 and 7 of `AREA024`. Which one is
   resident depends on the stream order.

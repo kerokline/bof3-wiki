@@ -4,7 +4,7 @@ After [boot](boot.md), `SYS_Main (exe/slus_004_22@0x8014AAC8)` never returns. It
 
 ## The double-buffered frame
 
-The game keeps two copies of everything the GPU needs for one picture. Each copy is a 0x90-byte render record at `g_GfxDisplayFrames (exe/slus_004_22@0x80143D48)`. A record holds the display and draw environments, an 8-word ordering table and the arena in which the frame's primitives are built. VRAM holds two 320 x 240 frame buffers, one at y = 0 and one at y = 0xF0. Each record draws into one buffer and displays the other.
+The game keeps two copies of everything the GPU needs for one picture. Each copy is a 144-byte render record at `g_GfxDisplayFrames (exe/slus_004_22@0x80143D48)`. A record holds the display and draw environments, an 8-word ordering table and the arena in which the frame's primitives are built. VRAM holds two 320 x 240 frame buffers, one at y = 0 and one at y = 0xF0. Each record draws into one buffer and displays the other.
 
 While the GPU draws the picture of frame N from one record, the CPU builds frame N + 1 in the other record. `g_FrameBufferIndex (exe/slus_004_22@0x80143D44)` says which record is being built, and the loop flips it once per pass. The GPU starts early in the pass and runs in parallel with the controller read, the callbacks and the loader tick. The pass ends by waiting for the GPU to finish. A picture therefore appears one pass after the game logic that built it.
 
@@ -52,10 +52,10 @@ The overlap of GPU drawing with steps 6 to 11 follows from the PsyQ contract tha
 
 - sets the primitive cursor `g_GfxPrimCursor` to `0x80020000 + b * 0x9000`;
 - seeds the eight layer chain heads from the packet table, `b * 0x20` bytes in;
-- resets 56 cell records of 0x30 bytes at `D_80142CC0` `[inferred]`, which the area map engine uses;
+- resets 56 cell records of 48 bytes at `D_80142CC0` `[inferred]`, which the area map engine uses;
 - sets `D_801459F8` to `0x800E4800` and `D_801459FC` to `0x800F5000`, the area work window and the area code base.
 
-`GFX_AddPrim` appends a primitive only while the cursor plus the primitive size stays below `0x80028FCC + b * 0x9000`. The arena of one buffer is therefore `0x8FCC` bytes. When it is full the call returns without a signal and the primitive is lost. Every sprite, window, glyph and map cell of one frame draws from this one arena. Layer order and primitive layouts are in [rendering](rendering.md).
+`GFX_AddPrim` appends a primitive only while the cursor plus the primitive size stays below `0x80028FCC + b * 0x9000`. The arena of one buffer is therefore 36,812 bytes. When it is full the call returns without a signal and the primitive is lost. Every sprite, window, glyph and map cell of one frame draws from this one arena. Layer order and primitive layouts are in [rendering](rendering.md).
 
 ## Input
 
@@ -74,7 +74,7 @@ Holding Select and Start together returns the game to the first boot callback. T
 | Limit                         | Value                                                     | Source                                                                      |
 | ----------------------------- | --------------------------------------------------------- | --------------------------------------------------------------------------- |
 | Ordering table layers         | 8                                                         | `ClearOTagR(..., 8)` in `SYS_Main`; `SYS_PrepareFrame`; `SYS_SubmitFrame`   |
-| Primitive arena per buffer    | `0x80020000 + b * 0x9000`, size `0x8FCC`                  | `SYS_PrepareFrame`, `GFX_AddPrim`                                           |
+| Primitive arena per buffer    | `0x80020000 + b * 0x9000`, size 36,812                    | `SYS_PrepareFrame`, `GFX_AddPrim`                                           |
 | Display                       | 320 x 240, buffers at y = 0 and y = 0xF0                  | `SYS_InitDisplay (exe/slus_004_22@0x8014AE08)`                              |
 | Queued VRAM uploads per frame | 20                                                        | `GFX_RunTransferQueue` reads halves from `D_80145A54[0..19]` and `[20..39]` |
 | Upload kinds                  | 3: raw `LoadImage`, RGB555 expand (1), LZSS (2)           | `GFX_RunTransferQueue (exe/slus_004_22@0x8014E6D0)`                         |

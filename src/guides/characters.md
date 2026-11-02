@@ -1,19 +1,19 @@
 # Editing characters and enemies
 
-A playable character is one record of `0xA4` bytes, and an enemy is one record of `0x88` bytes. Both sit in
+A playable character is one record of 164 bytes, and an enemy is one record of 136 bytes. Both sit in
 fixed tables. Character growth comes from a level table and from master records. This guide shows where each
 sits and how to change it. The field layouts are in
 [game records](../data/records.md#character-and-master-data).
 
 ## Where the data is
 
-| What                           | Where                                                                                                                                                                                               |
-| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Starting stats of 8 characters | 8 records of `0xA4` bytes at payload `0x1A914` of `START.EMI#8`, and the identical copy in `STATUS.EMI#0`                                                                                           |
-| Level growth                   | 693 rows of 8 bytes in `GAME.EMI#0`: one block of 99 rows for each of characters 0 to 6 ([level growth](../data/records.md#level-growth-and-level-ups))                                             |
-| Masters                        | 17 skill rows and 17 stat rows in `SISYOU.EMI#0`; 17 names in `AFLDKWA.EMI#0` ([masters](../data/records.md#masters))                                                                               |
-| Enemies and encounters         | the 1,160-byte entry that loads at `0x800E4000` in each of the 200 area archives: 8 encounters of 9 bytes and 8 enemy records of `0x88` bytes ([enemy record](../data/records.md#the-enemy-record)) |
-| Drops and steals               | fields of the enemy record ([drops](../data/records.md#drops))                                                                                                                                      |
+| What                           | Where                                                                                                                                                                                            |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Starting stats of 8 characters | 8 records of 164 bytes at payload `0x1A914` of `START.EMI#8`, and the identical copy in `STATUS.EMI#0`                                                                                           |
+| Level growth                   | 693 rows of 8 bytes in `GAME.EMI#0`: one block of 99 rows for each of characters 0 to 6 ([level growth](../data/records.md#level-growth-and-level-ups))                                          |
+| Masters                        | 17 skill rows and 17 stat rows in `SISYOU.EMI#0`; 17 names in `AFLDKWA.EMI#0` ([masters](../data/records.md#masters))                                                                            |
+| Enemies and encounters         | the 1,160-byte entry that loads at `0x800E4000` in each of the 200 area archives: 8 encounters of 9 bytes and 8 enemy records of 136 bytes ([enemy record](../data/records.md#the-enemy-record)) |
+| Drops and steals               | fields of the enemy record ([drops](../data/records.md#drops))                                                                                                                                   |
 
 ## What to change
 

@@ -130,7 +130,7 @@ Conditional blocks probably let one area hold different entity sets for differen
 
 ### Staged scene objects
 
-Scene objects are the area's non-character things: effects, gates, props. `Actor_Create (emi/etc/game/00@0x8019615C)` claims a free slot of `g_ActorSlots` (20 slots of `0x74` bytes) and fills it from a kind-E record. A nonzero byte 2 or byte 4 adds half a cell to the x or y position, and the height comes from `Area_SampleHeight`. When no slot is free, `Actor_FindFreeSlot (emi/etc/game/00@0x8019601C)` returns `0xFF` and `Actor_Create` drops the record without a message.
+Scene objects are the area's non-character things: effects, gates, props. `Actor_Create (emi/etc/game/00@0x8019615C)` claims a free slot of `g_ActorSlots` (20 slots of 116 bytes) and fills it from a kind-E record. A nonzero byte 2 or byte 4 adds half a cell to the x or y position, and the height comes from `Area_SampleHeight`. When no slot is free, `Actor_FindFreeSlot (emi/etc/game/00@0x8019601C)` returns `0xFF` and `Actor_Create` drops the record without a message.
 
 `Actor_DispatchAll` runs each active slot as `D_801C7C70[slot->type]()`. The table has 187 entries. Its targets lie in four places: the resident image (`0x8019....`), the shared overlay window at `0x801D0C00`, the area window at `0x801F2C00` and the scenario window at `0x801F6C00`. A given type therefore runs different code depending on which overlay is loaded.
 
@@ -146,8 +146,8 @@ Each area has a zone list in the executable, `D_80181164[area]`. It is a list of
 | Area record address     | One absolute pointer per area, into `0x801F2C00..0x801F6C00`                                                                              | `g_AreaLoads` is constant data in the executable                 |
 | Area record fields      | `handler 0x00`, exits `0x20`, lists `0x24`, counts `0x28`, last exit `0x30`, `flag_32 0x32`, `steps 0x34`, `matrix 0x38`, `callback 0x40` | `func_8019FAA0`, `func_801A0048`                                 |
 | Map kind                | `flag_32` bit 0 world, 1 and 2 battlefield, 3 fishing, 4 fairy village, 6 camp                                                            | `func_8019FAA0`, `func_801BFF9C`, `func_801976EC`                |
-| Entity rows             | 30 rows of `0x98` bytes at `g_Actors` (`0x80146888`)                                                                                      | `func_801A4D54`, `func_801A06D8`                                 |
-| Staged scene objects    | 20 slots of `0x74` bytes at `g_ActorSlots` (`0x80143FC8`); type 0 to 186                                                                  | `Actor_FindFreeSlot`, `D_801C7C70`                               |
+| Entity rows             | 30 rows of 152 bytes at `g_Actors` (`0x80146888`)                                                                                         | `func_801A4D54`, `func_801A06D8`                                 |
+| Staged scene objects    | 20 slots of 116 bytes at `g_ActorSlots` (`0x80143FC8`); type 0 to 186                                                                     | `Actor_FindFreeSlot`, `D_801C7C70`                               |
 | Setup condition tests   | 32, index masked with `0x1F`                                                                                                              | `D_8018217C` through `func_801A3FC0`                             |
 | Exit cell coordinates   | 8-bit x and y; at most 256 entries per area                                                                                               | `func_801A0048`                                                  |
 | Exit destination        | 0 to 255 whole cells plus an optional half cell                                                                                           | `(idx << 8) & 0xFF8000`                                          |

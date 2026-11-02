@@ -45,7 +45,7 @@ What the common fields do:
 - **The entry keeps its size and address.** Entry 0 loads at a fixed address, and every table sits at a fixed
   payload offset from it. A table that changes size moves its neighbours.
 - **Row 0 is empty.** Each equipment table starts with a `Nothing` row and ability 0 is zeroed. Leave them.
-- **The gap before the abilities.** A `0xE8`-byte block lies between the shops and the abilities, and its use
+- **The gap before the abilities.** A 232-byte block lies between the shops and the abilities, and its use
   is `[unknown]`. Leave it as it is.
 - **Unnamed bytes.** One byte of the item row, the high nibble of `kind` and the ability flag bits beyond
   the named ones are `[unknown]`.

@@ -10,8 +10,12 @@ that notation once. Read it before the [formats](formats/emi.md), [data](data/re
   form appears (no `$1F`, `1Fh` or `0X1F`). A RAM address has eight digits. An offset or a mask has as
   many digits as its table column needs, with at least two.
 - **Decimal** values have no prefix. A number of four or more digits has commas: `6,344`.
+- **Quantities are decimal.** A size, count, stride, length or duration is a plain number: a record of 164
+  bytes, 8 records, a stride of 36. Hex is for values that name a place or a bit pattern: addresses,
+  offsets, masks, flag and byte values, ids and alignment boundaries. When the code states a size in hex,
+  the page gives it in decimal, so `0x10B0` bytes is 4,272 bytes.
 - **Sizes** are in bytes unless the text says otherwise. `KiB` is 1,024 bytes and `MiB` is 1,048,576
-  bytes. A CD-ROM sector holds `0x800` bytes (2,048 bytes).
+  bytes. A CD-ROM sector holds 2,048 bytes; its alignment boundary is written `0x800`.
 - **Ranges.** `A-B` includes both ends: `0x10-0x1F` is 16 values. `A..B` stops before `B`, so `B` is the
   first byte after the range: `0x80000000..0x80200000` is the 2 MiB of RAM. In prose, "0 to 6" is
   inclusive.

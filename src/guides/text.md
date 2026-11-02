@@ -31,13 +31,13 @@ record tables. This guide shows how to change each of them. The encoding and the
 ## Change a name
 
 A name field has a fixed width, and a name may fill all of it with no terminator. A shorter name ends with
-`0x00` padding. In the item table, for example, `Bread` is 5 letters followed by seven `0x00` bytes in a
+`0x00` padding. In the item table, for example, `Bread` is 5 letters followed by seven 0 bytes in a
 12-byte field. The widths are in the record layouts ([records](../data/records.md#row-layouts)).
 
 ## Limits and pitfalls
 
 - **Bank size.** A message bank must end below `0x8001A000`, where the resource table loads, so it can hold
-  at most `0xA000` (40,960) bytes. The largest shipped bank is 21,547 bytes (`AREA153.EMI#11`).
+  at most 40,960 bytes. The largest shipped bank is 21,547 bytes (`AREA153.EMI#11`).
 - **Resource ids.** A resource id is local to the payload loaded at `0x8001A000`. The same id can name
   different strings under different payloads, so edit the string in the payload that you mean.
 - **Glyphs.** One byte is one glyph, and the byte-to-cell formula is code. A byte with no glyph

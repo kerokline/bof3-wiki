@@ -25,11 +25,11 @@ The table runs from low to high addresses.
 | `0x1F800000` +0x400          | scratchpad                         | `g_SpadWork` pointer cell at `0x1F800044`; the LZ77 decoder window                                                             |
 | `0x80010000`, up to +0x542B  | area archive                       | per-area text bank                                                                                                             |
 | `0x8001A000`, up to +0x41E8  | `FIRST`, `BATTLE`, `BOSS` archives | text resource table                                                                                                            |
-| `0x80020000..0x80032000`     | `SYS_PrepareFrame`                 | two primitive banks of `0x9000` bytes, picked by the buffer index                                                              |
+| `0x80020000..0x80032000`     | `SYS_PrepareFrame`                 | two primitive banks of 36,864 bytes, picked by the buffer index                                                                |
 | `0x80032000`, +0x1388        | area archive                       | area table, read as nibbles by `func_801C6FD4`                                                                                 |
 | `0x800327A0`                 | `EMI_DecodeBegin`                  | LZ77 decoder context                                                                                                           |
 | `0x80033800`, +0x4000        | `GFX_ResetPalette`                 | palette arena; archives load CLUT slices at `0x80033A00`, `0x80033C00`, `0x80033E00`, `0x80035800`, `0x80036C00`, `0x80036E00` |
-| `0x80037800`, +0x4000        | `g_GraphicsPaletteDst`             | palette work area: 32 rows of `0x200` bytes, uploaded by `GFX_UploadPalette`                                                   |
+| `0x80037800`, +0x4000        | `g_GraphicsPaletteDst`             | palette work area: 32 rows of 512 bytes, uploaded by `GFX_UploadPalette`                                                       |
 | `0x8003B800`                 | `PLCHAR`, `BPLCHAR`, `BMAGIC`      | decompression destination for character and effect graphics                                                                    |
 | `0x80096800`, up to +0x208C4 | `BATTLE`, `BOSS` archives          | battle data module (`battle/15`), loaded with `battle/03`                                                                      |
 | `0x800C1800`, up to +0x1E14  | `BOSS` archives                    | boss module                                                                                                                    |
@@ -37,14 +37,14 @@ The table runs from low to high addresses.
 | `0x800D3800`, up to +0xFED4  | area archive                       | area script bank                                                                                                               |
 | `0x800E3800`, up to +0x19C   | area archive                       | scene table                                                                                                                    |
 | `0x800E4000`, +0x488         | area archive                       | encounter table                                                                                                                |
-| `0x800E4800..0x800F0800`     | `EMI_LoaderStreamInitSlot`         | CD ring: one header slot and 23 ring slots of `0x800` bytes; the area work window shares it                                    |
+| `0x800E4800..0x800F0800`     | `EMI_LoaderStreamInitSlot`         | CD ring: one header slot and 23 ring slots of 2,048 bytes; the area work window shares it                                      |
 | `0x800F0800`, +0xE6C         | `BATTLE`, `BOSS` archives          | battle script bank                                                                                                             |
 | `0x800F5000`, up to +0x2250  | 3 area archives                    | extra area code block                                                                                                          |
 | `0x80104000`, up to +0x14A68 | area archive                       | map bundle                                                                                                                     |
 | `0x80117000`, up to +0x174C  | 9 area archives                    | auxiliary area module                                                                                                          |
 | `0x8011A000..0x8012C000`     | `SND_SetBankLayout`                | sound bank RAM; the end depends on the layout `[inferred]`                                                                     |
 | `0x80143B40..0x801448D8`     | `exe/slus_004_22`                  | work variables below the persistent block, such as `D_80143B40`; the lower bound is the lowest one seen                        |
-| `0x801448D8..0x80145988`     | `exe/slus_004_22`                  | the persistent block: party, flags, clock and scenario state, `0x10B0` bytes ([state](state.md#one-persistent-block))          |
+| `0x801448D8..0x80145988`     | `exe/slus_004_22`                  | the persistent block: party, flags, clock and scenario state, 4,272 bytes ([state](state.md#one-persistent-block))             |
 | `0x80145988..0x80149800`     | `exe/slus_004_22`                  | work variables above the persistent block, such as `g_EmiRingBase`                                                             |
 | `0x80149800..0x8018B2B8`     | `exe/slus_004_22`                  | rodata, data and code                                                                                                          |
 | `0x8018B2B8..0x80190C60`     | `exe/slus_004_22`                  | BSS, cleared by `stup2`                                                                                                        |
@@ -56,7 +56,7 @@ The table runs from low to high addresses.
 | `0x801F2C00`, up to +0x3FC4  | area program window                | the program of the current area, from 200 archives                                                                             |
 | `0x801F6C00`, up to +0x7E80  | scenario window                    | the controller of the current scenario, one of 20, ends at `0x801FEA80`                                                        |
 | `0x801FF000`                 | `SYS_RunLogo`                      | stack for the `Exec` of `LOGO.EXE`                                                                                             |
-| `0x801FF400..0x801FFC00`     | `CallbackInitThreads`              | four `0x200`-byte callback thread stacks                                                                                       |
+| `0x801FF400..0x801FFC00`     | `CallbackInitThreads`              | four 512-byte callback thread stacks                                                                                           |
 
 The area band is the busiest. A typical area archive writes, in order: the sound bank and cue table, the scene table, the script bank, graphics, three palette slices, the area table, the encounter table, the text bank, the map bundle and last the area program at `0x801F2C00`. [Loading](loading.md#area) walks through this.
 
@@ -64,7 +64,7 @@ The area band is the busiest. A typical area archive writes, in order: the sound
 
 The header of `SLUS_004.22` states `t_addr 0x80096800`, `t_size 0x160800`, `pc0 0x8014AA0C` and `s_addr 0x801FFFF0`. A RAM address equals `0x80096000` plus the file offset.
 
-The first `0xB3000` bytes of the payload are zero with a few stamp words. They reserve RAM for later loads. The real code and data sit at `0x80149800..0x8018B2B8`. The reserved ranges are `0x80096800` (`0x2B000` bytes), `0x800C1800` (`0x33800`), `0x800F5000` (`0x22000`) and `0x80117000` (`0x32800`). The payload is also zero from `0x8018B2B8` to `0x801D0400`, apart from stamp words at `0x80195800` and `0x801CE400`, and has a tail pad at `0x801F6800`. The stamp words hold values `6` to `0xF`, and their meaning is `[unknown]`. The executable therefore does not occupy its own `t_addr`. The first data that lands at `0x80096800` is `battle/15`, and the resident game program lands in the zero gap at `0x80195800`.
+The first 733,184 bytes of the payload are zero with a few stamp words. They reserve RAM for later loads. The real code and data sit at `0x80149800..0x8018B2B8`. The reserved ranges are `0x80096800` (176,128 bytes), `0x800C1800` (`0x33800`), `0x800F5000` (`0x22000`) and `0x80117000` (`0x32800`). The payload is also zero from `0x8018B2B8` to `0x801D0400`, apart from stamp words at `0x80195800` and `0x801CE400`, and has a tail pad at `0x801F6800`. The stamp words hold values `6` to `0xF`, and their meaning is `[unknown]`. The executable therefore does not occupy its own `t_addr`. The first data that lands at `0x80096800` is `battle/15`, and the resident game program lands in the zero gap at `0x80195800`.
 
 ## Overlay windows
 
@@ -100,15 +100,15 @@ The scratchpad is the 1 KiB of fast RAM at `0x1F800000`. `g_SpadWork` is a point
 | `LOGO.EXE` `Exec`          | `0x801FF000`                   | `SYS_RunLogo`                                      |
 | Callback slot `i` (0 to 3) | `0x801FF400 + 0x200 * (i + 1)` | `CallbackInitThreads`                              |
 
-`stup1` leaves 0x8000 bytes for the main stack: the heap ends at `0x801F8004`. The range `0x801F8000..0x80200000` already holds most of the scenario window and the thread stacks. The thread stacks end at `0x801FFC00`, so the main stack has `0x400` bytes above them. A deeper main stack writes into slot 3's stack. `[inferred]` The game does its work in the threads, and the real depth of the main stack is `[unknown]`. The `Exec` stack is used only while the logo runs.
+`stup1` leaves 32,768 bytes for the main stack: the heap ends at `0x801F8004`. The range `0x801F8000..0x80200000` already holds most of the scenario window and the thread stacks. The thread stacks end at `0x801FFC00`, so the main stack has 1,024 bytes above them. A deeper main stack writes into slot 3's stack. `[inferred]` The game does its work in the threads, and the real depth of the main stack is `[unknown]`. The `Exec` stack is used only while the logo runs.
 
 ## Heap and buffers
 
 - **Heap.** `stup1` calls `InitHeap` over `0x80190C64..0x801F8004`, which overlaps the resident program and the overlay arena. The executable has no allocator thunk, so the heap is unused. `[inferred]` ([boot](boot.md))
-- **Primitive banks.** `SYS_PrepareFrame` sets `g_GfxPrimCursor` to `0x80020000 + buffer_index * 0x9000`. Two banks end at `0x80032000`. Each bank accepts primitives only up to `0x8FCC` bytes ([frame loop](frame-loop.md)).
-- **CD ring.** `g_EmiRingBase` is `0x800E4800`. The 23 ring slots of `0x800` bytes end at `0x800F0800`, and slot 0 receives the header sector of the archive. `SYS_LoadExec` reads its header sector to the same address.
+- **Primitive banks.** `SYS_PrepareFrame` sets `g_GfxPrimCursor` to `0x80020000 + buffer_index * 0x9000`. Two banks end at `0x80032000`. Each bank accepts primitives only up to 36,812 bytes ([frame loop](frame-loop.md)).
+- **CD ring.** `g_EmiRingBase` is `0x800E4800`. The 23 ring slots of 2,048 bytes end at `0x800F0800`, and slot 0 receives the header sector of the archive. `SYS_LoadExec` reads its header sector to the same address.
 - **Area work window.** `AREA_WORK_WINDOW` is also `0x800E4800`. It shares the range with the CD ring, so no area work data is safe there while an archive streams. `[inferred]` `D_801459FC` holds `0x800F5000`, the area code base.
-- **Palettes.** `GFX_ResetPalette` zeroes rows 28 to 31 of the 16 KiB arena at `0x80033800`, then copies 32 rows of `0x200` bytes to the work area at `0x80037800`. `GFX_UploadPalette` sends the rectangle (0, 0x1E0, 0x100, 0x20) from there to VRAM whenever `g_GfxPalettePending` is set.
+- **Palettes.** `GFX_ResetPalette` zeroes rows 28 to 31 of the 16 KiB arena at `0x80033800`, then copies 32 rows of 512 bytes to the work area at `0x80037800`. `GFX_UploadPalette` sends the rectangle (0, 0x1E0, 0x100, 0x20) from there to VRAM whenever `g_GfxPalettePending` is set.
 
 ## Sound memory
 

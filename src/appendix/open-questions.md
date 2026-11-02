@@ -16,7 +16,7 @@ Pages: [boot](../systems/boot.md#gaps), [frame loop](../systems/frame-loop.md#ga
 | Whether a 21st queued VRAM upload overflows the 20-entry queue           | Read the producers of `D_80145A00` for a bound check.                   |
 | Any use of the port 2 controller                                         | Search for readers of the high halves that `SYS_UpdateKeyState` writes. |
 | Real frame time and the CPU and GPU overlap                              | A timed run. Static reading cannot measure it.                          |
-| Whether 0x200 bytes of stack suffice for the deepest call chain          | Worst-case stack analysis, or a run with stack watermarks.              |
+| Whether 512 bytes of stack suffice for the deepest call chain            | Worst-case stack analysis, or a run with stack watermarks.              |
 | Any writer of the `SWITCH` state of a scheduler slot                     | Search the overlays for stores of 4 to a slot state halfword.           |
 | Callers of `CallbackRegister` and `CallbackReplace` in overlays not read | Search those overlays for calls to the two functions.                   |
 
