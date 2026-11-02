@@ -1,3 +1,12 @@
 book/
 mermaid.min.js
 mermaid-init.js
+
+# Local work
+*.bin
+*.cue
+*.iso
+*.img
+*.wav
+*.flac
+*.ogg
