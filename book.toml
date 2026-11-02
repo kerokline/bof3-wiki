@@ -10,7 +10,8 @@ build-dir = "book"
 [output.html]
 default-theme = "rust"
 preferred-dark-theme = "navy"
-additional-js = ["mermaid.min.js", "mermaid-init.js"]
+additional-js = ["mermaid.min.js", "mermaid-init.js", "theme/zoom.js"]
+additional-css = ["theme/zoom.css"]
 
 [output.html.search]
 enable = true
