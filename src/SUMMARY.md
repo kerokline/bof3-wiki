@@ -45,7 +45,6 @@
 - [Memory card save](formats/save.md)
 - [Asset kinds](formats/assets.md)
 - [Converting game data](formats/conversion.md)
-- [Documentation coverage](formats/coverage.md)
 
 # For editors
 
@@ -54,4 +53,5 @@
 # Reference
 
 - [Open questions](game/architecture/gaps.md)
+- [Documentation coverage](formats/coverage.md)
 - [Sources](sources.md)
