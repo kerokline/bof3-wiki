@@ -20,6 +20,7 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - run: mdbook-mermaid install .
       - run: mdbook build .
+      - run: python3 tools/build_ingest.py
       - if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
         with:

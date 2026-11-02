@@ -3,3 +3,14 @@
 Independent research on the file formats, memory layouts and runtime of *Breath of Fire III* (US, PlayStation). Read it at <https://raulcorreia7.github.io/bof3-wiki/>.
 
 This repository holds no game data and no game assets. *Breath of Fire* and the game belong to Capcom, and the PlayStation belongs to Sony. This project is not affiliated with or endorsed by either company. The text is under the MIT license in `LICENSE`.
+
+## Build
+
+```sh
+mdbook-mermaid install .
+mdbook build .
+python3 tools/build_ingest.py   # writes llms.txt, llms-full.txt, sitemap.xml and robots.txt into book/
+```
+
+`llms.txt` lists every page with its first sentence. `llms-full.txt` holds every page's Markdown in
+one file. Both follow the order of `src/SUMMARY.md`.
