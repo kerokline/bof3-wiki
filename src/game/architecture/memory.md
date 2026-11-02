@@ -1,244 +1,147 @@
 # Memory
 
-*Read this if you need the RAM map, or want to know which overlay sits where.*
+The console has 2 MB of main RAM at `0x80000000..0x80200000`, and the game uses all of it. Some ranges are permanent. The main executable and the resident game program stay in RAM from boot to power-off. Other ranges are windows, and each window holds one overlay at a time. A load writes the new overlay over whatever the window held. This page gives the map: which image or data owns each range, which overlays share a window, and where the scratchpad, stacks, CD ring and sound banks sit. [Loading](loading.md) explains how each range gets filled.
 
-The main-RAM map of the running game: which image owns which address range, which overlays replace each
-other at the same address, and where the scratchpad, stacks, ring buffer and sound banks sit. The
-[loading page](loading.md) shows how each range gets filled.
+Sizes in this page that say "up to" are the largest entry measured over every archive on the disc. Overlay addresses are image-local. `exe/logo` and `exe/slus_004_22` are separate programs that share this one RAM.
 
-Static reading of the game code; nothing here was run on an emulator. Tags: `[read]` is code,
-assembly, a header or a config read directly, `[inferred]` is deduced from several reads, `[unknown]` is
-not established. Overlay addresses are image-local; `exe/logo` and `exe/slus_004_22` are separate programs
-that share one RAM.
+## Three kinds of range
 
-## Entry points
+The map has three kinds of range:
 
-| Symbol                     | Image@address                | Role                                                                       | Status   |
-| -------------------------- | ---------------------------- | -------------------------------------------------------------------------- | -------- |
-| PS-X header                | `exe/slus_004_22@0x80096800` | `t_addr`, `t_size`, `pc0`, `s_addr` of the main executable                 | `[read]` |
-| `SYS_PrepareFrame`         | `exe/slus_004_22@0x8014B020` | sets the primitive cursor and the CD sector buffer pointers                | `[read]` |
-| `SYS_RunLogo`              | `exe/slus_004_22@0x8014AEE0` | sets the `Exec` stack to `0x801FF000`                                      | `[read]` |
-| `CallbackInitThreads`      | `exe/slus_004_22@0x8014B6B4` | seeds each callback thread with its stack top (`0x801FF400 + 0x200*(i+1)`) | `[read]` |
-| `stup2`                    | `exe/slus_004_22@0x8014AA0C` | clears the BSS `0x8018B2B8..0x80190C60`                                    | `[read]` |
-| `stup1`                    | `exe/slus_004_22@0x8014AA30` | sets `sp` to `0x80200000` and declares the heap                            | `[read]` |
-| `SND_SetBankLayout`        | `exe/slus_004_22@0x80161808` | builds the seven sound-bank records from three layouts                     | `[read]` |
-| `EMI_LoaderStreamInitSlot` | `exe/slus_004_22@0x80161FDC` | sets the ring base `0x800E4800`                                            | `[read]` |
-| `EMI_DecodeBegin`          | `exe/slus_004_22@0x80164028` | sets the LZ77 context at `0x800327A0` and the scratchpad window            | `[read]` |
-| `GFX_ResetPalette`         | `exe/slus_004_22@0x8014E284` | clears the palette arena and refills the palette work area                 | `[read]` |
+- **Fixed code.** The executable `exe/slus_004_22` (`0x80149800..0x80190C60`) and the resident game program `emi/etc/game/00` (`0x80195800..0x801CD958`) never move and are never replaced.
+- **Data banks.** Low RAM (`0x80010000..0x8003B800`) and the area band (`0x800D3800..0x80117000`) hold per-area data: text, tables, palettes, scripts and the map. Entering a new area overwrites them.
+- **Overlay windows.** Five windows hold code that other code calls by fixed address: `0x801CE400`, `0x801D0C00`, `0x801EEC00`, `0x801F2C00` and `0x801F6C00`. The boss and battle data windows `0x800C1800` and `0x80096800` work the same way.
 
-## Memory map
+The persistent block at `0x801448D8..0x80145988` lies in the executable's work variables, so no overlay overwrites it. [State](state.md#one-persistent-block) owns its layout. Variables that belong to an overlay, such as the working state of a menu or a scenario, live inside that overlay's window and do not survive a swap. The next archive loaded into the window overwrites them.
 
-```mermaid
-flowchart TB
-    subgraph low["0x80010000 - 0x8003B800  low RAM: data banks"]
-        direction TB
-        t1["0x80010000 area text bank"]
-        t2["0x8001A000 text resource table"]
-        t3["0x80020000 / 0x80029000 two primitive banks"]
-        t4["0x80032000 area table; 0x800327A0 LZ77 context"]
-        t5["0x80033800 palette arena; 0x80037800 palette work"]
-        t6["0x8003B800 LZ77 graphics destination"]
-    end
-    subgraph mid["0x80096800 - 0x80149800  overlay windows and area data"]
-        direction TB
-        m1["0x80096800 battle/15 (133316 B)"]
-        m2["0x800C1800 boss module (35 images)"]
-        m3["0x800D3800 script bank; 0x800E3800 scene table; 0x800E4000 encounters"]
-        m4["0x800E4800 - 0x800F0800 CD ring / area work"]
-        m5["0x800F0800 battle script bank; 0x800F5000 area companion"]
-        m6["0x80104000 map bundle; 0x80117000 area companion"]
-        m7["0x8011A000 - 0x8012C000 sound bank RAM (largest layout)"]
-        m8["0x80143B40 - 0x80149800 exe work variables"]
-    end
-    subgraph exe["0x80149800 - 0x80190C60  exe/slus_004_22"]
-        e1["rodata, data, text, data_2 to 0x8018B2B8; BSS to 0x80190C60"]
-    end
-    subgraph res["0x80195800 - 0x801CD958  emi/etc/game/00 (resident)"]
-        r1["main game code and fixed tables"]
-    end
-    subgraph win["0x801CE400 - 0x801FEA80  overlay arena"]
-        direction TB
-        w1["0x801CE400 plchar window"]
-        w2["0x801D0C00 scene window"]
-        w3["0x801EEC00 shared code window"]
-        w4["0x801F2C00 area program window"]
-        w5["0x801F6C00 scenario window"]
-    end
-    subgraph top["0x801FF000 - 0x80200000  stacks"]
-        s1["Exec stack, four callback stacks, top of the main stack"]
-    end
-    low --> mid --> exe --> res --> win --> top
-```
+Nothing in the code records which overlay a window holds. The resident code calls into a window at a fixed address and relies on the caller to have loaded the right archive first. `[inferred]` The loader checks only the first word of each entry against its table. It does not look at what the range held before. No unload code exists, so a later load simply overwrites an earlier one.
 
-The arrows only order the blocks by address. The diagram does not show a call or data flow.
+## The map
 
-### Ranges
+The table runs from low to high addresses.
 
-Sizes are the sizes of the extracted images or
-archive table sizes; "up to" is the largest value seen across images.
+| Range                        | Owner                              | Content                                                                                                                        |
+| ---------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `0x1F800000` +0x400          | scratchpad                         | `g_SpadWork` pointer cell at `0x1F800044`; the LZ77 decoder window                                                             |
+| `0x80010000`, up to +0x542B  | area archive                       | per-area text bank                                                                                                             |
+| `0x8001A000`, up to +0x41E8  | `FIRST`, `BATTLE`, `BOSS` archives | text resource table                                                                                                            |
+| `0x80020000..0x80032000`     | `SYS_PrepareFrame`                 | two primitive banks of `0x9000` bytes, picked by the buffer index                                                              |
+| `0x80032000`, +0x1388        | area archive                       | area table, read as nibbles by `func_801C6FD4`                                                                                 |
+| `0x800327A0`                 | `EMI_DecodeBegin`                  | LZ77 decoder context                                                                                                           |
+| `0x80033800`, +0x4000        | `GFX_ResetPalette`                 | palette arena; archives load CLUT slices at `0x80033A00`, `0x80033C00`, `0x80033E00`, `0x80035800`, `0x80036C00`, `0x80036E00` |
+| `0x80037800`, +0x4000        | `g_GraphicsPaletteDst`             | palette work area: 32 rows of `0x200` bytes, uploaded by `GFX_UploadPalette`                                                   |
+| `0x8003B800`                 | `PLCHAR`, `BPLCHAR`, `BMAGIC`      | decompression destination for character and effect graphics                                                                    |
+| `0x80096800`, up to +0x208C4 | `BATTLE`, `BOSS` archives          | battle data module (`battle/15`), loaded with `battle/03`                                                                      |
+| `0x800C1800`, up to +0x1E14  | `BOSS` archives                    | boss module                                                                                                                    |
+| `0x800C3800`, up to +0xC4C   | `BMAGIC` archives                  | spell table                                                                                                                    |
+| `0x800D3800`, up to +0xFED4  | area archive                       | area script bank                                                                                                               |
+| `0x800E3800`, up to +0x19C   | area archive                       | scene table                                                                                                                    |
+| `0x800E4000`, +0x488         | area archive                       | encounter table                                                                                                                |
+| `0x800E4800..0x800F0800`     | `EMI_LoaderStreamInitSlot`         | CD ring: one header slot and 23 ring slots of `0x800` bytes; the area work window shares it                                    |
+| `0x800F0800`, +0xE6C         | `BATTLE`, `BOSS` archives          | battle script bank                                                                                                             |
+| `0x800F5000`, up to +0x2250  | 3 area archives                    | extra area code block                                                                                                          |
+| `0x80104000`, up to +0x14A68 | area archive                       | map bundle                                                                                                                     |
+| `0x80117000`, up to +0x174C  | 9 area archives                    | auxiliary area module                                                                                                          |
+| `0x8011A000..0x8012C000`     | `SND_SetBankLayout`                | sound bank RAM; the end depends on the layout `[inferred]`                                                                     |
+| `0x80143B40..0x801448D8`     | `exe/slus_004_22`                  | work variables below the persistent block, such as `D_80143B40`; the lower bound is the lowest one seen                        |
+| `0x801448D8..0x80145988`     | `exe/slus_004_22`                  | the persistent block: party, flags, clock and scenario state, `0x10B0` bytes ([state](state.md#one-persistent-block))          |
+| `0x80145988..0x80149800`     | `exe/slus_004_22`                  | work variables above the persistent block, such as `g_EmiRingBase`                                                             |
+| `0x80149800..0x8018B2B8`     | `exe/slus_004_22`                  | rodata, data and code                                                                                                          |
+| `0x8018B2B8..0x80190C60`     | `exe/slus_004_22`                  | BSS, cleared by `stup2`                                                                                                        |
+| `0x80195800`, +0x38158       | `emi/etc/game/00`                  | resident game code and tables, from `GAME.EMI` entry 0                                                                         |
+| `0x801CE000`, +0x1D800       | `exe/logo`                         | the logo program, to `0x801EB800` (BSS to `0x801ECEC0`)                                                                        |
+| `0x801CE400`, up to +0x26CC  | `PLCHAR` archives                  | character code window                                                                                                          |
+| `0x801D0C00`, up to +0x1CDD0 | scene window                       | one menu, title, scenario-effect, battle or area overlay; `battle/03` is the largest                                           |
+| `0x801EEC00`, up to +0x3ECC  | shared code window                 | battle end and game over, spell code, dialogue, `START` entry 9, `SHOP` entry 8, some area code                                |
+| `0x801F2C00`, up to +0x3FC4  | area program window                | the program of the current area, from 200 archives                                                                             |
+| `0x801F6C00`, up to +0x7E80  | scenario window                    | the controller of the current scenario, one of 20, ends at `0x801FEA80`                                                        |
+| `0x801FF000`                 | `SYS_RunLogo`                      | stack for the `Exec` of `LOGO.EXE`                                                                                             |
+| `0x801FF400..0x801FFC00`     | `CallbackInitThreads`              | four `0x200`-byte callback thread stacks                                                                                       |
 
-| Range                           | Owner                                 | Content                                                                                                                                                                                  | Tag          |
-| ------------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| `0x1F800000` +0x400             | scratchpad                            | `g_SpadWork` cell at `0x1F800044`; EMI decode window                                                                                                                                     | `[read]`     |
-| `0x80010000` up to +0xA000      | area archive entry 11                 | per-area text bank                                                                                                                                                                       | `[read]`     |
-| `0x8001A000` up to +0x41E8      | `FIRST.EMI` and `BATTLE.EMI` entry 11 | text resource table (`RESOURCE_TABLE_BASE`)                                                                                                                                              | `[read]`     |
-| `0x80020000` .. `0x80032000`    | `SYS_PrepareFrame`                    | two primitive banks of `0x9000` bytes, picked by buffer index                                                                                                                            | `[read]`     |
-| `0x80032000` +0x1388            | area archive                          | area table, read as nibbles by `func_801C6FD4`                                                                                                                                           | `[read]`     |
-| `0x800327A0`                    | `EMI_DecodeBegin`                     | LZ77 decoder context                                                                                                                                                                     | `[read]`     |
-| `0x80033800` +0x4000            | `GFX_ResetPalette`                    | palette arena; archives load CLUT slices at `0x80033A00`, `0x80033C00`, `0x80033E00`, `0x80035800`, `0x80036C00`, `0x80036E00`                                                           | `[read]`     |
-| `0x80037800` +0x4000            | `g_GraphicsPaletteDst`                | palette work: 32 rows of `0x200` bytes, uploaded by `GFX_UploadPalette`                                                                                                                  | `[read]`     |
-| `0x8003B800`                    | `PLCHAR`, `BPLCHAR`, `START` graphics | LZ77 destination for character graphics; `LOGO_WORK_BASE`                                                                                                                                | `[read]`     |
-| `0x80096800` +`0x208C4`         | `battle/15`                           | battle data module, loaded with `battle/03`                                                                                                                                              | `[read]`     |
-| `0x800C1800` (window `0x33800`) | boss modules (35 images)              | boss code, at most `0x1E14` bytes of the window; the rest is data                                                                                                                        | `[inferred]` |
-| `0x800D3800` up to +0x40A8      | area archive                          | area script bank                                                                                                                                                                         | `[read]`     |
-| `0x800E3800`                    | area archive                          | scene table (`SCENE_TABLE_BASE`)                                                                                                                                                         | `[read]`     |
-| `0x800E4000` +0x488             | area archive                          | encounter table                                                                                                                                                                          | `[read]`     |
-| `0x800E4800` .. `0x800F0800`    | `EMI_LoaderStreamInitSlot`            | CD ring: slot 0 for the header, 23 ring slots of `0x800` bytes                                                                                                                           | `[read]`     |
-| `0x800F0800` +0xE6C             | battle archives                       | battle script bank                                                                                                                                                                       | `[read]`     |
-| `0x800F5000`, `0x80117000`      | single area archives                  | extra area code blocks (`area030/05`, `area049/13`)                                                                                                                                      | `[read]`     |
-| `0x80104000` up to +0x1126C     | area archive                          | map bundle                                                                                                                                                                               | `[read]`     |
-| `0x8011A000` .. `0x8012C000`    | `SND_SetBankLayout`                   | sound-bank RAM; the end depends on the layout                                                                                                                                            | `[inferred]` |
-| `0x80143B40` .. `0x80149800`    | `exe/slus_004_22`                     | work variables below the code, for example `D_80143B40`, `g_EmiRingBase`, `D_80148A50`; the lower bound is the lowest one seen                                                           | `[read]`     |
-| `0x80149800` .. `0x8018B2B8`    | `exe/slus_004_22`                     | rodata, data, text, data_2                                                                                                                                                               | `[read]`     |
-| `0x8018B2B8` .. `0x80190C60`    | `exe/slus_004_22`                     | BSS, cleared by `stup2`                                                                                                                                                                  | `[read]`     |
-| `0x80195800` +`0x38158`         | `emi/etc/game/00`                     | resident game code and tables, from `GAME.EMI` entry 0                                                                                                                                   | `[read]`     |
-| `0x801CE000` +`0x1D800`         | `exe/logo`                            | `LOGO.EXE` image, ending at `0x801EB800` (BSS to `0x801ECEC0`); overlaps only the plchar window (`0x801CE400`) and the scene window (`0x801D0C00`), not the shared window (`0x801EEC00`) | `[read]`     |
-| `0x801CE400`                    | `PLCHAR/PLP012`                       | character code (up to 9932 bytes over 19 images)                                                                                                                                         | `[read]`     |
-| `0x801D0C00` .. `0x801EDAD0`    | scene window                          | one scene overlay (18 images, largest `battle/03`: extracted size `0x1CDD0`; the earlier figure `0x1CED0` is `[unknown]`, possibly a TOC size)                                           | `[read]`     |
-| `0x801EEC00`                    | shared code window                    | 128 images (battle end and overlay, magic, `commu00`, `start/09`); up to 16076 bytes                                                                                                     | `[read]`     |
-| `0x801F2C00`                    | area program window                   | 200 area programs; up to 16324 bytes                                                                                                                                                     | `[read]`     |
-| `0x801F6C00` .. `0x801FEA80`    | scenario window                       | 20 scenario controllers; up to 32384 bytes                                                                                                                                               | `[read]`     |
-| `0x801FF000`                    | `SYS_RunLogo`                         | stack for the `Exec` of `LOGO.EXE`                                                                                                                                                       | `[read]`     |
-| `0x801FF400` .. `0x801FFC00`    | `CallbackInitThreads`                 | four `0x200`-byte thread stacks for callback slots 0 to 3                                                                                                                                | `[read]`     |
-| `0x801F8000` .. `0x80200000`    | `stup1`                               | main stack reservation of `0x8000` bytes; it overlaps the scenario window and the thread stacks                                                                                          | `[read]`     |
+The area band is the busiest. A typical area archive writes, in order: the sound bank and cue table, the scene table, the script bank, graphics, three palette slices, the area table, the encounter table, the text bank, the map bundle and last the area program at `0x801F2C00`. [Loading](loading.md#area) walks through this.
 
-## Executable image
+## The executable image
 
-The header of `SLUS_004.22` states `t_addr` `0x80096800`, `t_size` `0x160800`, `pc0` `0x8014AA0C`
-(`stup2`) and `s_addr` `0x801FFFF0`. RAM address equals `0x80096000` plus the file offset. `[read]`
+The header of `SLUS_004.22` states `t_addr 0x80096800`, `t_size 0x160800`, `pc0 0x8014AA0C` and `s_addr 0x801FFFF0`. A RAM address equals `0x80096000` plus the file offset.
 
-The first `0xB3000` bytes of the image are zeroes with a few stamp words. They reserve RAM for later loads.
-The real code and data sit at `0x80149800` to `0x8018B2B8`. The reserved slots are `0x80096800` (`0x2B000`),
-`0x800C1800` (`0x33800`), `0x800F5000` (`0x22000`) and `0x80117000` (`0x32800`). The file also holds zeroes
-from `0x8018B2B8` to `0x801D0400`, apart from stamp words at `0x80195800` and `0x801CE400`, and a tail pad
-at `0x801F6800`. `[read]` The stamp words run `6` to `0xF`; their meaning is `[unknown]`.
-
-The main executable therefore does not occupy its `t_addr`. The first loaded data at `0x80096800` is
-`battle/15`, and the resident `emi/etc/game/00` lands in the zero gap at `0x80195800`. `[read]`
+The first `0xB3000` bytes of the payload are zero with a few stamp words. They reserve RAM for later loads. The real code and data sit at `0x80149800..0x8018B2B8`. The reserved ranges are `0x80096800` (`0x2B000` bytes), `0x800C1800` (`0x33800`), `0x800F5000` (`0x22000`) and `0x80117000` (`0x32800`). The payload is also zero from `0x8018B2B8` to `0x801D0400`, apart from stamp words at `0x80195800` and `0x801CE400`, and has a tail pad at `0x801F6800`. The stamp words hold values `6` to `0xF`, and their meaning is `[unknown]`. The executable therefore does not occupy its own `t_addr`. The first data that lands at `0x80096800` is `battle/15`, and the resident game program lands in the zero gap at `0x80195800`.
 
 ## Overlay windows
 
-Each window is one fixed address. A load writes to the address in the archive table entry. No eviction or
-unload code was found, so a later load at the same address overwrites the earlier one. `[inferred]` The
-loader checks only the first word of each entry against the table, not what was there before.
-
 | Window       | Occupants, one at a time                                                                             | Replaced when                              |
 | ------------ | ---------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| `0x801CE400` | `PLCHAR` and `PLP` character code                                                                    | another character archive loads            |
+| `0x801CE400` | character code (`PLCHAR` and `PLP` archives)                                                         | another character archive loads            |
 | `0x801D0C00` | title (`GAME.EMI` entry 1), `START`, `STATUS`, `SHOP`, `SISYOU`, `BATE`, `battle/03`, some area code | the next menu, battle or area archive      |
 | `0x801EEC00` | `START` entry 9, `SHOP` entry 8, `COMMU00`, `BMAGIC`, `BATL_END`, `BATL_OVR`, some area code         | the next archive with code at this address |
-| `0x801F2C00` | the area program of the current area                                                                 | the next `AREA` or `WORLD` archive         |
+| `0x801F2C00` | the area program of the current area                                                                 | the next area archive                      |
 | `0x801F6C00` | the scenario controller of the current scenario                                                      | the next `SCENA` archive                   |
 | `0x800C1800` | boss module                                                                                          | the next `BOSS` archive                    |
 
-Which occupant is live follows from the last archive loaded for the window. `[inferred]` Nothing in the code
-records the live occupant, so the resident code reaches into a window by fixed address and relies on the
-caller to have loaded the right archive. `[inferred]`
+An overlay's own variables sit in its window and are lost when another archive replaces it. Only the persistent block and the other executable variables outlive a swap.
 
-- The area script opcode table `D_801C7C70[187]` and the scene event table `g_SceneEvents[64]` mix handlers
-  in the resident image (`0x8019xxxx`, `0x801Axxxx`) with handlers in the scene window (`0x801Dxxxx`), the
-  area program window (`0x801F2Cxx` and up) and the scenario window (`0x801F6xxx` and up). `[read]`
-- `g_SceneScenes[20]` holds 20 pointers into the scenario window, and `Game_RunScenarioEntry`
-  `Game_RunScenarioEntry (emi/etc/game/00@0x801A782C)` calls `entry_00` of the selected one. `[read]`
-- `g_GameModeHandlers[8]` (`emi/etc/game/00@0x801C7B54`) holds `Battle_Update`
-  `Battle_Update (emi/battle/battle/03@0x801D1014)` at index 5. `[read]`
-- `battle/03` (`0x801D0C00`) and `battle/15` (`0x80096800`) come from the same battle archive and coexist.
-  `[read]` BATTLE.EMI and BATTLE2.EMI are byte-identical.
+Resident code reaches overlay code through tables of function pointers:
 
-The logo image (`0x801CE000` to `0x801EB800`) ends below the shared code window (`0x801EEC00`) and overlaps only the plchar window
-(`0x801CE400`) and the scene window (`0x801D0C00`). Both are empty while the logo runs. `[read]` (addresses); `[inferred]` (empty)
+- The area script opcode table `D_801C7C70` and the scene event table `g_SceneEvents` mix handlers in the resident program (`0x8019xxxx`, `0x801Axxxx`) with handlers in the scene window (`0x801Dxxxx`), the area program window and the scenario window.
+- `g_SceneScenes (emi/etc/game/00@0x801C8454)` holds 20 pointers into the scenario window, and `Game_RunScenarioEntry (emi/etc/game/00@0x801A782C)` calls `entry_00` of the selected one.
+- `g_GameModeHandlers (emi/etc/game/00@0x801C7B54)` holds `Battle_Update (emi/battle/battle/03@0x801D1014)` at index 5.
+- `battle/03` (`0x801D0C00`) and `battle/15` (`0x80096800`) come from one battle archive and coexist. `BATTLE.EMI` and `BATTLE2.EMI` are byte-identical.
+
+The logo (`0x801CE000..0x801EB800`) overlaps only the character window and the scene window. Both are empty while the logo runs, because no overlay loads before it. `[inferred]` for "empty".
 
 ## Scratchpad
 
-The scratchpad is `0x400` bytes at `0x1F800000`. `g_SpadWork` is a pointer cell at
-`0x1F800044`. `[read]` `EMI_DecodeBegin` points the LZ77 source at scratchpad offset 6 and its limit at
-offset `0x400`, so the decoder uses the whole scratchpad as a sector window. `[read]` The share between
-`g_SpadWork` users and the decoder is `[unknown]`; the decoder runs only during a load.
+The scratchpad is the 1 KB of fast RAM at `0x1F800000`. `g_SpadWork` is a pointer cell at `0x1F800044`, which the overlay handlers use to reach the record they step ([scheduler](scheduler.md)). `EMI_DecodeBegin (exe/slus_004_22@0x80164028)` points the LZ77 source at scratchpad offset 6 and its limit at `0x400`, so the decoder treats the whole scratchpad as a sector window. How the two uses share the space is `[unknown]`. The decoder runs only during a load.
 
 ## Stacks
 
-| Stack                      | Top                            | Set by                                                | Tag      |
-| -------------------------- | ------------------------------ | ----------------------------------------------------- | -------- |
-| Main                       | `0x80200000`                   | `stup1`; it replaces the header `s_addr` `0x801FFFF0` | `[read]` |
-| `LOGO.EXE` `Exec`          | `0x801FF000`                   | `SYS_RunLogo` (`D_80143EA0`)                          | `[read]` |
-| Callback slot `i` (0 to 3) | `0x801FF400 + 0x200 * (i + 1)` | `CallbackInitThreads`                                 | `[read]` |
+| Stack                      | Top                            | Set by                                             |
+| -------------------------- | ------------------------------ | -------------------------------------------------- |
+| Main                       | `0x80200000`                   | `stup1`; it replaces the header value `0x801FFFF0` |
+| `LOGO.EXE` `Exec`          | `0x801FF000`                   | `SYS_RunLogo`                                      |
+| Callback slot `i` (0 to 3) | `0x801FF400 + 0x200 * (i + 1)` | `CallbackInitThreads`                              |
 
-The thread stacks occupy `0x801FF400` to `0x801FFC00`. The main stack has `0x400` bytes above them, so a deeper
-main stack writes into slot 3. `[inferred]` `SYS_Main` does its game work through the threads, and its real
-depth is `[unknown]`. The `Exec` stack lies below the thread stacks and is used only while the logo runs. `[read]`
+`stup1` leaves 0x8000 bytes for the main stack: the heap ends at `0x801F8004`. The range `0x801F8000..0x80200000` already holds most of the scenario window and the thread stacks. The thread stacks end at `0x801FFC00`, so the main stack has `0x400` bytes above them. A deeper main stack writes into slot 3's stack. `[inferred]` The game does its work in the threads, and the real depth of the main stack is `[unknown]`. The `Exec` stack is used only while the logo runs.
 
 ## Heap and buffers
 
-- `stup1` calls `InitHeap` with the range `0x80190C64..0x801F8004`. That range overlaps the resident overlay and the overlay arena, and the executable has no allocator thunk, so the heap is unused. See [boot](boot.md). `[inferred]`
-- Primitive banks: `SYS_PrepareFrame` sets `g_GfxPrimCursor` to `0x80020000 + buffer_index * 0x9000`, so two
-  banks end at `0x80032000`. `[read]`
-- CD ring: `g_EmiRingBase` is `0x800E4800`. The 23 ring slots of `0x800` bytes end at `0x800F0800`. Slot 0
-  receives the header sector. `[read]` `SYS_LoadExec` reads its header sector to the same address through
-  `D_801459F8`. `[read]`
-- `D_801459FC` is `0x800F5000` (`AREA_CODE_BASE`) and `AREA_WORK_WINDOW_ADDRESS` is `0x800E4800`. The area
-  work window and the CD ring share the range, so no area work data is safe in it while an archive streams.
-  `[inferred]`
-- Palette arena: `GFX_ResetPalette` zeroes rows 28 to 31 of the 16 KB arena at `0x80033800`, then copies 32
-  rows of `0x200` bytes to `0x80037800`. `GFX_UploadPalette` sends rect (0, 0x1E0, 0x100, 0x20) from there
-  to VRAM when `g_GfxPalettePending` is set. `[read]`
+- **Heap.** `stup1` calls `InitHeap` over `0x80190C64..0x801F8004`, which overlaps the resident program and the overlay arena. The executable has no allocator thunk, so the heap is unused. `[inferred]` ([boot](boot.md))
+- **Primitive banks.** `SYS_PrepareFrame` sets `g_GfxPrimCursor` to `0x80020000 + buffer_index * 0x9000`. Two banks end at `0x80032000`. Each bank accepts primitives only up to `0x8FCC` bytes ([frame loop](frame-loop.md)).
+- **CD ring.** `g_EmiRingBase` is `0x800E4800`. The 23 ring slots of `0x800` bytes end at `0x800F0800`, and slot 0 receives the header sector of the archive. `SYS_LoadExec` reads its header sector to the same address.
+- **Area work window.** `AREA_WORK_WINDOW` is also `0x800E4800`. It shares the range with the CD ring, so no area work data is safe there while an archive streams. `[inferred]` `D_801459FC` holds `0x800F5000`, the area code base.
+- **Palettes.** `GFX_ResetPalette` zeroes rows 28 to 31 of the 16 KB arena at `0x80033800`, then copies 32 rows of `0x200` bytes to the work area at `0x80037800`. `GFX_UploadPalette` sends the rectangle (0, 0x1E0, 0x100, 0x20) from there to VRAM whenever `g_GfxPalettePending` is set.
 
 ## Sound memory
 
-`SND_SetBankLayout` starts at `0x8011A000` and advances by two per-bank sizes, `D_8018239C` and `D_801823F0`.
-SPU RAM addresses come from `D_80182348[3][7]`. `[read]` The sums put the end of the bank RAM at `0x8012C000`
-(layout 0), `0x8012B840` (layout 1) and `0x8012B5E0` (layout 2). `[inferred]`
+`SND_SetBankLayout (exe/slus_004_22@0x80161808)` starts at `0x8011A000` and advances by two per-bank size tables, `D_8018239C` and `D_801823F0`. The SPU RAM address of each bank comes from `D_80182348[3][7]`. The sums put the end of the bank RAM at `0x8012C000` (layout 0), `0x8012B840` (layout 1) and `0x8012B5E0` (layout 2). `[inferred]`
 
-| Layout | Caller                                        | Banks used | SPU addresses                                                              |
-| -----: | --------------------------------------------- | ---------: | -------------------------------------------------------------------------- |
-|      0 | `SYS_StartFrontend`, `Game_StartSelectedGame` |          3 | `0x1010`, `0x3E0A0`, `0x4F210`                                             |
-|      1 | battle entry `func_80197AA4`                  |          7 | `0x1010`, `0x3E0A0`, `0x520F0`, `0x5B170`, `0x62A90`, `0x6A3A0`, `0x71CC0` |
-|      2 | `Game_BeginTitle`                             |          2 | `0x1010`, `0x6C6D0`                                                        |
+| Layout | Set by                                        | Banks | SPU addresses                                                              |
+| -----: | --------------------------------------------- | ----: | -------------------------------------------------------------------------- |
+|      0 | `SYS_StartFrontend`, `Game_StartSelectedGame` |     3 | `0x1010`, `0x3E0A0`, `0x4F210`                                             |
+|      1 | battle entry `func_80197AA4`                  |     7 | `0x1010`, `0x3E0A0`, `0x520F0`, `0x5B170`, `0x62A90`, `0x6A3A0`, `0x71CC0` |
+|      2 | `Game_BeginTitle`                             |     2 | `0x1010`, `0x6C6D0`                                                        |
 
-All three layouts put bank 0 at SPU address `0x1010`, so a layout change reuses SPU RAM. `[inferred]` The
-[audio page](audio.md) covers the banks. XA audio does not use main RAM: the CD hardware sends it to the
-SPU. `[read]`
+All three layouts put bank 0 at SPU address `0x1010`, so a layout change reuses SPU RAM. [Audio](audio.md) covers the banks. XA audio does not use main RAM, because the CD hardware sends it straight to the SPU.
 
 ## VRAM
 
-The code addresses VRAM only through `LoadImage` rects. Three uses are fixed in code:
+The code addresses VRAM only through `LoadImage` rectangles. Three uses are fixed in code:
 
-| Rect                                                          | Source                    | Writer                                                            | Tag      |
-| ------------------------------------------------------------- | ------------------------- | ----------------------------------------------------------------- | -------- |
-| (0, 0x1E0, 0x100, 0x20)                                       | `0x80037800` palette work | `GFX_UploadPalette`                                               | `[read]` |
-| 32 by 32 blocks at `x = column * 32`, `y = (row & 0x3F) * 32` | ring sectors              | `EMI_LoaderUploadSector`, bounded to x below 1001 and y below 501 | `[read]` |
-| 24-wide slices                                                | logo decode buffer        | `Logo_DecodeSlice`                                                | `[read]` |
+| Rectangle                                                     | Source                    | Writer                                                            |
+| ------------------------------------------------------------- | ------------------------- | ----------------------------------------------------------------- |
+| (0, 0x1E0, 0x100, 0x20)                                       | `0x80037800` palette work | `GFX_UploadPalette`                                               |
+| 32 by 32 blocks at `x = column * 32`, `y = (row & 0x3F) * 32` | ring sectors              | `EMI_LoaderUploadSector`, bounded to x below 1001 and y below 501 |
+| 24-wide slices                                                | logo decode buffer        | `Logo_DecodeSlice`                                                |
 
-The full VRAM split between frame buffers, textures and palettes is `[unknown]`; see [rendering](rendering.md).
-
-## Connections
-
-- [loading](loading.md): how each range is filled.
-- [boot](boot.md), [frame-loop](frame-loop.md), [scheduler](scheduler.md): stacks, buffers and the callback
-  threads.
-- [rendering](rendering.md), [audio](audio.md): primitive banks, VRAM, sound banks.
-- [../runtime.md](../runtime.md), [../battle.md](../battle.md), [../field.md](../field.md),
-  [../records.md](../records.md).
-- [../../formats/emi.md](../../formats/emi.md), [../../formats/area.md](../../formats/area.md),
-  [../../formats/audio.md](../../formats/audio.md), [../../formats/graphics.md](../../formats/graphics.md),
-  [../../formats/lz77.md](../../formats/lz77.md).
+The full split of VRAM between frame buffers, textures and palettes is `[unknown]`; see [rendering](rendering.md).
 
 ## Gaps
 
-- `[unknown]` Meaning of the stamp words `6` to `0xF` in the executable file.
-- `[unknown]` Whether the area table at `0x80032000` is live while the LZ77 context at `0x800327A0` is in
-  use; the two ranges overlap.
-- `[unknown]` The final VRAM split.
-- `[unknown]` The field each per-bank size block feeds, the end of the used SPU RAM, and the real main stack depth.
-- `[unknown]` Whether anything below `0x80143B40` and above `0x8012C000` is used; `D_8012D880` (the cell-row pool) is the one symbol seen there.
-- `[unknown]` Which occupant of a shared window is live at a given moment; the code does not record it.
-- `[unknown]` Callers of the `BOSS` slot `0x1B3`; none found in the code read, assembly not searched exhaustively.
+| Gap                                                                                                    | What would settle it                                                                          |
+| ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| Meaning of the stamp words `6` to `0xF` in the executable                                              | Find a reader, or compare with the linker map                                                 |
+| Whether the area table at `0x80032000` is live while the LZ77 context at `0x800327A0` is in use        | The two ranges overlap; trace their uses during an area load                                  |
+| The final VRAM split                                                                                   | A VRAM dump during play                                                                       |
+| The field that each per-bank size block feeds; the real end of used SPU RAM; the real main stack depth | A trace of `SND_SetBankLayout` users, an SPU dump, a stack watermark                          |
+| Whether anything between `0x8012C000` and `0x80143B40` is in use                                       | `D_8012D880`, the cell-row pool, is the one symbol seen there; search the assembly for others |
+| Which occupant of a shared window is live at a given moment                                            | The code does not record it; a runtime watch on the loader                                    |
+| Callers of the `BOSS` slot `0x1B3`                                                                     | No immediate use of `0x1B3` exists in the assembly; find where a caller builds the slot id    |
