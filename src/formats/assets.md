@@ -43,7 +43,8 @@ A payload is a message bank when `offset[0]` is even, at least 4 and no larger t
 
 The 200 entries that load at `0x80010000` hold 152 distinct payloads. 197 entries are banks. The three fishing entries (`AREA030`, `AREA089` and `AREA129`, entry 18) are one identical 4,293-byte payload whose slots do not ascend, so they hold other data in that slot. 165 of the 197 banks are text banks: 162 at entry 11, 2 at entry 7 and 1 at entry 12, and 33, 33, 29, 30 and 40 in WORLD00 to WORLD04. The other 32 banks (31 of 1,022 bytes and one of 512 bytes) hold only short or empty records. The 165 text banks hold 10,510 messages, a message being one distinct slot value below the payload size. 10,494 of them are proven strings: they do not start with a zero byte and have at least 3 bytes before their terminator. All 197 banks hold 11,006 messages, and the three other payloads add 330, which makes 11,336 for the 200 entries. Every text bank and every message of one encodes back to its own bytes, and every archive rebuilt from its banks reads back unchanged.
 
-> WARNING: rewriting a bank changes the slot table and the messages only. A message that changes length moves every message after it, so any other offset that points into the bank is stale afterwards. `{LINK:nn}` reads such an offset ([control codes](../data/text.md#control-codes)). Check an edited bank in the game before it ships.
+> [!WARNING]
+> Rewriting a bank changes the slot table and the messages only. A message that changes length moves every message after it, so any other offset that points into the bank is stale afterwards. `{LINK:nn}` reads such an offset ([control codes](../data/text.md#control-codes)). Check an edited bank in the game before it ships.
 
 ## Game strings
 
@@ -56,6 +57,7 @@ On the retail disc 831 payloads hold strings, 43,593 in all. 165 are text banks 
 - A record that overlaps a name or another record is left out, and the name wins. 19 of the 33,102 strings outside message banks overlap (1 name and 18 records, in 14 payloads), which leaves the 33,083.
 - All 2,523 payloads that are not message banks decode and encode back to their own bytes, 666 of them with strings.
 
-> WARNING: a record that changes length moves the bytes after it. A pointer table that reaches those bytes is stale afterwards. Check an edited payload in the game before it ships.
+> [!WARNING]
+> A record that changes length moves the bytes after it. A pointer table that reaches those bytes is stale afterwards. Check an edited payload in the game before it ships.
 
 The executables hold 167 C string literals, which need the ASCII encoding. They are not in the 33,083.
