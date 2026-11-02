@@ -1,1 +1,0 @@
-# Areas and the field
