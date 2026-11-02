@@ -93,7 +93,7 @@ The panel fill and the other panel handlers are not in the resident image. The t
 
 ## Text drawing
 
-Five drawers cover all text. Each builds sprites from one of two glyph sheets and a palette row.
+Five drawers cover all text. Each builds sprites from one of three glyph sheets and a palette row.
 
 | Drawer                            | Sheet and cell                                                                                             | CLUT                       | Primitive         |
 | --------------------------------- | ---------------------------------------------------------------------------------------------------------- | -------------------------- | ----------------- |
@@ -146,20 +146,20 @@ The fade body `func_8014F704` draws a 320 by 240 `TILE` with grey level `positio
 
 ## Data and limits
 
-| Limit                       | Value                                                                                      | Source                                                    | Asset must stay within                                                  |
-| --------------------------- | ------------------------------------------------------------------------------------------ | --------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Characters per frame budget | The primitive arena, 36,812 bytes: about 2,300 `SPRT_8` or 1,840 `SPRT`                    | `GFX_AddPrim` ([rendering](rendering.md#data-and-limits)) | Text beyond the arena is dropped, not truncated by the engine.          |
-| Name insert                 | 6 characters                                                                               | `UI_DrawMessageScript`                                    | Party names fit 6 glyphs when inserted into a message.                  |
-| Variable string             | 32 bytes per entry; the budget is 33 steps because the cursor steps past the operand first | `g_TextVariables[][0x20]`                                 | Variable text stays under 32 bytes.                                     |
-| Bank link                   | 17 characters                                                                              | `UI_DrawMessageScript`                                    | A linked message shows at most 17 characters.                           |
-| Message bank offsets        | `u16` offsets from `0x80010000`                                                            | `Message_StartAreaMessage`                                | A bank is under 64 KiB; the record pointer is `0x80010000 + u16`.       |
-| Resource groups             | 4 (id bits 14 and 15)                                                                      | `Resource_Resolve` mask `0xC`                             | Resource ids use groups 0 to 3, index below `0x4000`.                   |
-| Window size                 | 200 by 54 or 120 by 54 pixels                                                              | `func_80159050`                                           | Message text fits the box: glyphs advance 8 pixels, a newline moves 14. |
-| Window positions            | 8 per set, 2 sets                                                                          | `g_MenuPanelOrigins`, `D_801490CE`                        | Position index below 8.                                                 |
-| Panel tasks                 | 22                                                                                         | `Menu_ResetPanelTasks`                                    | At most 22 panels open together.                                        |
-| Screen effects              | 21 modes                                                                                   | `g_UiLocalModeFuncs`                                      | Effect index below 21.                                                  |
-| Glyph sheet                 | 31 columns of 8 by 12 cells at texture page `0x2F`; 32 columns of 8 by 8                   | `UI_DrawTextGlyphs`, `UI_DrawGlyphString`                 | A replacement font keeps the cell grid and page.                        |
-| Palette for text            | 16 cells (columns 0 to 15) of stage row 0                                                  | CLUT `0x7800 \| n`                                        | Text colours sit in the first 16 cells of arena row 0.                  |
+| Limit                       | Value                                                                                            | Source                                                         | Asset must stay within                                                  |
+| --------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Characters per frame budget | The primitive arena, 36,812 bytes: about 2,300 `SPRT_8` or 1,840 `SPRT`                          | `GFX_AddPrim` ([rendering](rendering.md#data-and-limits))      | Text beyond the arena is dropped, not truncated by the engine.          |
+| Name insert                 | 6 characters                                                                                     | `UI_DrawMessageScript`                                         | Party names fit 6 glyphs when inserted into a message.                  |
+| Variable string             | 32 bytes per entry; the budget is 33 steps because the cursor steps past the operand first       | `g_TextVariables[][0x20]`                                      | Variable text stays under 32 bytes.                                     |
+| Bank link                   | 17 characters                                                                                    | `UI_DrawMessageScript`                                         | A linked message shows at most 17 characters.                           |
+| Message bank offsets        | `u16` offsets from `0x80010000`                                                                  | `Message_StartAreaMessage`                                     | A bank is under 64 KiB; the record pointer is `0x80010000 + u16`.       |
+| Resource groups             | 4 (id bits 14 and 15)                                                                            | `Resource_Resolve` mask `0xC`                                  | Resource ids use groups 0 to 3, index below `0x4000`.                   |
+| Window size                 | 200 by 54 or 120 by 54 pixels                                                                    | `func_80159050`                                                | Message text fits the box: glyphs advance 8 pixels, a newline moves 14. |
+| Window positions            | 8 per set, 2 sets                                                                                | `g_MenuPanelOrigins`, `D_801490CE`                             | Position index below 8.                                                 |
+| Panel tasks                 | 22                                                                                               | `Menu_ResetPanelTasks`                                         | At most 22 panels open together.                                        |
+| Screen effects              | 21 modes                                                                                         | `g_UiLocalModeFuncs`                                           | Effect index below 21.                                                  |
+| Glyph sheet                 | 31 columns of 8 by 12 cells at texture page `0x2F`; 32 columns of 8 by 8; 21 columns of 12 by 12 | `UI_DrawTextGlyphs`, `UI_DrawTextString`, `UI_DrawGlyphString` | A replacement font keeps the cell grid and page.                        |
+| Palette for text            | 16 cells (columns 0 to 15) of stage row 0                                                        | CLUT `0x7800 \| n`                                             | Text colours sit in the first 16 cells of arena row 0.                  |
 
 See also [frame loop](frame-loop.md), the [guide to editing text](../guides/text.md) and [disc and files](../formats/disc.md).
 

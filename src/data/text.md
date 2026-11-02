@@ -58,10 +58,16 @@ round trip must keep which slot it used.
 ### Other glyph sheets
 
 Two more sheets exist. `UI_DrawGlyphString (exe/slus_004_22@0x80150098)` draws 8 by 8 glyphs from a
-sheet of 32 columns that starts at `0x20`, so its bytes are plain ASCII. Control code `0x15` in
-`UI_DrawTextGlyphs` draws a number glyph from a third sheet of 21 columns and 12 px cells. The
-operand `n` selects the cell `n + 0x5B`, at `u = ((n + 0x5B) % 21) * 12`. The row base is not read
-(`[unknown]`).
+sheet of 32 columns that starts at `0x20`, so its bytes are plain ASCII. It has no case for control
+code `0x15`: the byte takes the ordinary glyph path and draws the cell for ASCII `5` (`0x35`).
+
+`UI_DrawTextString (exe/slus_004_22@0x8014FC90)` reads control code `0x15` from the same 32-column
+grid of 8 by 8 cells on texture page `0x2F`. The operand `n` selects the cell `n + 0x40`, which is
+column `(n + 0x40) % 32` and row `(n + 0x40) / 32`, with the row shade added.
+
+Control code `0x15` in `UI_DrawTextGlyphs (exe/slus_004_22@0x8014F84C)` draws a number glyph from a
+third sheet of 21 columns and 12 px cells. The operand `n` selects the cell `n + 0x5B`, at
+`u = ((n + 0x5B) % 21) * 12`. Operands 0 to 255 use rows 4 to 16 of that sheet.
 
 ### Worked example
 
