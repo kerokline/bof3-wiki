@@ -87,7 +87,7 @@ Almost every mode loop has the same shape: a callback loops, reads a state byte,
 | `Game_RunTitle (emi/etc/game/01@0x801D0C04)`            | `g_UiTitleState (exe/slus_004_22@0x80143C10)`   | `s_TitleStates`, static in `emi/etc/game/01`       |       8 |
 | `Game_RunMainLoop (emi/etc/game/00@0x80197068)`         | `g_GameEntryState (exe/slus_004_22@0x80143B90)` | `g_GameStates (emi/etc/game/00@0x801C7B14)`        |      12 |
 | `Game_RunCampMenuLoop (emi/etc/game/00@0x80196F78)`     | `g_GameEntryState`                              | `g_GameCampMenuLoad (emi/etc/game/00@0x801C7B08)`  |       3 |
-| `UI_DispatchLocalMode`                                  | `g_UiLocalMode`                                 | `D_801499AC (exe/slus_004_22@0x801499AC)`          |      21 |
+| `UI_DispatchLocalMode`                                  | `g_UiLocalMode`                                 | `g_UiLocalModeFuncs (exe/slus_004_22@0x801499AC)`  |      21 |
 | `Battle_DispatchMode (emi/battle/battle/03@0x801D112C)` | `g_BattleMode (exe/slus_004_22@0x801462E0)`     | `g_BattlePhases (emi/battle/battle/03@0x801D0C04)` |       6 |
 
 The two game loops differ in order. `Game_RunMainLoop` calls the handler, then `func_80198CAC` (the play clock and timers), then `CallbackWait(1)`. `Game_RunCampMenuLoop` waits first, then calls the handler, then `Menu_RunPanelTasks`. Both zero `g_GameEntryState` and `g_GameEntrySubstate` when they start, and call `Menu_ResetPanelTasks`. The meaning of each entry state is in [game phases](../../systems/phases/).
@@ -109,7 +109,7 @@ A menu panel is a task, so at most 22 panels are live. `Menu_RunPanelTasks (exe/
 
 ## Local UI modes
 
-`UI_SetMode(m)` starts a screen effect such as a fade, wipe or zoom. It does nothing while `g_UiWindowEffectBusy (exe/slus_004_22@0x80143C40)` is nonzero. Otherwise it stores `m & 0xFF` in `g_UiLocalMode (exe/slus_004_22@0x80143C90)` and registers `UI_DispatchLocalMode` in slot 2. That callback copies the 21-entry table to the stack and calls the entry `g_UiLocalMode` selects, once. Several entries are one-line wrappers around the fade routine `func_8014F514`, which loops with `CallbackWait(1)` and ends the thread with `CallbackExit`. The other entries end through their own `CallbackWait` and `CallbackExit` calls. `UI_SetModeWait` is the same call, followed by a `CallbackWait(1)` loop until the effect ends.
+`UI_SetMode(m)` starts a screen effect such as a fade, wipe or zoom. It does nothing while `g_UiWindowEffectBusy (exe/slus_004_22@0x80143C40)` is nonzero. Otherwise it stores `m & 0xFF` in `g_UiLocalMode (exe/slus_004_22@0x80143C90)` and registers `UI_DispatchLocalMode` in slot 2. That callback copies the 21-entry table to the stack and calls the entry `g_UiLocalMode` selects, once. Several entries are one-line wrappers around the fade routine `GFX_RunBlackFade`, which loops with `CallbackWait(1)` and ends the thread with `CallbackExit`. The other entries end through their own `CallbackWait` and `CallbackExit` calls. `UI_SetModeWait` is the same call, followed by a `CallbackWait(1)` loop until the effect ends.
 
 The effect table is a table of transitions and not of game phases. Phase code calls `UI_SetMode` at a boundary. The field handler for an area change calls `UI_SetMode(g_GameEntryMode)` ([game phases](../../systems/phases/)). The effect catalogue is in [UI and text drawing](../../systems/ui/).
 

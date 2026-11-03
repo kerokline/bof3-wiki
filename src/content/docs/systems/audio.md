@@ -59,11 +59,11 @@ Seven bank records (20 bytes each, at `0x8014677C`) tie a VAB id to a RAM window
 
 The active layout decides what fits in SPU RAM:
 
-| Layout | Set by                                                                                                                                                | Banks in use | When                         |
-| -----: | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -----------: | ---------------------------- |
-|      0 | `SYS_StartFrontend`, `Game_StartSelectedGame` and `Game_LeaveTitle` (`emi/etc/game/01`), `func_801D6A14` and `func_801D6F28` (`emi/battle/battle/03`) |            3 | Menus, field, after a battle |
-|      1 | `func_80197AA4` (`emi/etc/game/00`)                                                                                                                   |            7 | Battle                       |
-|      2 | `Game_BeginTitle (emi/etc/game/01@0x801D0C90)`                                                                                                        |            2 | Title screen                 |
+| Layout | Set by                                                                                                                                                          | Banks in use | When                         |
+| -----: | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | -----------: | ---------------------------- |
+|      0 | `SYS_StartFrontend`, `Game_StartSelectedGame` and `Game_LeaveTitle` (`emi/etc/game/01`), `Battle_StreamEndOverlay` and `func_801D6F28` (`emi/battle/battle/03`) |            3 | Menus, field, after a battle |
+|      1 | `func_80197AA4` (`emi/etc/game/00`)                                                                                                                             |            7 | Battle                       |
+|      2 | `Game_BeginTitle (emi/etc/game/01@0x801D0C90)`                                                                                                                  |            2 | Title screen                 |
 
 Bank 0 carries the music in every layout, with a different window size in each. The sizes are in [RAM and SPU budget per layout](#ram-and-spu-budget-per-layout), [memory](../../concepts/memory/#sound-memory) and [loading](../../concepts/loading/#audio-banks).
 
@@ -130,7 +130,7 @@ Sequence control of effect packages uses `SND_StopSequence`, `SND_SetSequenceVol
 - `SND_UpdateVoiceStatus (exe/slus_004_22@0x8015D044)` stores `SpuGetKeyStatus(1 << i)` for `i = 0..23` into `D_8018E140` each frame, called from `SYS_Main`.
 - The PlayStation SPU has 24 voices. `SsSetReservedVoice(0x10)` reserves 16 of them for the library, and voices 16 to 23 are prepared as the effect voices `[inferred]`. The reservation meaning is the PsyQ contract.
 - `D_80144954` is a duck gate. While it is nonzero, `SND_PlaySequence` starts sequences at volume 0 and the fade-in and decrescendo calls return. `SYS_StartFrontend` and `func_801E18D0` (`emi/etc/start/08`) clear it. Who sets it is not traced `[unknown]`.
-- `D_80144951` selects mono: when it is nonzero, `SND_SetCdVolume` halves all four `CdMix` bytes, so each output gets half the level on both channels. Who sets it is not traced `[unknown]`.
+- `g_SndMono` selects mono: when it is nonzero, `SND_SetCdVolume` halves all four `CdMix` bytes, so each output gets half the level on both channels. Who sets it is not traced `[unknown]`.
 
 ## XA streams
 
@@ -214,7 +214,7 @@ What an edited audio asset must stay within:
 - Whether the loader checks any window or SPU size. Settled by: tracing `EMI_LoaderCopySector` and the ring stage for a bound against the window sizes.
 - Concurrent open SEP count (the meaning of `SsSetTableSize`). Settled by: PsyQ sound library documentation, or a trace of `SsSepOpenJ` returning -1.
 - Which of `func_801D7234` and `func_80197F48` resumes the field track. Settled by: tracing the order of both with that option clear and result bit `0x10` set.
-- Writers of `D_80144954` (duck gate) and `D_80144951` (mono). Settled by: searching overlays and `emi/etc/start/08` for stores to `0x80144954` and `0x80144951`.
+- Writers of `D_80144954` (duck gate) and `g_SndMono` (mono). Settled by: searching overlays and `emi/etc/start/08` for stores to `0x80144954` and `0x80144951`.
 - Meaning of the cue volume ladders `D_80182290` to `D_80182308`. Settled by: finding the readers of those tables.
 - XA group sizes, group 2 callers and the content of each table entry. Settled by: reading the three tables against the XA file sector map.
 - The seven bank readers' per-bank differences. Settled by: reading `func_8015E994` to `func_80160E38`.

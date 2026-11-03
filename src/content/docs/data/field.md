@@ -20,7 +20,7 @@ The table gives the address, row size and row count of each object. Several obje
 | party records           | `0x80144968` |  164 |     8 | see [records](../records/#character-and-master-data)                                                       |
 | inventory ids           | `0x8014504C` |  512 | 4x128 | `Party_CountItem (exe/slus_004_22@0x8016628C)`, item menu                                                  |
 | inventory counts        | `0x8014524C` |  512 | 4x128 | item menu, `func_801D8364 (emi/world00/area030/04@0x801D8364)`                                             |
-| vital items             | `0x8014544C` |   32 |    32 | `func_80166140 (exe/slus_004_22@0x80166140)`, `func_80166180 (exe/slus_004_22@0x80166180)`                 |
+| vital items             | `0x8014544C` |   32 |    32 | `Party_HasVitalItem (exe/slus_004_22@0x80166140)`, `Party_AddVitalItem (exe/slus_004_22@0x80166180)`       |
 | zenny                   | `0x80144F50` |    4 |     1 | `Party_SpendZenny (exe/slus_004_22@0x8016663C)`, `Party_AddZenny (exe/slus_004_22@0x8016666C)`, every shop |
 | play clock              | `0x80144FC0` |    4 |     1 | `func_80198CAC (emi/etc/game/00@0x80198CAC)`, status, save and shop panels                                 |
 | fairy jobs              | `0x801455C8` |    8 |    60 | `Fairy_JoinVillage (emi/etc/commu00/00@0x801F00D4)`, `func_801F01F4 (emi/etc/commu00/00@0x801F01F4)`       |

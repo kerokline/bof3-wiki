@@ -83,7 +83,7 @@ An overlay's own variables sit in its window and are lost when another archive r
 
 Resident code reaches overlay code through tables of function pointers:
 
-- The scene-object handler table `D_801C7C70` (187 entries, one per object type; [areas](../../systems/areas/#staged-scene-objects)) and the scene event table `g_SceneEvents` mix handlers in the resident program (`0x8019xxxx`, `0x801Axxxx`) with handlers in the scene window (`0x801Dxxxx`), the area program window and the scenario window.
+- The scene-object handler table `g_ActorHandlers` (187 entries, one per object type; [areas](../../systems/areas/#staged-scene-objects)) and the scene event table `g_SceneEvents` mix handlers in the resident program (`0x8019xxxx`, `0x801Axxxx`) with handlers in the scene window (`0x801Dxxxx`), the area program window and the scenario window.
 - `g_SceneScenes (emi/etc/game/00@0x801C8454)` holds 20 pointers into the scenario window, and `Game_RunScenarioEntry (emi/etc/game/00@0x801A782C)` calls `entry_00` of the selected one.
 - `g_GameModeHandlers (emi/etc/game/00@0x801C7B54)` holds `Battle_Update (emi/battle/battle/03@0x801D1014)` at index 5.
 - `battle/03` (`0x801D0C00`) and `battle/15` (`0x80096800`) come from one battle archive and coexist. `BATTLE.EMI` and `BATTLE2.EMI` are byte-identical.
@@ -140,15 +140,15 @@ The full split of VRAM between frame buffers, textures and palettes is `[unknown
 
 ## Open questions
 
-| Question                                                                                               | What would settle it                                                                          |
-| ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
-| Meaning of the stamp words `6` to `0xF` in the executable                                              | Find a reader, or compare with the linker map                                                 |
-| Whether the area table at `0x80032000` is live while the LZ77 context at `0x800327A0` is in use        | The two ranges overlap; trace their uses during an area load                                  |
-| The final VRAM split                                                                                   | A VRAM dump during play                                                                       |
-| The field that each per-bank size block feeds; the real end of used SPU RAM; the real main stack depth | A trace of `SND_SetBankLayout` users, an SPU dump, a stack watermark                          |
-| Whether anything between `0x8012C000` and `0x80143B40` is in use                                       | `D_8012D880`, the cell-row pool, is the one symbol seen there; search the assembly for others |
-| Which occupant of a shared window is live at a given moment                                            | The code does not record it; a runtime watch on the loader                                    |
-| Callers of the `BOSS` slot `0x1B3`                                                                     | No immediate use of `0x1B3` exists in the assembly; find where a caller builds the slot id    |
+| Question                                                                                               | What would settle it                                                                               |
+| ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| Meaning of the stamp words `6` to `0xF` in the executable                                              | Find a reader, or compare with the linker map                                                      |
+| Whether the area table at `0x80032000` is live while the LZ77 context at `0x800327A0` is in use        | The two ranges overlap; trace their uses during an area load                                       |
+| The final VRAM split                                                                                   | A VRAM dump during play                                                                            |
+| The field that each per-bank size block feeds; the real end of used SPU RAM; the real main stack depth | A trace of `SND_SetBankLayout` users, an SPU dump, a stack watermark                               |
+| Whether anything between `0x8012C000` and `0x80143B40` is in use                                       | `g_AreaCellPrims`, the cell-row pool, is the one symbol seen there; search the assembly for others |
+| Which occupant of a shared window is live at a given moment                                            | The code does not record it; a runtime watch on the loader                                         |
+| Callers of the `BOSS` slot `0x1B3`                                                                     | No immediate use of `0x1B3` exists in the assembly; find where a caller builds the slot id         |
 
 ## Sources and confidence
 

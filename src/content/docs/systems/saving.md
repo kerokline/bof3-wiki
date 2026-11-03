@@ -40,7 +40,7 @@ sequenceDiagram
 
     Ev->>Main: D_8014865C = -2,<br/>g_GameEntryState = 7
     Main->>Main: Game_LoadShopOverlay<br/>EMI_LoaderStreamInitSlot<br/>SHOP
-    Main->>Sav: func_80199398 runs<br/>func_801D0EA0 each<br/>frame
+    Main->>Sav: func_80199398 runs<br/>Shop_DispatchStep each<br/>frame
     Sav->>Drv: state 2 func_801D47AC<br/>CardAccessFile 0 per<br/>port
     Drv->>Bios: _card_info and<br/>_card_load
     Bios->>Card: probe
@@ -62,8 +62,8 @@ sequenceDiagram
 ```
 
 - Scene event 10 is `Scene_RunShopSaveEvent (emi/etc/game/00@0x801A802C)`, entry 10 of `g_SceneEvents (emi/etc/game/00@0x801C84BC)`. Its cases 6 and 23 set `D_8014865C = -2` and `g_GameEntryState = 7`. The scripts or objects that select event 10 are not traced `[unknown]`.
-- `g_GameStates[7]` is `Game_RunShopState`. It runs `g_GameStateHandlers[g_GameEntrySubstate]`. Substate 0, `Game_LoadShopOverlay (emi/etc/game/00@0x80198270)`, streams the `SHOP` slot `0x266`. Substate 1, `func_80199398`, runs the field frame and `func_801D0EA0`. Substate 2, `func_801983D8`, reloads the character archive and returns to entry state 2.
-- `func_801D0EA0` dispatches `D_801E5144` by `D_80148650`. `func_801D0EDC` sets `D_80148650` to `D_80148698 + 2`, which is 3 for the save case. That selects `func_801D39BC`, and entry 3 of its table `D_801E52C4` is `SAVE_DispatchState (emi/etc/shop/00@0x801D46A4)`. It dispatches `D_801E530C` by `D_80148652`.
+- `g_GameStates[7]` is `Game_RunShopState`. It runs `g_GameStateHandlers[g_GameEntrySubstate]`. Substate 0, `Game_LoadShopOverlay (emi/etc/game/00@0x80198270)`, streams the `SHOP` slot `0x266`. Substate 1, `func_80199398`, runs the field frame and `Shop_DispatchStep`. Substate 2, `func_801983D8`, reloads the character archive and returns to entry state 2.
+- `Shop_DispatchStep` dispatches `D_801E5144` by `D_80148650`. `func_801D0EDC` sets `D_80148650` to `D_80148698 + 2`, which is 3 for the save case. That selects `func_801D39BC`, and entry 3 of its table `D_801E52C4` is `SAVE_DispatchState (emi/etc/shop/00@0x801D46A4)`. It dispatches `D_801E530C` by `D_80148652`.
 - The overwrite path first opens the existing file with mode 1 and size 1, a read of the first 128 bytes. Success proves the file exists (`func_801D51B8`).
 - The new-file path calls `CardAccessFile` with mode `0x200`. The driver creates the file, closes it, reopens it with mode 1 and issues a zero-length read.
 
@@ -151,25 +151,25 @@ The continue menu is camp substate 1 (`D_801ED11C`, 7 states). `func_801E411C` c
 
 `D_801ED148` has 17 states, selected by `D_801ED860` and run by `func_801E4ED4` as camp substate 3.
 
-| State | Function        | Role                                                 |
-| ----: | --------------- | ---------------------------------------------------- |
-|     0 | `func_801E4F10` | `UI_SetMode(1)`                                      |
-|     1 | `func_801E4F50` | panel slide-in                                       |
-|     2 | `func_801E4FFC` | message wait, then to state 3                        |
-|     3 | `func_801E5078` | probe port 0 and port 1                              |
-|     4 | `func_801E524C` | slide                                                |
-|     5 | `func_801E5320` | port select; confirm goes to 6, cancel to substate 1 |
-|     6 | `func_801E54A4` | scan directory, build rows                           |
-|     7 | `func_801E55B8` | slide                                                |
-|     8 | `func_801E5674` | slide in the slot list                               |
-|     9 | `func_801E5738` | slot select; an empty row plays the error cue        |
-|    10 | `func_801E590C` | confirm                                              |
-|    11 | `func_801E5A00` | read, copy, verify                                   |
-|    12 | `func_801E5BCC` | slide back, to state 2                               |
-|    13 | `func_801E5C68` | message for `g_SaveCardStatus`                       |
-|    14 | `func_801E5E30` | timed wait, then `D_801ED800`                        |
-|    15 | `func_801E5F34` | `UI_SetMode(0)`, 30-frame wait                       |
-|    16 | `func_801E5FD4` | rebuild and hand over                                |
+| State | Function              | Role                                                 |
+| ----: | --------------------- | ---------------------------------------------------- |
+|     0 | `func_801E4F10`       | `UI_SetMode(1)`                                      |
+|     1 | `func_801E4F50`       | panel slide-in                                       |
+|     2 | `func_801E4FFC`       | message wait, then to state 3                        |
+|     3 | `func_801E5078`       | probe port 0 and port 1                              |
+|     4 | `func_801E524C`       | slide                                                |
+|     5 | `func_801E5320`       | port select; confirm goes to 6, cancel to substate 1 |
+|     6 | `func_801E54A4`       | scan directory, build rows                           |
+|     7 | `func_801E55B8`       | slide                                                |
+|     8 | `func_801E5674`       | slide in the slot list                               |
+|     9 | `func_801E5738`       | slot select; an empty row plays the error cue        |
+|    10 | `func_801E590C`       | confirm                                              |
+|    11 | `SAVE_RunLoadVerify`  | read, copy, verify                                   |
+|    12 | `func_801E5BCC`       | slide back, to state 2                               |
+|    13 | `func_801E5C68`       | message for `g_SaveCardStatus`                       |
+|    14 | `func_801E5E30`       | timed wait, then `D_801ED800`                        |
+|    15 | `func_801E5F34`       | `UI_SetMode(0)`, 30-frame wait                       |
+|    16 | `SAVE_RunLoadRestore` | rebuild and hand over                                |
 
 After a good read, state 13 shows its message for up to 60 frames or until a button press. State 15 then waits 30 frames.
 

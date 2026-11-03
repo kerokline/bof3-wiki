@@ -115,7 +115,7 @@ cell would settle them.
 ## Enemy work row
 
 There are eight rows of 280 bytes at `0x801EB630`. `func_800ABCE0 (emi/battle/battle/15@0x800ABCE0)`
-and `func_800AC01C (emi/battle/battle/15@0x800AC01C)` arm a slot and clear the cells from `+0x06` to
+and `Battle_AddEnemy (emi/battle/battle/15@0x800AC01C)` arm a slot and clear the cells from `+0x06` to
 `+0x5F` first. The table lists the proven fields. Widths follow the accesses.
 
 |  Offset | Type               | Meaning                                                                                                                             | Evidence                                                                |
@@ -123,13 +123,13 @@ and `func_800AC01C (emi/battle/battle/15@0x800AC01C)` arm a slot and clear the c
 | `0x000` | `u8`               | bit 0 row occupied                                                                                                                  | `Battle_SlotIsBlocked (emi/battle/battle/03@0x801DB524)`                |
 | `0x001` | `u8`               | main step                                                                                                                           | none found                                                              |
 | `0x005` | `u8`               | battler slot, stored as `slot + 3`                                                                                                  | `func_800ABCE0`                                                         |
-| `0x008` | `u8`               | scroll direction `g_BattleScrollDir` (0-3) with bit 1 flipped                                                                       | the slot setup (`func_800ABCE0`, `func_800AC01C`)                       |
+| `0x008` | `u8`               | scroll direction `g_BattleScrollDir` (0-3) with bit 1 flipped                                                                       | the slot setup (`func_800ABCE0`, `Battle_AddEnemy`)                     |
 | `0x029` | `u8`               | set to 4 when the slot is armed                                                                                                     | the slot setup                                                          |
 | `0x034` | `s32`              | the enemy's x                                                                                                                       | none found                                                              |
 | `0x038` | `s32`              | the enemy's y                                                                                                                       | none found                                                              |
 | `0x03C` | `s32`              | high half `+0x3E` is the vertical span at the enemy's position, from `Area_SampleHeight` of x and y; written when the slot is armed | `func_800AE82C` copies the whole word into the local work row's `+0x3C` |
 | `0x04B` | `u8`               | set to `0xFF` when the slot is armed                                                                                                | the slot setup                                                          |
-| `0x074` | `u8[8]`            | enemy name, drawn as text                                                                                                           | `func_801D8AE4`                                                         |
+| `0x074` | `u8[8]`            | enemy name, drawn as text                                                                                                           | `Battle_DrawEnemyNamePanel`                                             |
 | `0x07C` | `u8`               | kind id                                                                                                                             | none found                                                              |
 | `0x080` | `u16`              | event flags; bit 2 makes the enemy eligible to counter an attack                                                                    | `func_801E4368`                                                         |
 | `0x082` | `u16`              | status word; `0x4000` is knockout                                                                                                   | `func_801E496C`                                                         |
@@ -454,12 +454,12 @@ battle effects read the same shape from their own module head. The boss-battle e
 
 The battle code reads these fixed values. The table lists the source and the meaning of each.
 
-| Value                  | Source                                          | Meaning                                                                |
-| ---------------------- | ----------------------------------------------- | ---------------------------------------------------------------------- |
-| escape thresholds      | `0x800B44F0`, six bytes `0x20`-`0x34`           | steps of 4, starting at 32                                             |
-| difficulty thresholds  | `0x800B50DC`, eight bytes `1,2,4,8,12,16,24,48` | indexed by the ability high nibble `+0x0D`                             |
-| palette stage row      | `0x80035600`, 64-byte rows                      | one per battler slot (index << 6); `func_80166C48` copies 32 halfwords |
-| accessory effect table | `0x80149EC8`, four-byte pointers                | indexed by `accessory_id - 1`, bound `0x17` (23 entries)               |
+| Value                  | Source                                          | Meaning                                                                   |
+| ---------------------- | ----------------------------------------------- | ------------------------------------------------------------------------- |
+| escape thresholds      | `0x800B44F0`, six bytes `0x20`-`0x34`           | steps of 4, starting at 32                                                |
+| difficulty thresholds  | `0x800B50DC`, eight bytes `1,2,4,8,12,16,24,48` | indexed by the ability high nibble `+0x0D`                                |
+| palette stage row      | `0x80035600`, 64-byte rows                      | one per battler slot (index << 6); `GFX_StagePalette` copies 32 halfwords |
+| accessory effect table | `0x80149EC8`, four-byte pointers                | indexed by `accessory_id - 1`, bound `0x17` (23 entries)                  |
 
 Overlays loaded at `0x80096800` (`emi/battle/battle/15` and the boss archives) carry their own copy of
 the byte tables, each indexed directly by the record id. These are the ability call table at

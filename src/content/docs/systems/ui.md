@@ -19,7 +19,7 @@ Every conversation, menu label and number goes through one text engine in the re
 
 A string reaches the screen in five steps.
 
-1. **Bank in RAM.** The EMI loader copies an area archive's message bank to `0x80010000` ([loading](../../concepts/loading/)). `Message_StartAreaMessage` and `func_801514D0` read that address as the bank.
+1. **Bank in RAM.** The EMI loader copies an area archive's message bank to `0x80010000` ([loading](../../concepts/loading/)). `Message_StartAreaMessage` and `Message_StartRequest` read that address as the bank.
 2. **Request.** Game code calls `Message_StartAreaMessage (exe/slus_004_22@0x80150224)` with a message index, or `Resource_RequestArea (exe/slus_004_22@0x80150284)` with a resource id. The first reads the `u16` at `0x80010000 + index * 2` and adds `0x80010000`. The second calls `Resource_Resolve (exe/slus_004_22@0x801502D0)`, which uses the table at `0x8001A000`: `(id >> 12) & 0xC` selects a base word, then a `u16` offset table follows. Both store the record pointer in `D_801490AC` and `D_801490B0`, store the request in `g_MessageRequest`, and call `UI_ResetMessage`.
 3. **Engine.** `UI_UpdateLayout (exe/slus_004_22@0x801503E0)` runs once per frame while the panel is open. It dispatches the message state (8 states) and the selection state (6 states), then redraws the message.
 4. **Glyph.** `UI_DrawMessageScript (exe/slus_004_22@0x80150470)` walks the script from the start each frame and draws `D_801490B9` characters, one `UI_DrawText` call per character at 8 pixels advance. The script step `func_8015083C` adds one to `D_801490B9` per character. Because the whole message is redrawn each frame, this counter is the typewriter effect.
@@ -70,7 +70,7 @@ The diagram shows only the transitions out of state 0, from the `switch` in `fun
 
 **Typewriter speed.** After each glyph, `func_8015083C` loads the delay from the byte table at `D_8017F5B4`, row `D_80144950` (a signed byte; the option that sets it was not traced). Byte 0 applies when a pad button is held (`g_InputMasks & g_InputHeld`), byte 1 otherwise. A zero delay keeps state 0. Any other value goes to state 1 for that many frames. `FRONTEND_FLAG_FORCE_STEP` forces a delay of 3. The channel flag `FRONTEND_FLAG_NO_INPUT_WAIT` (toggled by opcodes `0x10` and `0x11`) makes the script run without waiting.
 
-**Choice.** The `{CHOICE}` code (`0x14`) stores the count (`operand & 0xF`, minus one) and the layout nibble, then enters state 4 or 5. The pick is kept in `D_801490C7`. `UI_HandleChoiceInput` moves it on repeated direction input, wrapping at zero. The pick selects the next message through a dozen small functions (`func_80152370`, `func_80152510` to `func_801526C8`). Each stores entry `D_801490C7` of a row of tables at `0x8017F628..0x8017F664` into `g_MessageRequest`. The next message starts at the `u16` of the bank at `0x80010000 + g_MessageRequest * 2` (`func_801514D0`).
+**Choice.** The `{CHOICE}` code (`0x14`) stores the count (`operand & 0xF`, minus one) and the layout nibble, then enters state 4 or 5. The pick is kept in `D_801490C7`. `UI_HandleChoiceInput` moves it on repeated direction input, wrapping at zero. The pick selects the next message through a dozen small functions (`func_80152370`, `Message_SetAnswerMessage5` to `Message_SetAnswerMessage15`). Each stores entry `D_801490C7` of a row of tables at `0x8017F628..0x8017F664` into `g_MessageRequest`. The next message starts at the `u16` of the bank at `0x80010000 + g_MessageRequest * 2` (`Message_StartRequest`).
 
 ## Windows and panels
 
@@ -110,21 +110,21 @@ All of them first call `func_8014FC00(0)`, which emits a draw-mode packet with t
 
 ## Screen effects
 
-`UI_SetMode (exe/slus_004_22@0x8014ECAC)` starts one of 21 effects; [scheduler](../../concepts/scheduler/#local-ui-modes) has the dispatch. Each table entry is a small function that calls `func_8014F514` (a full-screen fade) or `func_8014F5F0` (a variant) with a step, a semi-transparency flag and a layer.
+`UI_SetMode (exe/slus_004_22@0x8014ECAC)` starts one of 21 effects; [scheduler](../../concepts/scheduler/#local-ui-modes) has the dispatch. Each table entry is a small function that calls `GFX_RunBlackFade` (a full-screen fade) or `GFX_RunWhiteFade` (a variant) with a step, a semi-transparency flag and a layer.
 
 | Modes (table index) | Call                                            | Effect                             |
 | ------------------- | ----------------------------------------------- | ---------------------------------- |
-| 0, 1                | `func_8014F514(+0x800 / -0x800, 1, 0)`          | Fade, 16 frames.                   |
+| 0, 1                | `GFX_RunBlackFade(+0x800 / -0x800, 1, 0)`       | Fade, 16 frames.                   |
 | 2, 3                | `(+0x2000 / -0x2000, 1, 0)`                     | Fast fade, 4 frames.               |
 | 4, 5                | `(+0x400 / -0x400, 1, 0)`                       | Slow fade, 32 frames.              |
 | 6, 7                | `(+0x800 / -0x800, 1, 2)`                       | Fade on layer 2.                   |
-| 8, 9                | `func_8014F5F0(+0x800 / -0x800, 1, 0)`          | Variant fade.                      |
+| 8, 9                | `GFX_RunWhiteFade(+0x800 / -0x800, 1, 0)`       | Variant fade.                      |
 | 10, 11, 17, 18, 20  | Loops that also change `g_AreaCameraAngle`      | Camera-spin wipes.                 |
 | 12                  | Sets `g_AreaViewOffsetZ = 0x5DC`, fade `-0x800` | Fade with a camera distance reset. |
 | 13, 14, 15, 16      | `+0x200 / -0x200` with `F514` or `F5F0`         | Slow fades, 64 frames.             |
-| 19                  | `func_8014F514(0x100, 1, 0)`                    | Very slow fade, 128 frames.        |
+| 19                  | `GFX_RunBlackFade(0x100, 1, 0)`                 | Very slow fade, 128 frames.        |
 
-The fade body `func_8014F704` draws a 320 by 240 `TILE` with grey level `position >> 7`, semi-transparent with draw mode `GetTPage(1, abr, 0x140, 0)`, and adds the step to a 16-bit level each frame until the sign bit flips. The frame count is `0x8000 / step`. The thread then calls `CallbackExit`, so every effect ends its slot. That `abr = 2` is a subtractive blend, a fade to black, is PlayStation GPU behaviour rather than game data `[inferred]`. The modes with camera changes were read only for their loop shape `[unknown]`.
+The fade body `GFX_StepScreenFade` draws a 320 by 240 `TILE` with grey level `position >> 7`, semi-transparent with draw mode `GetTPage(1, abr, 0x140, 0)`, and adds the step to a 16-bit level each frame until the sign bit flips. The frame count is `0x8000 / step`. The thread then calls `CallbackExit`, so every effect ends its slot. That `abr = 2` is a subtractive blend, a fade to black, is PlayStation GPU behaviour rather than game data `[inferred]`. The modes with camera changes were read only for their loop shape `[unknown]`.
 
 `g_UiWindowEffectBusy` (`0x80143C40`) is the flag other code tests before it starts input or a new effect. The readers are `UI_SetMode` and the title code (`UI_WaitTitleInput` at `0x801D0F00`, `UI_UpdateChoicePrompt` at `0x801D0FB8`, `UI_DrawChoicePrompt` at `0x801D11E4`, all `emi/etc/game/01`). No writer is in the resident code. The overlay functions `func_801D74D4`, `func_80198780` and `func_801985C8` touch it, but who sets it is `[unknown]`.
 

@@ -75,7 +75,7 @@ The pixel and script formats inside a node are not decoded.
 
 The word at section `+4` is the offset of the section's palette table, relative to the section. The table starts with the word `4n` for `n` palettes, followed by the palette offsets `4n + 0x40k`. Each palette is 32 16-bit colors. `n` is 1, 2 or 8 in all 141 bank entries (66 containers with three tables each, and 75 sections). The three `BMAGIC` blocks do not have this layout and stay raw.
 
-`func_80166C48 (exe/slus_004_22@0x80166C48)` copies palette `mode` into the palette RAM of a work slot (`0x80035600 + slot * 0x40`). It reads the section from work `+0x4C`, which `func_801C1254 (emi/etc/game/00@0x801C1254)` stages. The callers seen pass `mode` 0, except `func_8019C664 (emi/etc/game/00@0x8019C664)`, which passes 1.
+`GFX_StagePalette (exe/slus_004_22@0x80166C48)` copies palette `mode` into the palette RAM of a work slot (`0x80035600 + slot * 0x40`). It reads the section from work `+0x4C`, which `func_801C1254 (emi/etc/game/00@0x801C1254)` stages. The callers seen pass `mode` 0, except `func_8019C664 (emi/etc/game/00@0x8019C664)`, which passes 1.
 
 The palette tables can be changed and written back over the decoded bank, and every other byte stays the same.
 
@@ -85,7 +85,7 @@ The loader copies a type-0 entry to the load argument and queues a type-1 entry 
 
 ## Readers
 
-A field-side reader exists. `func_801C1254` reads the container's section offsets (the word at `0x8003B800 + idx * 4`, plus `0x8003B800`) and stores the section in work `+0x4C`. `func_80166C48` reads `section+4` (the palette table), then `table[field]`, and copies 32 colors.
+A field-side reader exists. `func_801C1254` reads the container's section offsets (the word at `0x8003B800 + idx * 4`, plus `0x8003B800`) and stores the section in work `+0x4C`. `GFX_StagePalette` reads `section+4` (the palette table), then `table[field]`, and copies 32 colors.
 
 ## Open questions
 
@@ -100,7 +100,7 @@ A field-side reader exists. `func_801C1254` reads the container's section offset
 ## Sources and confidence
 
 - **Confidence:** medium. The container, the section tables and the palette layer hold on every bank entry, but the node prefix, the table flags and the pixel and script formats are not decoded.
-- **Evidence:** the 144 bank entries including all 65 decoded type-1 payloads, the loader chain, and the field-side readers `func_801C1254` and `func_80166C48`.
+- **Evidence:** the 144 bank entries including all 65 decoded type-1 payloads, the loader chain, and the field-side readers `func_801C1254` and `GFX_StagePalette`.
 
 ## Related
 

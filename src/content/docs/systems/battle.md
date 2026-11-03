@@ -92,7 +92,7 @@ The entry and exit substates test these bits of `g_BattleOptions` (masks `0x01`,
 
 Unless `g_BattleOptions & 0x40` is set, substate 3 copies 1,376 bytes of the sequence table (`D_80148A50` to `D_8018E268`) away, and substate 7 copies them back ([audio](../audio/)).
 
-`Battle_Update` never changes the entry substate. The advance from 5 to 6 happens in `func_801D7350` (mode 5, step 4, sub-step 2).
+`Battle_Update` never changes the entry substate. The advance from 5 to 6 happens in `Battle_WriteBackParty` (mode 5, step 4, sub-step 2).
 
 ## The battle state machine
 
@@ -124,7 +124,7 @@ stateDiagram-v2
     M3 --> M4: func_801D43EC or func_801D2B58
     M4 --> M1: func_801D656C, result 0
     M4 --> M5: func_801D656C, result nonzero
-    M5 --> [*]: func_801D7350 to entry substate 6
+    M5 --> [*]: Battle_WriteBackParty to entry substate 6
 ```
 
 | Mode | Handler (`emi/battle/battle/03`) | Steps | Step table                                                                                     |
@@ -171,13 +171,13 @@ The boss hook is called with seven event codes. The call sites are known; what e
 
 Mode 5 has five steps, each with a sub-table in `D_801EACD4`.
 
-| Step | Sub-table    | Role                                                                                                     |
-| ---: | ------------ | -------------------------------------------------------------------------------------------------------- |
-|    0 | `D_801EACE8` | The third sub-step is `func_801D6A14`, the chooser.                                                      |
-|    1 | `D_801EACF4` | Ends in `func_801EEC58`, the `BATL_END` entry (victory).                                                 |
-|    2 | `D_801EAD00` | Ends in `func_801EEC04`, the `BATL_OVR` entry (defeat).                                                  |
-|    3 | `D_801EAD0C` | Reloads the area slot (`0x2AB + area`), then sets step 4.                                                |
-|    4 | `D_801EAD20` | Exit: free battlers, stream slot `0x256` (`AFLDKWA`), restore BGM, `func_801D7350`, wait for the window. |
+| Step | Sub-table    | Role                                                                                                             |
+| ---: | ------------ | ---------------------------------------------------------------------------------------------------------------- |
+|    0 | `D_801EACE8` | The third sub-step is `Battle_StreamEndOverlay`, the chooser.                                                    |
+|    1 | `D_801EACF4` | Ends in `func_801EEC58`, the `BATL_END` entry (victory).                                                         |
+|    2 | `D_801EAD00` | Ends in `func_801EEC04`, the `BATL_OVR` entry (defeat).                                                          |
+|    3 | `D_801EAD0C` | Reloads the area slot (`0x2AB + area`), then sets step 4.                                                        |
+|    4 | `D_801EAD20` | Exit: free battlers, stream slot `0x256` (`AFLDKWA`), restore BGM, `Battle_WriteBackParty`, wait for the window. |
 
 The chooser, `Battle_StreamEndOverlay (emi/battle/battle/03@0x801D6A14)`, waits until no party row has bit `0x2000` and `g_BattleRowCursor == g_BattlePartyCount`. If the result is not defeat, it ANDs every party member's status with `0xBF5F`, which keeps KO (`0x4000`), poison (`0x80`) and confusion (`0x20`). A member with status bit `0x800` first gets HP, AP and willpower set to their maximums. For a random battle it then sets step 2 on defeat (`g_BattleResult` bit 0) or step 1 on victory (bit 1). It calls `g_BattleChooseEndingHook` and `SND_SetBankLayout(0)`, and streams slot 1 (`BATL_END`) for step 1 or slot 2 (`BATL_OVR`) for step 2. In a scripted battle, `g_BattleChooseEndingHook` sets the step. That the boss hook does this is `[inferred]`.
 

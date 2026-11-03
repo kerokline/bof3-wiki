@@ -51,7 +51,7 @@ Three stubs prepare the CPU and start the game. The start address of the header 
 `SYS_RunLogo (exe/slus_004_22@0x8014AEE0)` loads `LOGO.EXE` and runs it as a separate PlayStation program:
 
 1. `SYS_LoadExec (exe/slus_004_22@0x8014E0FC)` finds the file with `CdSearchFile`, reads its header sector into the buffer at `0x800E4800`, and copies the ten header words to `D_80143E70`. It then reads `t_size` bytes from the next sector to `t_addr`. A failed read retries, up to ten attempts, and then returns -1. `SYS_ReadCd (exe/slus_004_22@0x8014E0A8)` blocks: no callback thread runs and no frame is drawn while it reads.
-2. It sets the stack of the exec block `D_80143E80` to `0x801FF000`, stops the callback, pad and card services, and calls `Exec` inside a critical section.
+2. It sets the stack address of the exec block at `0x80143E80` (`D_80143EA0`) to `0x801FF000`, stops the callback, pad and card services, and calls `Exec` inside a critical section.
 3. When `Exec` returns, it runs `SYS_InitHardware` again, clears the display and the VRAM, and turns the display on.
 
 `LOGO.EXE` loads at `0x801CE000` and runs to `0x801ECEC0` with its BSS. The payload of the main executable is zero over that range, apart from two stamp words, so the logo overwrites no resident byte. No overlay is loaded yet. The first `EMI_LoaderStreamInitSlot` call comes later, in `SYS_StartFrontend`.

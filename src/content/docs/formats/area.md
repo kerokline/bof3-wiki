@@ -323,7 +323,7 @@ The header has `u8` width and height at bytes 0 and 1. Every other field is a `u
 |         `0x1E` | `u16`       | `scroll`             | nonzero in 76 of 200 and 0 in the rest; meaning unknown. One measurement gives the range `0xEC00`-`0xFFA0` and another `0xF300`-`0xFA90`; unresolved |
 |         `0x20` | `u16`       | `list_base_20`       | record list, opcode byte `& 0x3F`                                                                                                                    |
 |         `0x22` | `u16`       | `list_base_22`       | record list, opcode byte `& 0x7F`                                                                                                                    |
-|         `0x24` | `u16`       | `record_region_24`   | record cells, ids in `D_80141880`                                                                                                                    |
+|         `0x24` | `u16`       | `record_region_24`   | record cells, ids in `g_AreaCellGrid`                                                                                                                |
 |         `0x26` | `u16`       | `zero_26`            | zero in 200 of 200, no reader                                                                                                                        |
 |         `0x28` | `u16`       | `object_list`        | object list, tag plus body size                                                                                                                      |
 |         `0x2A` | `u16`       | `height_off4`        | height bytes; `u16[+0x2A]*4 == size` in 187 bundles and `size - W*H` in 13                                                                           |

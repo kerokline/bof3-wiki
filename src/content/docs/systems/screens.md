@@ -118,8 +118,8 @@ The master menu is not an entry state. `g_SceneEvents[4]` is `Master_RunSceneEve
 | Step | Work                                                                                             |
 | ---: | ------------------------------------------------------------------------------------------------ |
 |    0 | Set bits 0 to 2 (`0x7`) of `g_AreaWalkFlags` and stream SISYOU (`0x267`).                        |
-|    1 | When ready, copy palette 2 and call `func_801D0C18` (overlay init).                              |
-|    2 | `Master_DispatchMenu` (`func_801D25D8`): one frame of the menu, every frame.                     |
+|    1 | When ready, copy palette 2 and call `Master_ResetPanel` (overlay init).                          |
+|    2 | `Master_DispatchMenu`: one frame of the menu, every frame.                                       |
 |    3 | Stream the character bank (the `PL` family).                                                     |
 |    4 | When ready, clear bits 0 to 2 of `g_AreaWalkFlags` and reset the scene event (`D_801448EB = 0`). |
 

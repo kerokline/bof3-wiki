@@ -33,7 +33,7 @@ Pages: [memory](../../concepts/memory/#open-questions), [loading](../../concepts
 | Whether the area table at `0x80032000` is live while the LZ77 context at `0x800327A0` is in use   | The two ranges overlap. Trace their uses during an area load.                                    |
 | The final VRAM split                                                                              | A VRAM dump during play.                                                                         |
 | The field that each per-bank size block feeds, the end of used SPU RAM, the real main stack depth | A trace of `SND_SetBankLayout` users, an SPU dump, a stack watermark.                            |
-| Whether anything between `0x8012C000` and `0x80143B40` is in use                                  | `D_8012D880`, the cell-row pool, is the one symbol seen. Search the assembly for others.         |
+| Whether anything between `0x8012C000` and `0x80143B40` is in use                                  | `g_AreaCellPrims`, the cell-row pool, is the one symbol seen. Search the assembly for others.    |
 | Which occupant of a shared window is live at a given moment                                       | The code does not record it. A runtime watch on the loader.                                      |
 | Whether a load into a window can start while its previous overlay still runs                      | No guard was found. A runtime watch on the loader.                                               |
 | Whether anything awaits the completion of a `LoadImage`                                           | Read the draw and loader code for a `DrawSync` after the upload.                                 |
@@ -141,7 +141,7 @@ Pages: [audio runtime](../../systems/audio/#open-questions), [audio formats](../
 | Whether the loader checks any window or SPU size                                            | Trace `EMI_LoaderCopySector` and the ring stage for a bound against the window sizes. |
 | Concurrent open SEP count (`SsSetTableSize` meaning)                                        | PsyQ sound library documentation, or a trace of `SsSepOpenJ` returning -1.            |
 | Which of `func_801D7234` and `func_80197F48` resumes the field track                        | Trace the order of both with that option clear and result bit `0x10` set.             |
-| Writers of `D_80144954` (duck gate) and `D_80144951` (mono)                                 | Search overlays and `emi/etc/start/08` for stores to the two addresses.               |
+| Writers of `D_80144954` (duck gate) and `g_SndMono` (mono)                                  | Search overlays and `emi/etc/start/08` for stores to the two addresses.               |
 | Meaning of the cue volume ladders `D_80182290` to `D_80182308`                              | Find readers of those tables beyond `SND_QueueCueVolume`.                             |
 | XA group sizes, group 2 callers, and the content of each table entry                        | Read the three tables against the XA file sector map.                                 |
 | The seven bank readers' per-bank differences                                                | Read `func_8015E994` to `func_80160E38`.                                              |

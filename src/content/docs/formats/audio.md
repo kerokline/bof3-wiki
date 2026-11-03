@@ -207,7 +207,7 @@ The file header is 6 bytes: the magic `70 51 45 53` (`pQES` in file order, `SEQp
 
 | Offset | Size | Type    | Name             | Meaning                                       |
 | -----: | ---: | ------- | ---------------- | --------------------------------------------- |
-| `0x00` |    2 | `u16`   | `seq_id`         | sequence id; big-endian                       |
+| `0x00` |    2 | `u16`   | `sequence_id`    | sequence id; big-endian                       |
 | `0x02` |    2 | `u16`   | `resolution`     | ticks per quarter note, always 48; big-endian |
 | `0x04` |    3 | `u8[3]` | `tempo`          | microseconds per quarter note; big-endian     |
 | `0x07` |    2 | `u8[2]` | `time_signature` | numerator, then log2 of the denominator       |

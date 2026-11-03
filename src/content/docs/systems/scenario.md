@@ -133,12 +133,12 @@ The event stage is a two-state machine that sits beside the controller. `Game_Ru
 
 `g_SceneEvents` has 64 entries. The ones known:
 
-|             Event id | Handler                                                                                                       | Reading                                                                                |
-| -------------------: | ------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-|                    0 | `func_801A7CE8`                                                                                               | Idle `[inferred]`.                                                                     |
-|                    4 | `Master_RunSceneEvent`                                                                                        | Master screen: streams `SISYOU`, then `func_801D25D8`, and restores the party archive. |
-| 5, 6, 10, 27, 44, 55 | `func_801A7E54`, `func_801A82F8`, `Scene_RunShopSaveEvent`, `func_801A839C`, `func_801A83DC`, `func_801A852C` | Resident event handlers. Roles `[unknown]`.                                            |
-|               others | Addresses in `0x801F....`                                                                                     | Code at fixed addresses inside the scenario window.                                    |
+|             Event id | Handler                                                                                                                | Reading                                                                                      |
+| -------------------: | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+|                    0 | `func_801A7CE8`                                                                                                        | Idle `[inferred]`.                                                                           |
+|                    4 | `Master_RunSceneEvent`                                                                                                 | Master screen: streams `SISYOU`, then `Master_DispatchMenu`, and restores the party archive. |
+| 5, 6, 10, 27, 44, 55 | `func_801A7E54`, `Message_RunAreaMessage`, `Scene_RunShopSaveEvent`, `func_801A839C`, `func_801A83DC`, `func_801A852C` | Resident event handlers. Roles `[unknown]`.                                                  |
+|               others | Addresses in `0x801F....`                                                                                              | Code at fixed addresses inside the scenario window.                                          |
 
 `Scene_DispatchObject (emi/etc/game/00@0x801A86D4)` does the same for entities: it runs `g_SceneObjects[callback_index](record, g_SceneEventFlags)`, which `Game_DispatchScenarioRecord` uses when `unk_7C & 0x4000` is set in the record. `g_SceneObjects` has 66 entries. The setup stream writes `callback_index` with opcode `D` ([area](../areas/#setup-stream)).
 

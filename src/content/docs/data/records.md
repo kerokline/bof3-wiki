@@ -50,7 +50,7 @@ The table gives each row's size and the offset of each field. Each field carries
 
 How to read the fields:
 
-- `kind`: the low nibble selects the icon (`func_80165E04`, `exe/slus_004_22`). `sound` is a cue-table index that the battle overlay reads in `func_800AB834` and `func_800AB910` (`emi/battle/battle/15`).
+- `kind`: the low nibble selects the icon (`Item_GetKind`, `exe/slus_004_22`). `sound` is a cue-table index that the battle overlay reads in `func_800AB834` and `func_800AB910` (`emi/battle/battle/15`).
 - `equipability`: one bit per character, listed under [masks](#masks-and-value-ranges).
 - `equip type` (armor): 0 nothing, 2 shield, 3 helmet, 4 body. The character record has one slot for each (weapon, shield, helmet, armor, two accessories).
 - `type` (ability): the low two bits select heal, assist, attack or skill. [Ability targeting](#ability-targeting) lists the targeting flags.
@@ -59,7 +59,7 @@ How to read the fields:
 
 Battle selection code reads the ability row through different widths: `+0x0C` selection flags, `+0x10` a `u16` selection mask (element and flags together) and `+0x12` a name or resource id. The layout is the same.
 
-The item dispatcher (`func_80165D48`, `exe/slus_004_22@0x80165D48`) masks an item category and computes the row address from the table's base and stride. Categories 0 to 4 (item, weapon, armor, accessory, vital item) all enter one shared continuation at `0x80165DFC`. Callers handle `0xFF` (empty, or zenny) before they call it.
+The item dispatcher (`Item_GetRecord`, `exe/slus_004_22@0x80165D48`) masks an item category and computes the row address from the table's base and stride. Categories 0 to 4 (item, weapon, armor, accessory, vital item) all enter one shared continuation at `0x80165DFC`. Callers handle `0xFF` (empty, or zenny) before they call it.
 
 ## Character and master data
 
@@ -169,7 +169,7 @@ Whelp stores character id 10 in its record, not 7. Every starting record has `ma
 
 The level-growth table has 693 rows: seven blocks of 99, one for each of character slots 0 to 6. Slot 7 (Whelp) has no block. Row `character × 99 + n - 1` belongs to level `n`. Its experience field is the experience needed to go from level `n-1` to `n`. A character's level is the first `L` for which the character's experience is below the sum of the experience fields of block rows 1 to `L`. The level caps at 99. Row 0 of each block is the level-1 row, and the level-up routine does not apply it.
 
-`func_801ADDD4 (emi/etc/game/00@0x801ADDD4)` recomputes the level from the experience. For each level gained, from the old level up to the new one minus one, it adds the row's stats to the base stats at `0x3C`-`0x46`: HP and AP in full, and the four packed stats as nibbles. It adds the signed modifier byte at `0x85`-`0x8A` to each gain, floors the gain at 0 and caps the stat at 999. It then passes the row's two ability bytes to `func_801651DC` (`exe/slus_004_22`), stores the new level at `+0x06` and recalculates the live stats. All 693 `extra ability` bytes in the shipped table are zero. The `ability` byte is nonzero in 70 rows.
+`func_801ADDD4 (emi/etc/game/00@0x801ADDD4)` recomputes the level from the experience. For each level gained, from the old level up to the new one minus one, it adds the row's stats to the base stats at `0x3C`-`0x46`: HP and AP in full, and the four packed stats as nibbles. It adds the signed modifier byte at `0x85`-`0x8A` to each gain, floors the gain at 0 and caps the stat at 999. It then passes the row's two ability bytes to `Char_AddAbility` (`exe/slus_004_22`), stores the new level at `+0x06` and recalculates the live stats. All 693 `extra ability` bytes in the shipped table are zero. The `ability` byte is nonzero in 70 rows.
 
 ### Masters
 

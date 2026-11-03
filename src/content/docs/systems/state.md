@@ -7,7 +7,7 @@ The party, the inventory, the zenny, the story flags, the play clock and the pla
 
 ## One persistent block
 
-Every long-lived value sits in the block from `0x801448D8` to `0x80145988`. The save writes the block and the load copies it back, byte for byte. `func_801D69E0` copies 4,272 bytes from `g_SceneEventFlags - 0x650`, which is `0x801448D8`. `func_801E5A00` copies the same length back.
+Every long-lived value sits in the block from `0x801448D8` to `0x80145988`. The save writes the block and the load copies it back, byte for byte. `SAVE_BuildSlotImage` copies 4,272 bytes from `g_SceneEventFlags - 0x650`, which is `0x801448D8`. `SAVE_RunLoadVerify` copies the same length back.
 
 The block lies in the executable's work-variable range, which no overlay window covers ([memory](../../concepts/memory/)). An overlay swap never moves or clears it.
 
@@ -23,7 +23,7 @@ The table lists the block in memory order. A name is given where the block holds
 | `+0x24`  | `0x801448FC` |     2 | `u16`                | -                           | area id, copied from `g_GameAreaId`                          |
 | `+0x27`  | `0x801448FF` |     1 | `u8` `[inferred]`    | -                           | entry kind byte, from `D_80145E98` `[inferred]`              |
 | `+0x28`  | `0x80144900` |     8 | `s32[2]`             | -                           | two position words, from `D_80145EC4` and `D_80145EC8`       |
-| `+0x79`  | `0x80144951` |     1 | `u8`                 | -                           | stereo or mono sound flag, read by `func_801E5A00`           |
+| `+0x79`  | `0x80144951` |     1 | `u8`                 | -                           | stereo or mono sound flag, read by `SAVE_RunLoadVerify`      |
 | `+0x7A`  | `0x80144952` |     2 | `u8[2]` `[inferred]` | `D_80144952`, `53`          | window style and palette bytes `[inferred]`                  |
 | `+0x90`  | `0x80144968` | 1,312 | `Character[8]`       | `g_Characters`              | 8 records of 164 bytes                                       |
 | `+0x5B0` | `0x80144E88` |   160 | `u8[160]`            | `g_SceneFlagWords`          | 20 scenario flag words of 8 bytes                            |
@@ -46,8 +46,8 @@ The block also holds records this table does not split: the dragon genes at `0x8
 Notes on the less obvious rows:
 
 - The slot summary is written by `SAVE_BuildSlotImage (emi/etc/shop/00@0x801D69E0)` just before each save and read back by the slot lists. [Saving](../saving/#building-the-image) lists its fields.
-- `func_801E5FD4` restores the button masks from `0x80145594` into `g_InputMasks`.
-- `g_SceneFlags` is a pointer into `g_SceneFlagWords`, `scenario_id * 8` bytes in. `Scene_Start (emi/etc/game/00@0x801A7704)` sets it, and `func_801E5FD4` rebuilds it after a load.
+- `SAVE_RunLoadRestore` restores the button masks from `0x80145594` into `g_InputMasks`.
+- `g_SceneFlags` is a pointer into `g_SceneFlagWords`, `scenario_id * 8` bytes in. `Scene_Start (emi/etc/game/00@0x801A7704)` sets it, and `SAVE_RunLoadRestore` rebuilds it after a load.
 - Only the low byte of `g_GameFlags` (a `u16` at `0x80146258`) is saved, through `D_80145025`.
 
 ### Not persistent
@@ -74,7 +74,7 @@ Four things write the block: a new game, the field and its menus, a save, and a 
 flowchart TD
     NG["New game<br/>Game_StartSelectedGame<br/>emi/etc/game/01@0x801D0E54"]
     DEF["Party_InitDefaults<br/>emi/etc/start/08@0x801D15C0<br/>copy default records"]
-    LD["Load<br/>func_801E5A00 and func_801E5FD4<br/>start/08"]
+    LD["Load<br/>SAVE_RunLoadVerify and SAVE_RunLoadRestore<br/>start/08"]
     BLK[("Persistent block<br/>0x801448D8 to 0x80145988")]
     SV["Save<br/>SAVE_BuildSlotImage<br/>emi/etc/shop/00@0x801D69E0"]
     CARD[("Memory card file<br/>BASLUS-00422BOF3NN")]
@@ -114,7 +114,7 @@ flowchart LR
     A ~~~ H
 ```
 
-Game progress lives in the block or in the executable's work variables. An overlay's own variables, such as the load screen's `D_801ED860`, vanish with the overlay. Scenario overlays write flags through `g_SceneFlags` `[inferred]` from the symbol evidence (`g_SceneFlagWords`). The writers for the block shown here (`func_801E5FD4`, `func_801D69E0`, `Scene_Start`) are read.
+Game progress lives in the block or in the executable's work variables. An overlay's own variables, such as the load screen's `D_801ED860`, vanish with the overlay. Scenario overlays write flags through `g_SceneFlags` `[inferred]` from the symbol evidence (`g_SceneFlagWords`). The writers for the block shown here (`SAVE_RunLoadRestore`, `SAVE_BuildSlotImage`, `Scene_Start`) are read.
 
 ## What the game rebuilds
 
@@ -125,7 +125,7 @@ Game progress lives in the block or in the executable's work variables. An overl
 | Field entry                   | `g_GameStateIndex = 5`, so the next field step is the entry step                                 | `Game_RequestAreaChange (emi/etc/game/00@0x8019FA28)` |
 | Load                          | live stats for all 8 records: base `+0x3C` block copied over `+0x1C`, then fatigue and equipment | `Char_RebuildStats (exe/slus_004_22@0x80164A44)`      |
 | Load                          | character code and graphics archives for `g_EmiLoadedCharacterIndex`                             | `SAVE_RunLoadRestore (emi/etc/start/08@0x801E5FD4)`   |
-| Load                          | scenario overlay for `g_SceneState.scenario_id`                                                  | `Scene_RequestOverlay` via `func_801E5FD4`            |
+| Load                          | scenario overlay for `g_SceneState.scenario_id`                                                  | `Scene_RequestOverlay` via `SAVE_RunLoadRestore`      |
 | Entering the save screen      | nothing; the shop overlay streams in and the field frame keeps running under it                  | `Game_LoadShopOverlay (emi/etc/game/00@0x80198270)`   |
 
 `Game_ResetGameState` also clears the battle options and encounter bytes, sets the pending-entry bit in `g_AreaWalkFlags`, and, when the play clock is nonzero, saves the current music id as the area music request before it clears `g_SndBgmId` ([audio](../audio/#music)).
@@ -177,7 +177,7 @@ An edit to the block keeps its size and the checksum rule ([save format](../../f
 ## Sources and confidence
 
 - **Confidence:** medium. The block bounds, the copy in both directions and the named globals are read in the code. Several fields rest on names or offsets alone, and three ranges of the block are unexplained.
-- **Evidence:** the save and load copies in `func_801D69E0` and `func_801E5A00`, the rebuild in `SAVE_RunLoadRestore`, `Camp_EnterMainLoop`, `Game_ResetGameState` and `Party_BuildBattlers`, the new-game path in `Game_StartSelectedGame` and `Party_InitDefaults`, and the party, inventory and zenny functions (`Party_AddMember`, `Party_CountItem`, `Party_AddZenny`, `Char_RebuildStats`).
+- **Evidence:** the save and load copies in `SAVE_BuildSlotImage` and `SAVE_RunLoadVerify`, the rebuild in `SAVE_RunLoadRestore`, `Camp_EnterMainLoop`, `Game_ResetGameState` and `Party_BuildBattlers`, the new-game path in `Game_StartSelectedGame` and `Party_InitDefaults`, and the party, inventory and zenny functions (`Party_AddMember`, `Party_CountItem`, `Party_AddZenny`, `Char_RebuildStats`).
 
 ## Related
 

@@ -165,7 +165,7 @@ Conditional blocks probably let one area hold different entity sets for differen
 
 Scene objects are the area's non-character things: effects, gates, props. `Actor_Create (emi/etc/game/00@0x8019615C)` claims a free slot of `g_ActorSlots` (20 slots of 116 bytes) and fills it from a kind-E record. A nonzero byte 2 or byte 4 adds half a cell to the x or y position, and the height comes from `Area_SampleHeight`. When no slot is free, `Actor_FindFreeSlot (emi/etc/game/00@0x8019601C)` returns `0xFF` and `Actor_Create` drops the record without a message.
 
-`Actor_DispatchAll` runs each active slot as `D_801C7C70[slot->type]()`. The table has 187 entries. Its targets lie in four places: the resident image (`0x8019....`), the shared overlay window at `0x801D0C00`, the area window at `0x801F2C00` and the scenario window at `0x801F6C00`. A given type therefore runs different code depending on which overlay is loaded.
+`Actor_DispatchAll` runs each active slot as `g_ActorHandlers[slot->type]()`. The table has 187 entries. Its targets lie in four places: the resident image (`0x8019....`), the shared overlay window at `0x801D0C00`, the area window at `0x801F2C00` and the scenario window at `0x801F6C00`. A given type therefore runs different code depending on which overlay is loaded.
 
 ## Zone list
 
@@ -179,25 +179,25 @@ The table lists the counts and ranges that the code enforces. Other limits are i
 | --------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------- |
 | Area count and slot   | 200 areas, EMI slot `0x2AB + id`                             | `g_AreaLoads[200] (exe/slus_004_22@0x8017F974)`, `func_8019FAA0` |
 | Area record address   | One absolute pointer per area, into `0x801F2C00..0x801F6C00` | `g_AreaLoads` is constant data in the executable                 |
-| Scene object types    | 0 to 186                                                     | `Actor_FindFreeSlot`, `D_801C7C70`                               |
+| Scene object types    | 0 to 186                                                     | `Actor_FindFreeSlot`, `g_ActorHandlers`                          |
 | Exit cell coordinates | 8-bit x and y; at most 256 entries per area                  | `func_801A0048`                                                  |
 | Exit destination      | 0 to 255 whole cells plus an optional half cell              | `(idx << 8) & 0xFF8000`                                          |
 
 The staged destination of an area change sits in work variables of the executable (`exe/slus_004_22`), `0x80143F10..0x80143F1F`. [Phases](../phases/) lists the state variables that the transition also uses.
 
-| Address      | Type          | Name                  | Meaning                                                                                |
-| ------------ | ------------- | --------------------- | -------------------------------------------------------------------------------------- |
-| `0x80143F10` | `u16`         | `g_GameContextSeed`   | Staged destination area.                                                               |
-| `0x80143F14` | `s32 (16.16)` | `g_GameEntryPosX`     | Staged destination x.                                                                  |
-| `0x80143F18` | `s32 (16.16)` | `g_GameEntryPosY`     | Staged destination y.                                                                  |
-| `0x80143F1C` | `u8`          | `g_GameContextKind`   | Staged kind byte. Bit 7 selects the world-map arrival.                                 |
-| `0x80143F1D` | `u8`          | `g_GameRequestKind`   | Request kind: `func_801A02E8` writes it, `func_801971E8` reads it.                     |
-| `0x80143F1E` | `u8`          | `g_GameEntryMode`     | Arrival effect: `func_801971E8` selects it, `func_80197378` passes it to `UI_SetMode`. |
-| `0x80143F1F` | `u8`          | `g_GamePrevSelection` | Previous selection: `func_801A0380` writes it, `func_80197378` compares it.            |
+| Address      | Type          | Name                  | Meaning                                                                                             |
+| ------------ | ------------- | --------------------- | --------------------------------------------------------------------------------------------------- |
+| `0x80143F10` | `u16`         | `g_GameContextSeed`   | Staged destination area.                                                                            |
+| `0x80143F14` | `s32 (16.16)` | `g_GameEntryPosX`     | Staged destination x.                                                                               |
+| `0x80143F18` | `s32 (16.16)` | `g_GameEntryPosY`     | Staged destination y.                                                                               |
+| `0x80143F1C` | `u8`          | `g_GameContextKind`   | Staged kind byte. Bit 7 selects the world-map arrival.                                              |
+| `0x80143F1D` | `u8`          | `g_GameRequestKind`   | Request kind: `func_801A02E8` writes it, `Game_RunAreaLoadState` reads it.                          |
+| `0x80143F1E` | `u8`          | `g_GameEntryMode`     | Arrival effect: `Game_RunAreaLoadState` selects it, `Game_RunFieldState` passes it to `UI_SetMode`. |
+| `0x80143F1F` | `u8`          | `g_GamePrevSelection` | Previous selection: `func_801A0380` writes it, `Game_RunFieldState` compares it.                    |
 
 An edited area must keep these limits.
 
-- **Code and data placement.** The executable and `emi/etc/game/00` hold absolute pointers into the area window: the 200 `g_AreaLoads` entries, the `g_SceneEvents`, `g_SceneObjects`, `D_801C7C70` and `D_801C86F8` tables, and the `func_801A8728` switch. Moving an `AreaLoad` record or a handler inside an area program breaks those pointers unless the tables are rebuilt.
+- **Code and data placement.** The executable and `emi/etc/game/00` hold absolute pointers into the area window: the 200 `g_AreaLoads` entries, the `g_SceneEvents`, `g_SceneObjects`, `g_ActorHandlers` and `D_801C86F8` tables, and the `func_801A8728` switch. Moving an `AreaLoad` record or a handler inside an area program breaks those pointers unless the tables are rebuilt.
 - **Window size.** The area program must fit 16,384 bytes at `0x801F2C00`. Only `AREA030` loads other programs elsewhere ([area format](../../formats/area/)).
 - **Entity limits.** The game drops map entities past 30 and staged objects past 20.
 - **Zone list.** It lives in the executable, not the area archive. A cell outside every rectangle makes `func_801A0490` run past the list.
