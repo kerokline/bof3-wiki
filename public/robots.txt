@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://raulcorreia7.github.io/bof3-wiki/sitemap-index.xml

@@ -1,6 +1,6 @@
-book/
-mermaid.min.js
-mermaid-init.js
+node_modules/
+dist/
+.astro/
 
 # Local work
 *.bin

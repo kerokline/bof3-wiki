@@ -1,0 +1,129 @@
+/* Reading comfort and reference tables. Colors come from the Starlight theme. */
+
+:root {
+  --sl-content-width: 52rem;
+  --sl-line-height: 1.7;
+  --wiki-measure: 72ch;
+  --wiki-table-border: var(--sl-color-hairline);
+}
+
+/* Prose keeps a readable line length; tables, code and diagrams use the full column. */
+.sl-markdown-content > :is(p, ul, ol, dl, blockquote) {
+  max-width: var(--wiki-measure);
+}
+
+.sl-markdown-content li + li {
+  margin-top: 0.3em;
+}
+
+/* The first paragraph is the page summary. */
+.sl-markdown-content > p:first-child {
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: var(--sl-color-white);
+}
+
+.sl-markdown-content h2 {
+  margin-top: 2.6rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--wiki-table-border);
+}
+
+/* Tables: wiki.js puts each table in a scroll box, so the header row sticks to its top. */
+.sl-markdown-content .table-wrap {
+  max-height: min(80vh, 60rem);
+  margin-block: 1.4rem 1.8rem;
+  overflow: auto;
+  border: 1px solid var(--wiki-table-border);
+  border-radius: 0.3rem;
+}
+
+.sl-markdown-content .table-wrap table {
+  display: table;
+  width: 100%;
+  margin: 0;
+  font-size: var(--sl-text-sm);
+  line-height: 1.5;
+}
+
+.sl-markdown-content :is(th, td) {
+  padding: 0.45rem 0.8rem !important;
+  border-bottom: 1px solid var(--wiki-table-border);
+  vertical-align: top;
+}
+
+.sl-markdown-content thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--sl-color-bg-nav);
+  box-shadow: 0 1px 0 var(--wiki-table-border);
+  border-bottom: 0;
+  font-size: var(--sl-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.sl-markdown-content tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.sl-markdown-content tbody tr:nth-child(even) {
+  background: var(--sl-color-gray-6);
+}
+
+/* Offset, size, type and similar columns are tagged by wiki.js. */
+.sl-markdown-content td.col-data {
+  white-space: nowrap;
+  font-family: var(--__sl-font-mono);
+  font-size: var(--sl-text-code);
+}
+
+.sl-markdown-content td.col-data code {
+  padding: 0;
+  background: none;
+  border: 0;
+  font-size: inherit;
+}
+
+/* Copy link on a heading */
+.sl-anchor-link[data-copied]::after {
+  content: 'Copied';
+  margin-inline-start: 0.4rem;
+  font-size: var(--sl-text-xs);
+  color: var(--sl-color-gray-2);
+}
+
+/* Diagrams scroll sideways instead of shrinking below legibility. */
+.sl-markdown-content pre.mermaid {
+  overflow-x: auto;
+  padding: 1rem;
+  background: var(--sl-color-gray-6);
+  border: 1px solid var(--wiki-table-border);
+  border-radius: 0.3rem;
+  display: flex;
+  justify-content: safe center;
+}
+
+@media (max-width: 50rem) {
+  .sl-markdown-content .table-wrap {
+    max-height: 70vh;
+  }
+
+  .sl-markdown-content .table-wrap table {
+    font-size: var(--sl-text-xs);
+  }
+
+  .sl-markdown-content :is(th, td) {
+    padding: 0.4rem 0.6rem !important;
+  }
+}
+
+@media print {
+  .sl-markdown-content .table-wrap {
+    max-height: none;
+    overflow: visible;
+  }
+}
