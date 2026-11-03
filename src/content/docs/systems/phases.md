@@ -74,7 +74,7 @@ New Game takes a longer path inside the `START` overlay. `Start_RunNewGame (emi/
 |           3 | `Game_RunMenuState (emi/etc/game/00@0x801975E4)`        | menu: streams `STATUS`, runs the menu panels, returns to the field                                                           |
 |           4 | `func_801979D4`                                         | waits for the message window to close, then returns to 2                                                                     |
 |           5 | `Game_RunBattleState (emi/etc/game/00@0x80197A24)`      | battle: runs the eight functions of `g_GameModeHandlers`                                                                     |
-|           6 | `func_80198170`                                         | camera look mode (D-pad orbit); back to 2 when the camera is restored                                                        |
+|           6 | `Game_RunCameraLookState`                               | camera look mode (D-pad orbit); back to 2 when the camera is restored                                                        |
 |           7 | `Game_RunShopState (emi/etc/game/00@0x80198234)`        | runs `g_GameStateHandlers[substate]`; substate 0 streams `SHOP`, or returns to 2 at once for a shop actor of kind 9          |
 |           8 | `Game_RunFishingState (emi/etc/game/00@0x801984AC)`     | runs `g_GameSubstateHandlers[substate]`; entered from state 1 when `g_GameRequestFlags` bit 3 is set                         |
 |           9 | `Game_RunAbilityMenuState (emi/etc/game/00@0x80198744)` | 3-handler table `g_MenuAbilityOpen`; the name suggests the ability menu `[inferred]`                                         |

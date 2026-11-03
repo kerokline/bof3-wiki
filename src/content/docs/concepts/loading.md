@@ -141,7 +141,7 @@ Each kind of data has its own entry into the loader. The subsections cover the p
 
 `func_8019FAA0` is the area loader. It clears the actors and the palette fades, restarts the music with `SND_StartBgm`, and, only when the area id differs from the loaded one and `g_GameStateIndex` is 5, calls `EMI_LoaderStreamInitSlot(seed + 0x2AB)` and waits. The conditions that choose an area change are in [area](../../systems/areas/). The entries of an area archive follow the worked example above. Some areas add a code block at `0x801EEC00` or `0x80117000`, and `area030` has 23 entries, with code at `0x801D0C00` and a companion at `0x800F5000`.
 
-The functions `Resource_RequestArea`, `Resource_Resolve`, `Area_RequestCellRows` and `Area_LoadPaletteBank` do not read the disc. `Resource_Resolve (exe/slus_004_22@0x801502D0)` looks up a message in the table at `0x8001A000`. `Area_RequestCellRows` queues cell row ids. `Area_LoadPaletteBank` copies palette records in RAM. See [area](../../systems/areas/).
+The functions `Resource_RequestArea`, `Resource_GetText`, `Area_RequestCellRows` and `Area_LoadPaletteBank` do not read the disc. `Resource_GetText (exe/slus_004_22@0x801502D0)` looks up a message in the table at `0x8001A000`. `Area_RequestCellRows` queues cell row ids. `Area_LoadPaletteBank` copies palette records in RAM. See [area](../../systems/areas/).
 
 ### Scenario
 

@@ -35,7 +35,7 @@ flowchart TD
 
 ### Row layouts
 
-The table gives each row's size and the offset of each field. Each field carries its type. A `description` is a little-endian `u16` resource id in the `0x4000`-based id space of `Resource_Resolve` ([text](../text/#references)).
+The table gives each row's size and the offset of each field. Each field carries its type. A `description` is a little-endian `u16` resource id in the `0x4000`-based id space of `Resource_GetText` ([text](../text/#references)).
 
 | Table        | Size | Fields (offset)                                                                                                                                                                                                                                    |
 | ------------ | ---: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

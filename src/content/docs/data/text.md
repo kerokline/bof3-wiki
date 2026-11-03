@@ -173,7 +173,7 @@ where it sits and what it reaches.
 | `absolute-u32` | `u32` | code or data of any payload                         | the string's runtime address                       |
 | `resource-id`  | `u16` | the group table of a payload loaded at `0x8001A000` | the string that the id resolves to                 |
 
-`Resource_Resolve (exe/slus_004_22@0x801502D0)` turns a resource id into a runtime address. It
+`Resource_GetText (exe/slus_004_22@0x801502D0)` turns a resource id into a runtime address. It
 works on the payload loaded at `0x8001A000`.
 
 1. `id >> 14` selects one of four base words, at `0x8001A000 + 4 * (id >> 14)`.
@@ -199,7 +199,7 @@ entry 8 of `BOSS` (5 times) and entry 0 of `ETC/AFLDKWA` (1). The ids are local 
 ## Sources and confidence
 
 - **Confidence:** medium. The encoding, the control codes and the containers are read in the code and checked on every bank, but the payload behind a `text-id` and the effect of two control codes are not established.
-- **Evidence:** `UI_DrawTextGlyphs`, `UI_DrawTextString`, `UI_DrawGlyphString`, `UI_DrawMessageScript` and `Resource_Resolve`, for the glyph atlas, the control cases and the references, and a check of every message bank and name table on the disc.
+- **Evidence:** `UI_DrawTextGlyphs`, `UI_DrawTextString`, `UI_DrawGlyphString`, `UI_DrawMessageScript` and `Resource_GetText`, for the glyph atlas, the control cases and the references, and a check of every message bank and name table on the disc.
 
 ## Related
 
