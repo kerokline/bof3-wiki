@@ -217,7 +217,7 @@ Zenny is a `u32` that `Party_AddZenny` clamps at 9,999,999. A shop subtracts onl
 
 The clock stops at `99:59:59`, where the low three bytes read `0x3B3B63`, instead of incrementing past
 it. The two countdown timers at `0x80145554` (celerity) and `0x80145558` (bonebreak) use the same
-fields in reverse and borrow at the same boundaries. The tick loop is in the `emi/etc/game/00` overlay.
+fields in reverse and borrow at the same boundaries. Both lie in the saved block, at save offsets `+0xE7C` and `+0xE80` ([save layout](../records/#save-layout)). The tick loop is in the `emi/etc/game/00` overlay.
 The shop, `commu00` and `emi/etc/game/01` overlays format the same bytes for display.
 
 ## Fairy village and fishing

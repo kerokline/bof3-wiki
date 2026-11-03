@@ -41,7 +41,7 @@ The table lists the block in memory order. A name is given where the block holds
 | `+0xCBC` | `0x80145594` |    18 | -                           | nine button mask halfwords (`g_InputMasks` copy)             |
 | `+0xCF0` | `0x801455C8` |   480 | `g_FairyJobs`               | 60 rows of 8 bytes                                           |
 
-The block also holds three records this table does not split: the dragon genes at `0x80145548`, the masters at `0x8014554C` and the fairy village rooms at `0x801457A8`, per [game records](../../data/records/#save-layout). The code that fills them is not traced `[inferred]`.
+The block also holds records this table does not split: the dragon genes at `0x80145548`, the masters at `0x8014554C`, the fairy village rooms at `0x801457A8` and the two countdown timers at `0x80145554` and `0x80145558` ([clock](../../data/field/#inventory-money-and-time)), per [game records](../../data/records/#save-layout). The code that fills the genes, masters and rooms is not traced `[inferred]`.
 
 Notes on the less obvious rows:
 
