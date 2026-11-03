@@ -25,8 +25,8 @@ The [glossary](../../appendix/glossary/) defines request code and entry state.
 | Code 6, written by `Party_JoinMember` when the party is full       |           7 | SHOP (`0x266`)                   | Step 6 (`func_801DE188`), `[inferred]` a party-swap screen.     |
 | Actor of kind 5 (`func_801A18C8`)                                  |           7 | SHOP                             | Step = actor field `+0x18` plus 2.                              |
 | Scene event 10, cases 6 and 23 (`Scene_RunShopSaveEvent`)          |           7 | SHOP                             | Step = `D_80148698` plus 2. Step 3 is the save screen.          |
-| Code 7, written by `scena06` (`func_801F97C0` at `0x801F98D8`)     |           9 | BATE (`0x257`)                   | List screen, selector `D_8018E244`. `[inferred]` screen.        |
-| Code 8, written by `scena11` (`func_801F8B84` at `0x801F8D2C`)     |          10 | SHISU (`0x265`)                  | Status-style screen. `[inferred]` screen.                       |
+| Code 7, written by `scena06` (`func_801F97C0`, `func_801F9DF4`)    |           9 | BATE (`0x257`)                   | List screen, selector `D_8018E244`. `[inferred]` screen.        |
+| Code 8, written by `scena11` (`func_801F8B84`)                     |          10 | SHISU (`0x265`)                  | Status-style screen. `[inferred]` screen.                       |
 | Code 9, Start in the field (`func_801B5910`, `func_80167428`)      |          11 | none (field overlay)             | Scene dispatch with camera control. `[inferred]` Start meaning. |
 | Area load flag `0x08` (`g_GameRequestFlags & 8`)                   |           8 | `area030/04` at `0x801D0C00`     | The fishing pond.                                               |
 | Scene event 4 (`g_SceneEvents[4]`)                                 |   2 (stays) | SISYOU (`0x267`)                 | The master menu. The trigger is `[unknown]`.                    |
@@ -105,7 +105,7 @@ States 9 and 10 have the same shape. Substate 0 (`func_80198780` and `func_80198
 
 Each overlay starts with an `OverlayHeader`, then a step entry that dispatches `table[D_80148650]`, with a second table indexed by `D_80148651`. In BATE, `func_801D0DD8` sets `D_80148650 = D_8018E244 + 2`, so the scenario that opens the screen picks which one. `scena06` stores 0 to `D_8018E244` next to its writes of request code 7.
 
-What the two screens show is `[inferred]`. Both draw character data, and the only writers of codes 7 and 8 found are in `scena06` and `scena11`. A scenario-driven party or ability viewer fits both.
+What the two screens show is `[inferred]`. Both draw character data, and the only writers of codes 7 and 8 are in `scena06` and `scena11` ([request codes](../phases/#the-request-code) owns the list). A scenario-driven party or ability viewer fits both.
 
 ## Fishing (entry state 8)
 

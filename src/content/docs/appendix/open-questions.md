@@ -49,7 +49,7 @@ Pages: [phases](../../systems/phases/#open-questions), [scenario](../../systems/
 
 | Question                                                                     | What would settle it                                                                                  |
 | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Entry states 7 and 8, and request codes 7 and 8                              | A runtime write watch on `0x80143BB0`, or a data-flow read of the callers of `func_801B5910`.         |
+| What entry states 9 and 10 show (request codes 7 and 8)                      | Read the step tables of `BATE` and `SHISU`; the writers are known (`scena06`, `scena11`).             |
 | The menu trigger for code 1 and Start-in-field for code 9                    | Read the callers of `func_801B2A00` and `func_801B5910`.                                              |
 | Where name entry runs                                                        | Read the camp substate tables `D_801ECCF8`, `D_801ECD1C` and `D_801ED138`.                            |
 | Whether name entry reaches `Party_InitDefaults` before the first field frame | `Party_InitDefaults` runs in camp substate 2. Trace the chain from there to `Game_StartSelectedGame`. |

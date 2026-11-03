@@ -77,7 +77,7 @@ State 2 is where the game spends most of its time. World map, cutscenes, bosses,
 
 ### The request code
 
-Code deep inside the field does not set `g_GameEntryState` directly. It writes a request code to `g_GameStateIndex (emi/etc/game/00@0x80143BB0)`, a byte. State 2 reads the code after the per-frame update and makes the transition.
+Code deep inside the field does not set `g_GameEntryState` directly. It writes a request code to `g_GameStateIndex (exe/slus_004_22@0x80143BB0)`, a byte. State 2 reads the code after the per-frame update and makes the transition.
 
 | Code | Set by                                                                                                             | State 2 then                                                                                                          |
 | ---: | ------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
@@ -88,8 +88,8 @@ Code deep inside the field does not set `g_GameEntryState` directly. It writes a
 |    4 | `func_801B5884`, when a button is held and `g_GameFlags & 0x2000` is clear                                         | goes to state 6 (camera look)                                                                                         |
 |    5 | `Game_RequestAreaChange (emi/etc/game/00@0x8019FA28)` and five other field handlers                                | area change: sets the entry flag, fades the music if the selection changes, starts `g_GameEntryMode`, goes to state 1 |
 |    6 | `Party_JoinMember`, on party overflow                                                                              | goes to state 7, the shop state by its name `[inferred]`                                                              |
-|    7 | no literal writer found                                                                                            | goes to state 9 `[unknown]`                                                                                           |
-|    8 | no literal writer found                                                                                            | goes to state 10 `[unknown]`                                                                                          |
+|    7 | `scena06`: `func_801F97C0` and `func_801F9DF4`, three stores in all                                                | goes to state 9, the `BATE` screen ([screens](../screens/#bate-and-shisu-entry-states-9-and-10))                      |
+|    8 | `scena11`: `func_801F8B84`, one store                                                                              | goes to state 10, the `SHISU` screen ([screens](../screens/#bate-and-shisu-entry-states-9-and-10))                    |
 |    9 | `func_801B5910`, when Start is pressed and `g_GameRequestFlags & 0x69` is clear; `func_80167428` in the executable | goes to state 11; Start-in-field is `[inferred]`                                                                      |
 
 `Game_RequestAreaChange` stores the seed, position and kind in `0x80143F10..0x80143F1C`, calls `func_801A02E8` and `func_801A0380`, and sets code 5. `g_GameEntryMode (exe/slus_004_22@0x80143F1E)` is the effect index that state 1 starts: 10 when the load flags have bit 0 set (the world map), 20 for area `0xBD`, otherwise 0.
@@ -143,15 +143,15 @@ There are 20 scenario overlays, `SCENA00` to `SCENA19`. Scenario 16 is the title
 
 ## Data and limits
 
-The table lists the symbols that carry the phase state.
+The table lists the symbols that carry the phase state. All of them are work variables of the executable, in the range below its code that [memory](../../concepts/memory/#the-map) maps. The resident game program reads and writes them but does not own them.
 
 | Symbol                 | Address                      | Width    | Meaning                                                                                                               |
 | ---------------------- | ---------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
 | `g_GameEntryState`     | `exe/slus_004_22@0x80143B90` | u16      | index into `g_GameStates` (12 entries)                                                                                |
 | `g_GameEntrySubstate`  | `exe/slus_004_22@0x80143B92` | u16      | handler index inside states with sub-tables; also the New or Load choice (2 or 3)                                     |
-| `g_GameStateIndex`     | `emi/etc/game/00@0x80143BB0` | u8       | request code 0 to 9                                                                                                   |
+| `g_GameStateIndex`     | `exe/slus_004_22@0x80143BB0` | u8       | request code 0 to 9                                                                                                   |
 | `g_GameEntryMode`      | `exe/slus_004_22@0x80143F1E` | u8       | field-entry effect index passed to `UI_SetMode`                                                                       |
-| `g_GameRequestFlags`   | `emi/etc/game/00@0x80143F02` | u8       | area load flags: bit 0 world map, `0x08` fishing, `0x10` fairy village; `0x20` and `0x40` are also tested `[unknown]` |
+| `g_GameRequestFlags`   | `exe/slus_004_22@0x80143F02` | u8       | area load flags: bit 0 world map, `0x08` fishing, `0x10` fairy village; `0x20` and `0x40` are also tested `[unknown]` |
 | `g_UiLocalMode`        | `exe/slus_004_22@0x80143C90` | u8       | current transition effect index                                                                                       |
 | `g_UiWindowEffectBusy` | `exe/slus_004_22@0x80143C40` | u8       | nonzero while an effect runs; blocks `UI_SetMode`                                                                     |
 | `g_SceneState`         | `exe/slus_004_22@0x80146870` | 16 bytes | `scenario_id`, `flags_01`, `mode_02`, `state_04`, `step_05`, `timer_06`                                               |
@@ -159,22 +159,22 @@ The table lists the symbols that carry the phase state.
 
 ## Open questions
 
-| Question                                                       | What would settle it                                                                         |
-| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Entry states 7 and 8, and request codes 7 and 8                | A runtime write watch on `0x80143BB0`, or a data-flow read of the callers of `func_801B5910` |
-| The menu trigger for code 1 and Start-in-field for code 9      | Read the callers of `func_801B2A00` and `func_801B5910`                                      |
-| Where name entry runs                                          | Read the `g_MenuCampSubFuncs` tables `D_801ECCF8`, `D_801ECD1C` and `D_801ED138`             |
-| Entry paths of the shop, master, fishing and the fairy village | Callers of `EMI_LoaderStreamInitSlot` with `0x266`, `0x267`, `0x258` and the area flags      |
-| World map code                                                 | Read the world area overlays that load flag bit 0 selects                                    |
-| Boss entry                                                     | Read the callback table `D_801EB298` of `battle/03` and its callers                          |
-| What reaches the credits and the end-of-game restart           | Trace the `scena15` to `scena19` assembly and the users of `ENDKANJI`                        |
-| The exit from `BATL_END` to the field                          | Read the exit calls in `batl_end/00`                                                         |
-| What scenario 16 draws, and when it raises the popup request   | Read the `scena16` overlay                                                                   |
+| Question                                                       | What would settle it                                                                     |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| What entry states 9 and 10 show (request codes 7 and 8)        | Read the step tables of `BATE` and `SHISU`; the writers are known (`scena06`, `scena11`) |
+| The menu trigger for code 1 and Start-in-field for code 9      | Read the callers of `func_801B2A00` and `func_801B5910`                                  |
+| Where name entry runs                                          | Read the `g_MenuCampSubFuncs` tables `D_801ECCF8`, `D_801ECD1C` and `D_801ED138`         |
+| Entry paths of the shop, master, fishing and the fairy village | Callers of `EMI_LoaderStreamInitSlot` with `0x266`, `0x267`, `0x258` and the area flags  |
+| World map code                                                 | Read the world area overlays that load flag bit 0 selects                                |
+| Boss entry                                                     | Read the callback table `D_801EB298` of `battle/03` and its callers                      |
+| What reaches the credits and the end-of-game restart           | Trace the `scena15` to `scena19` assembly and the users of `ENDKANJI`                    |
+| The exit from `BATL_END` to the field                          | Read the exit calls in `batl_end/00`                                                     |
+| What scenario 16 draws, and when it raises the popup request   | Read the `scena16` overlay                                                               |
 
 ## Sources and confidence
 
 - **Confidence:** medium. The entry states, the request codes and the title path are read in the code, but several codes and states have no known writer, and the phases of the world map, the boss, the shop, fishing and the ending are `[inferred]` or `[unknown]`.
-- **Evidence:** the code of `Game_RunMainLoop`, the 12 handlers of `g_GameStates`, `Game_RequestAreaChange`, `func_8019FAA0`, `Scene_Start`, the title and start-menu overlays, and the `UI_SetMode` and `CallbackReplace` call sites in the executable and the overlays.
+- **Evidence:** the code of `Game_RunMainLoop`, the 12 handlers of `g_GameStates`, `Game_RequestAreaChange`, `func_8019FAA0`, `Scene_Start`, the stores to `g_GameStateIndex` in `func_801F97C0`, `func_801F9DF4` and `func_801F8B84`, the title and start-menu overlays, and the `UI_SetMode` and `CallbackReplace` call sites in the executable and the overlays.
 
 ## Related
 
