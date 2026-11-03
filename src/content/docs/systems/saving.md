@@ -11,7 +11,7 @@ At a save point the player opens a menu, picks a memory card port and a slot, an
 
 ## Images involved
 
-Three overlays share the work. The resident game image only hands control to them.
+Five images share the work: the executable, the resident game program and three overlays. The resident game program only hands control to the overlays.
 
 | Image                                         | Load address | Holds                                          |
 | --------------------------------------------- | ------------ | ---------------------------------------------- |

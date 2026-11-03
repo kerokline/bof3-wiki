@@ -171,29 +171,30 @@ The save file is a 1-block memory-card file ([memory card save](../../formats/sa
 
 Community save editors use a second origin that starts at the zenny field, so an editor offset is the save offset minus `0x878`. The table lists both. Rows with no tag have a named global at that address. `[inferred]` rows rest on community notes only.
 
-| Save offset        | Editor offset | Meaning                                                             | Tag          |
-| ------------------ | ------------: | ------------------------------------------------------------------- | ------------ |
-| `+0x200`-`+0x12B0` |               | checksum range (sum of these bytes, low 16 bits)                    |              |
-| `+0x85D`           |               | hide-and-seek flags (Bais `0x20`, Lang `0x40`, all found `0x80`)    | `[inferred]` |
-| `+0x85E`           |               | hide-and-seek flags (participation `0x04`, Lee `0x01`, Wynn `0x02`) | `[inferred]` |
-| `+0x878`           |       `0x000` | zenny (`g_Zenny`)                                                   |              |
-| `+0x881`           |               | formation unlock flags                                              | `[inferred]` |
-| `+0x882`           |               | three character ids (`D_80144F5A`), indexing `g_CharSlot`           |              |
-| `+0x885`           |               | three character ids (`D_80144F5D`), swapped against `D_80144F5A`    |              |
-| `+0x8E8`           |               | running clock, `Clock` format (`g_PlayClock`)                       |              |
-| `+0x90C`           |               | best catch per fish (`g_FishBestCatch`)                             |              |
-| `+0xE70`           |       `0x5F8` | dragon genes                                                        | `[inferred]` |
-| `+0xEA0`           |               | save name, five characters                                          | `[inferred]` |
-| `+0xEA5`           |               | three party portraits                                               | `[inferred]` |
-| `+0xEA8`           |               | save level (Ryu's level)                                            | `[inferred]` |
-| `+0xEAC`           |               | save timer, `Clock` format                                          | `[inferred]` |
-| `+0xEF0`           |               | fairy jobs (`g_FairyJobs`)                                          |              |
-|                    |       `0x0FC` | item category and id arrays (`g_InventoryIds`)                      |              |
-|                    |       `0x2FC` | quantity arrays (`g_InventoryCounts`)                               |              |
-|                    |       `0x4FC` | vital items (`g_VitalItemIds`)                                      |              |
-|                    |       `0x51C` | skill note                                                          | `[inferred]` |
-|                    |       `0x594` | countdown timers (hour, minute, second, subsecond)                  | `[inferred]` |
-|                    |       `0x5FC` | masters                                                             | `[inferred]` |
+| Save offset       | Editor offset | Meaning                                                                                | Tag          |
+| ----------------- | ------------: | -------------------------------------------------------------------------------------- | ------------ |
+| `+0x200..+0x12B0` |               | checksum range, 4,272 bytes ([checksum](../../formats/save/#checksum))                 |              |
+| `+0x85D`          |               | hide-and-seek flags (Bais `0x20`, Lang `0x40`, all found `0x80`)                       | `[inferred]` |
+| `+0x85E`          |               | hide-and-seek flags (participation `0x04`, Lee `0x01`, Wynn `0x02`)                    | `[inferred]` |
+| `+0x878`          |       `0x000` | zenny (`g_Zenny`)                                                                      |              |
+| `+0x881`          |               | formation unlock flags                                                                 | `[inferred]` |
+| `+0x882`          |               | three character ids (`D_80144F5A`), indexing `g_CharSlot`                              |              |
+| `+0x885`          |               | three character ids (`D_80144F5D`), swapped against `D_80144F5A`                       |              |
+| `+0x8E8`          |               | running clock, `Clock` format (`g_PlayClock`)                                          |              |
+| `+0x90C`          |               | best catch per fish (`g_FishBestCatch`)                                                |              |
+| `+0xE70`          |       `0x5F8` | dragon genes                                                                           | `[inferred]` |
+| `+0xE7C`          |       `0x604` | celerity countdown timer, `Clock` format ([clock](../field/#inventory-money-and-time)) |              |
+| `+0xE80`          |       `0x608` | bonebreak countdown timer, `Clock` format                                              |              |
+| `+0xEA0`          |               | save name, five characters                                                             | `[inferred]` |
+| `+0xEA5`          |               | three party portraits                                                                  | `[inferred]` |
+| `+0xEA8`          |               | save level (Ryu's level)                                                               | `[inferred]` |
+| `+0xEAC`          |               | save timer, `Clock` format                                                             | `[inferred]` |
+| `+0xEF0`          |               | fairy jobs (`g_FairyJobs`)                                                             |              |
+|                   |       `0x0FC` | item category and id arrays (`g_InventoryIds`)                                         |              |
+|                   |       `0x2FC` | quantity arrays (`g_InventoryCounts`)                                                  |              |
+|                   |       `0x4FC` | vital items (`g_VitalItemIds`)                                                         |              |
+|                   |       `0x51C` | skill note                                                                             | `[inferred]` |
+|                   |       `0x5FC` | masters                                                                                | `[inferred]` |
 
 ## Area data
 

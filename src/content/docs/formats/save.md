@@ -83,12 +83,12 @@ Each argument is a two-byte full-width digit or label from the `D_801E5434` tabl
 
 The checksum covers the payload. `SAVE_RunLoadVerify (emi/etc/start/08@0x801E5A00)` checks it on load, and `SAVE_BuildSlotImage` writes it on save.
 
-- Region: 4,272 bytes from file offset `0x200`.
+- Region: 4,272 bytes, file offsets `0x200..0x12B0`. The last byte is `0x12AF`.
 - Algorithm: the unsigned 32-bit sum of the bytes, masked with `0xFFFF`.
 - Slot: the halfword at file offset `0x270`. On load the game reads it, zeroes it, sums the region and compares. On save the halfword is already zero when summed, because `D_80144948` is cleared before the copy, and the result is stored afterwards.
 - Failure: a mismatch sets `g_SaveCardStatus (exe/slus_004_22@0x8018E228)` to 7 and plays the error cue.
 
-To patch a save by hand, change bytes in `0x200` to `0x12AF`, set the halfword at `0x270` to 0, sum all 4,272 bytes from `0x200`, and store the low 16 bits at `0x270` (little-endian). The load routine checks only this sum. It does not test the `"SC"` header, the title or the icons.
+To patch a save by hand, change bytes in `0x200..0x12B0`, set the halfword at `0x270` to 0, sum all 4,272 bytes from `0x200`, and store the low 16 bits at `0x270` (little-endian). The load routine checks only this sum. It does not test the `"SC"` header, the title or the icons.
 
 ## Card calls
 
