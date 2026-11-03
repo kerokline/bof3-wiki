@@ -11,7 +11,7 @@ Items, equipment, abilities (skills and magic), shop stock and level growth sit 
 
 Two things live elsewhere:
 
-- Drops and steals are fields of the enemy record ([characters and enemies](../characters/)).
+- Enemy drops are the two item rows of the enemy record ([characters and enemies](../characters/)).
 - A description is a 16-bit resource id into the table that loads at `0x8001A000`. Changing a description is a [text edit](../text/), not a table edit.
 
 ## What to change
@@ -44,6 +44,6 @@ Items and equipment show their name and price in the item and equipment menus. A
 
 - [Game records](../../data/records/): the row layouts, masks and targeting flags.
 - [Edit text and dialogue](../text/): descriptions and names.
-- [Edit characters and enemies](../characters/): level growth, drops and steals.
+- [Edit characters and enemies](../characters/): level growth and enemy drops.
 - [Edit sound and music](../sound/): the cue table that a weapon sound names.
 - [Edit the game](../): the editing cycle and the limits that apply to every edit.

@@ -219,36 +219,39 @@ An encounter is eight enemy slots (`+0x00`-`+0x07`, `0xFF` empty) and an appeara
 
 The table gives the offset, type and meaning of each field of the 136-byte enemy record.
 
-| Offset | Type      | Name                                                   | Meaning                                                           |
-| -----: | --------- | ------------------------------------------------------ | ----------------------------------------------------------------- |
-| `0x00` | `char[8]` | `name`                                                 |                                                                   |
-| `0x08` | `u16`     | `enemy id`                                             |                                                                   |
-| `0x0A` | `u8`      | `choice AI`                                            |                                                                   |
-| `0x0B` | `u8[3]`   | unknown                                                |                                                                   |
-| `0x0E` | `u8`      | `target preference`                                    |                                                                   |
-| `0x0F` | `u8`      | unknown                                                |                                                                   |
-| `0x10` | `u16`     | `zenny`                                                |                                                                   |
-| `0x12` | `u16`     | `experience`                                           |                                                                   |
-| `0x14` | `u8`      | `level`                                                |                                                                   |
-| `0x15` | `u8[3]`   | unknown                                                |                                                                   |
-| `0x18` | `u8[8]`   | `initial skills`                                       |                                                                   |
-| `0x20` | `u16[6]`  | `HP`, `AP`, `power`, `defense`, `agility`, `intellect` |                                                                   |
-| `0x2C` | `u8[2]`   | `first item row`                                       | item index, item type                                             |
-| `0x2E` | `u16`     | `first item row`                                       | rate                                                              |
-| `0x30` | `u8[2]`   | `second item row`                                      | item index, item type                                             |
-| `0x32` | `u16`     | `second item row`                                      | rate                                                              |
-| `0x34` | `u8[64]`  | `AI blocks`                                            | four blocks of 16 bytes: condition (`u8`), 7 parameters, 8 skills |
-| `0x74` | `u8[4]`   | unknown                                                |                                                                   |
-| `0x78` | `u8[9]`   | `resistances`                                          |                                                                   |
-| `0x81` | `u8[7]`   | unknown                                                |                                                                   |
+| Offset | Type      | Name                                                   | Meaning                                                                       |
+| -----: | --------- | ------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| `0x00` | `char[8]` | `name`                                                 |                                                                               |
+| `0x08` | `u16`     | `enemy id`                                             |                                                                               |
+| `0x0A` | `u8`      | `choice AI`                                            |                                                                               |
+| `0x0B` | `u8[3]`   | unknown                                                |                                                                               |
+| `0x0E` | `u8`      | `target preference`                                    |                                                                               |
+| `0x0F` | `u8`      | unknown                                                |                                                                               |
+| `0x10` | `u16`     | `zenny`                                                |                                                                               |
+| `0x12` | `u16`     | `experience`                                           |                                                                               |
+| `0x14` | `u8`      | `level`                                                |                                                                               |
+| `0x15` | `u8[3]`   | unknown                                                |                                                                               |
+| `0x18` | `u8[8]`   | `initial skills`                                       |                                                                               |
+| `0x20` | `u16[6]`  | `HP`, `AP`, `power`, `defense`, `agility`, `intellect` |                                                                               |
+| `0x2C` | `u8[2]`   | `first item row`                                       | item index, item type                                                         |
+| `0x2E` | `u16`     | `first item row`                                       | rate                                                                          |
+| `0x30` | `u8[2]`   | `second item row`                                      | item index, item type                                                         |
+| `0x32` | `u16`     | `second item row`                                      | rate                                                                          |
+| `0x34` | `u8[64]`  | `AI blocks`                                            | four blocks of 16 bytes: condition (`u8`), 7 parameters, 8 skills             |
+| `0x74` | `u8[4]`   | unknown                                                |                                                                               |
+| `0x78` | `u8[9]`   | `resistances`                                          |                                                                               |
+| `0x81` | `u8`      | unknown                                                |                                                                               |
+| `0x82` | `u8`      | `reach`                                                | footprint size for encounter placement, see the notes below `[inferred]` name |
+| `0x83` | `u8`      | `height`                                               | vertical offset in pixels, see the notes below `[inferred]` name              |
+| `0x84` | `u8[4]`   | unknown                                                |                                                                               |
 
 Notes on the fields:
 
 - Skill byte `0x63` (99) in an AI block marks it unused.
 - The enemy id is in the range `0x0001`-`0x04A8`. There are 175 ids for 168 names, and the pointer index is not the id. Six names carry two or three ids: Ammonite `0x95`/`0x96`, Beyd `0x58`/`0x59`, Garr `0x454`/`0x465`, Golem `0x4C`/`0x4D`, Nue `0x0D`/`0x0E` and ToxicMan `0x7F`/`0xAE`/`0xAF`.
 - Resistances run in the order Fire, Frost, Thunder, Earth, Wind, Holy, Psionic, Status, Death. Each value is a level from 0 to 7.
-- The two item rows copy to the battler's two drop rows at battler `+0x98`. At the end of a battle both rows roll the same way ([drops](#drops)). Which row the Steal skill takes is `[unknown]`.
-- `Enemy +0x82` and `+0x83` are read when the game builds an encounter and are passed with the candidate's x and y to `func_801C7064` (`emi/etc/game/00`). They act as a reach and a y offset `[inferred]`.
+- The two item rows are 4 bytes each. A battle copies them unchanged to the battler's two drop rows at battler `+0x98` and `+0x9C`, and at the end of the battle both rows roll the same way ([drops](#drops)). The row has two views: [battle records](../battle/#drops) reads the same four bytes as a `u16` item id, a `u8` rate and a padding byte. Which row the Steal skill takes is `[unknown]`; no code treats either row as a Steal row.
+- `Enemy +0x82` (reach) and `+0x83` (height) are the two bytes at block `+0xCA` and `+0xCB` of the `0x800E4000` encounter block (`0x48 + 0x82 = 0xCA`). Placement reads both through `func_801C7064 (emi/etc/game/00@0x801C7064)`: reach sets the probe step `(reach + 1) << 14` in 16.16 units, and each of the four probe points must project inside the 320 by 240 screen. A final probe must project to a screen y of at least height plus 8. Reach alone feeds the overlap test `func_801C7498 (emi/etc/game/00@0x801C7498)` between two candidates, with half-extent `(reach + 1) << 15`. The battle panels subtract height plus 8 from an enemy's y, and at least one spell effect adds it to a y cell.
 - A chest with item type `0xFF` gives zenny: `item_index × 40`.
 - Manillo fish items start at item index `0x38`.
 
@@ -351,7 +354,7 @@ The community notes give 320 bytes as the enemy row stride. That is the player r
 ## Sources and confidence
 
 - **Confidence:** medium. The table layouts, counts and strides are established, but several fields, the chest, gene and Manillo counts and most save-offset names are `[inferred]` or `[unknown]`.
-- **Evidence:** the retail archives and the functions named in each section (the item dispatcher, `Party_InitDefaults`, the level-up and master routines, the drop roll). Community notes and cheat lists confirm addresses and strides only ([sources](../../appendix/sources/)).
+- **Evidence:** the retail archives and the functions named in each section (the item dispatcher, `Party_InitDefaults`, the level-up and master routines, the drop roll, the encounter placement functions `Area_BuildEncounter`, `func_801C7064` and `func_801C7498`, and the enemy-to-battler copy in `func_800AC218`). Community notes and cheat lists confirm addresses and strides only ([sources](../../appendix/sources/)).
 
 ## Related
 

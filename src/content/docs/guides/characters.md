@@ -13,7 +13,7 @@ A playable character is one record of 164 bytes, and an enemy is one record of 1
 | Level growth                   | 693 rows of 8 bytes in `GAME.EMI#0`: one block of 99 rows for each of characters 0 to 6 ([level growth](../../data/records/#level-growth-and-level-ups))                                          |
 | Masters                        | 17 skill rows and 17 stat rows in `SISYOU.EMI#0`; 17 names in `AFLDKWA.EMI#0` ([masters](../../data/records/#masters))                                                                            |
 | Enemies and encounters         | the 1,160-byte entry that loads at `0x800E4000` in each of the 200 area archives: 8 encounters of 9 bytes and 8 enemy records of 136 bytes ([enemy record](../../data/records/#the-enemy-record)) |
-| Drops and steals               | fields of the enemy record ([drops](../../data/records/#drops))                                                                                                                                   |
+| Enemy drops                    | fields of the enemy record ([drops](../../data/records/#drops))                                                                                                                                   |
 
 ## What to change
 

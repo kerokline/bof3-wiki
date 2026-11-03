@@ -111,7 +111,7 @@ Each area carries its own enemies. The block is 1,160 bytes in every area and ti
 
 An encounter lists up to eight enemy indexes into the block's own enemy records (`0xFF` is an empty slot) and an appearance rate. Only indexes 0 to 6 occur on the disc. The picker `emi/etc/game/00@0x801C6A7C` walks the 9-byte records with `sum += base[8]` until the sum reaches a threshold of 1 to 16 from `rand()`. Its caller `@0x801C60E0` stores the selected `0x800E4000 + 9*idx` into `D_801CD8CC`. A battle setup, `@0x800AC218`, copies the enemy record into the 280-byte runtime slot `D_801EB630 + slot*280`, and the byte at `D_801EB710 + slot*280` holds the record index. No store to the block exists in any overlay or resident program.
 
-An enemy record has 136 bytes. The table gives its fields by offset inside the record. A size of `-` is not recorded. Unnamed bytes (`0x0B`, `0x0F`, `0x15`, `0x74` and `0x81`) have no known role.
+An enemy record has 136 bytes. The table gives its fields by offset inside the record. A size of `-` is not recorded. Unnamed bytes (`0x0B`, `0x0F`, `0x15`, `0x74`, `0x81` and `0x84` to `0x87`) have no known role.
 
 | Offset | Size | Name                                                                                           |
 | -----: | ---: | ---------------------------------------------------------------------------------------------- |
@@ -126,12 +126,14 @@ An enemy record has 136 bytes. The table gives its fields by offset inside the r
 | `0x20` |    2 | `hp`                                                                                           |
 | `0x22` |    2 | `ap`                                                                                           |
 | `0x24` |    8 | `power`, `defense`, `agility`, `intellect` (`u16` each, at `0x24`, `0x26`, `0x28`, `0x2A`)     |
-| `0x2C` |    - | `steal`: item index and type                                                                   |
-| `0x2E` |    - | steal rate                                                                                     |
-| `0x30` |    - | `drop`: item index and type                                                                    |
-| `0x32` |    - | drop rate                                                                                      |
+| `0x2C` |    2 | first item row: item index (`u8`), item type (`u8`)                                            |
+| `0x2E` |    2 | first item row: rate (`u16`)                                                                   |
+| `0x30` |    2 | second item row: item index (`u8`), item type (`u8`)                                           |
+| `0x32` |    2 | second item row: rate (`u16`)                                                                  |
 | `0x34` |   64 | four action blocks at `0x34`, `0x44`, `0x54` and `0x64`                                        |
 | `0x78` |    9 | `resistances`: fire, frost, thunder, earth, wind, holy, psionic, status, death (levels 0 to 7) |
+| `0x82` |    1 | `reach`: footprint size for encounter placement `[inferred]` name                              |
+| `0x83` |    1 | `height`: vertical offset in pixels `[inferred]` name                                          |
 
 An action block is 16 bytes: a condition byte, seven AI parameters and eight ability indexes. Condition `0x63` marks an unused block. [Game records](../../data/records/#area-data) lists the same fields by group.
 

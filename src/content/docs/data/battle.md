@@ -129,13 +129,13 @@ Cells with no proven role (`[unknown]`): `0x06`, `0x07`, `0x0C`-`0x24`, `0x2B`, 
 
 ## Drops
 
-A defeated enemy can drop up to two items. Each of the two drop rows at enemy `+0x98` holds an item id and a rate index. The rate index selects a chance from the table in [drops](../records/#drops), which also gives the roll. The table gives the row layout.
+A defeated enemy can drop up to two items. The two drop rows at enemy `+0x98` and `+0x9C` are the two item rows of the area's [enemy record](../records/#the-enemy-record), copied unchanged when the battle starts. Each row holds an item id and a rate index. The rate index selects a chance from the table in [drops](../records/#drops), which also gives the roll. The table gives the row as the battle code reads it.
 
-| Offset | Type  | Meaning                                                 |
-| -----: | ----- | ------------------------------------------------------- |
-| `0x00` | `u16` | item id that the spoils gain when the roll passes       |
-| `0x02` | `u8`  | index into the 8-byte drop chance table at `0x801D0CB8` |
-| `0x03` | `u8`  | padding                                                 |
+| Offset | Type  | Meaning                                                                                                         |
+| -----: | ----- | --------------------------------------------------------------------------------------------------------------- |
+| `0x00` | `u16` | item id that the spoils gain when the roll passes: the record's item index (low byte) and item type (high byte) |
+| `0x02` | `u8`  | index into the 8-byte drop chance table at `0x801D0CB8`: the low byte of the record's `u16` rate                |
+| `0x03` | `u8`  | padding: the high byte of the record's rate; no code reads it                                                   |
 
 The spoils record collects what a battle yields. It sits at `0x80146326`, is 62 bytes long and is
 walked by `func_801E531C (emi/battle/battle/03@0x801E531C)`.
@@ -161,9 +161,9 @@ at `0x801463DC`. The battle overlay walks the table and places each live enemy.
 | `0x04` | `s32` (16.16) | encounter x; written by `func_801C6BB4 (emi/etc/game/00@0x801C6BB4)`                                       |
 | `0x08` | `s32` (16.16) | encounter y; written by `func_801C6BB4`                                                                    |
 
-The `0x800E4000` encounter block has 136-byte enemy rows. `+0xCA` and `+0xCB` are the two bytes
-that `Area_BuildEncounter` and `func_801E8DD8` read. `func_801C7064` takes them as a reach and a y
-offset. See [game records](../records/#area-data) for the block layout.
+The enemy record bytes `+0x82` and `+0x83` (block `+0xCA` and `+0xCB`) are the reach and height
+that `Area_BuildEncounter` and `func_801E8DD8` read. [Game records](../records/#the-enemy-record) owns
+their meaning.
 
 ## Panel tasks and queued actions
 
