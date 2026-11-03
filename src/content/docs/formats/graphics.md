@@ -131,7 +131,7 @@ flowchart LR
     S --> A
 ```
 
-The arena base holds 256 units of 64 bytes (32 rows of 512). [Rendering](../../systems/rendering/) describes how the working copy and the upload run each frame. `GFX_StepPaletteAnimation` writes one stage entry, so a palette animation changes the arena before the next upload.
+The arena base holds 256 units of 64 bytes (32 rows of 512). [Rendering](../../systems/rendering/) describes how the working copy and the upload run each frame. `GFX_StepPaletteAnimation` copies colours inside the working copy and sets the upload flag. It does not change the arena.
 
 ## Load path
 
@@ -190,7 +190,7 @@ These are ranked by the bytes they leave unexplained.
 ## Sources and confidence
 
 - **Confidence:** medium. The upload, the colour words and the proven joins are read and checked on every payload, but 381 of 593 textures have no proven depth or palette.
-- **Evidence:** all 593 type-3 payloads and 620 palette banks, the loader and drawing functions named above, and every CLUT and TPage write in the game code. The community [BoF3-Data-Doc](https://github.com/GlitchedDragon-dev/BoF3-Data-Doc) (texture and palette notes) only confirms. The runtime primitives are PsyQ 3.7 ([sources](../../appendix/sources/)).
+- **Evidence:** all 593 type-3 payloads and 620 palette banks, the loader and drawing functions named above (including `GFX_UploadPaletteAnimation`, which writes the working copy), and every CLUT and TPage write in the game code. The community [BoF3-Data-Doc](https://github.com/GlitchedDragon-dev/BoF3-Data-Doc) (texture and palette notes) only confirms. The runtime primitives are PsyQ 3.7 ([sources](../../appendix/sources/)).
 
 ## Related
 
