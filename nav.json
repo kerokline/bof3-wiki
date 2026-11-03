@@ -1,0 +1,80 @@
+[
+  {
+    "label": "Concepts",
+    "items": [
+      "concepts/architecture",
+      "concepts/notation",
+      "concepts/memory",
+      "concepts/frame-loop",
+      "concepts/scheduler",
+      "concepts/loading"
+    ]
+  },
+  {
+    "label": "Systems",
+    "items": [
+      "systems/boot",
+      "systems/phases",
+      "systems/scenario",
+      "systems/areas",
+      "systems/battle",
+      "systems/screens",
+      "systems/ui",
+      "systems/rendering",
+      "systems/audio",
+      "systems/saving",
+      "systems/state"
+    ]
+  },
+  {
+    "label": "Formats",
+    "items": [
+      "formats/assets",
+      "formats/disc",
+      "formats/emi",
+      "formats/lz77",
+      "formats/exe",
+      "formats/graphics",
+      "formats/character",
+      "formats/area",
+      "formats/audio",
+      "formats/str",
+      "formats/save",
+      "formats/conversion"
+    ]
+  },
+  {
+    "label": "Data tables",
+    "items": [
+      "data/programs",
+      "data/records",
+      "data/text",
+      "data/battle",
+      "data/field",
+      "data/code-map"
+    ]
+  },
+  {
+    "label": "Guides",
+    "items": [
+      "guides",
+      "guides/text",
+      "guides/items",
+      "guides/characters",
+      "guides/sound",
+      "guides/maps",
+      "guides/graphics",
+      "guides/saves"
+    ]
+  },
+  {
+    "label": "Appendix",
+    "items": [
+      "appendix/glossary",
+      "appendix/version",
+      "appendix/open-questions",
+      "appendix/coverage",
+      "appendix/sources"
+    ]
+  }
+]

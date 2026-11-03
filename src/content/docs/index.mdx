@@ -1,0 +1,107 @@
+---
+title: "Breath of Fire III: game specifications"
+description: "File formats, memory layouts, record tables and runtime behavior of Breath of Fire III (US, PlayStation, SLUS-00422)."
+template: splash
+sidebar:
+  label: Introduction
+hero:
+  tagline: Independent research on how Breath of Fire III (US, PlayStation, SLUS-00422) stores and runs its data.
+  actions:
+    - text: Start with the overview
+      link: ./concepts/architecture/
+      icon: right-arrow
+    - text: Read the notation first
+      link: ./concepts/notation/
+      variant: minimal
+---
+
+import { Card, CardGrid, LinkCard, Steps } from '@astrojs/starlight/components';
+
+This site covers file formats, memory layouts, record tables, text encoding and the code that reads
+them. It is written for modders and fans who know some PlayStation basics but not this game. Every
+page states layouts, offsets, values and limits, and marks what is still unknown.
+
+## What the game is made of
+
+1. **One resident program.** `SLUS_004.22` loads at boot and stays in RAM until power-off. It holds
+   the main loop, the loader, the graphics and sound drivers and the shared helpers
+   ([programs](./data/programs/)).
+2. **Overlays.** All other code streams from `.EMI` archives on the disc into fixed RAM windows. A
+   window holds one overlay at a time: the battle program, a scenario controller or the program of
+   one map ([loading](./concepts/loading/), [memory map](./concepts/memory/)).
+3. **Data tables.** Items, abilities, enemies, text, maps and sound are payloads inside the archives.
+   The game reads them through fixed tables and offsets ([game records](./data/records/),
+   [game text](./data/text/)).
+
+An EMI archive is a sector-aligned list of typed entries ([EMI container](./formats/emi/)). Each
+entry names the RAM address it loads at, so one archive can carry code, data, textures and audio.
+
+## Reading path
+
+<Steps>
+
+1. Read [Notation and conventions](./concepts/notation/) once. It defines the number formats, field
+   types, citations and the two evidence tags.
+2. Read the [architecture overview](./concepts/architecture/) for one run from power-on to a
+   running frame.
+3. Read the [memory map](./concepts/memory/), the [frame loop](./concepts/frame-loop/), the
+   [scheduler](./concepts/scheduler/) and [loading](./concepts/loading/). Every system page builds
+   on them.
+4. Pick the system you need from [Systems](./systems/boot/): boot, phases, scenario, areas, battle,
+   screens, UI, rendering, audio, saving and state.
+5. Look up byte layouts in [Formats](./formats/disc/) and table rows in
+   [Data tables](./data/records/).
+6. Change something with a [guide](./guides/). Each guide links to the pages that own the facts.
+
+</Steps>
+
+The [glossary](./appendix/glossary/) defines every term. [Open questions](./appendix/open-questions/)
+lists what the pages do not establish, and [sources](./appendix/sources/) lists where claims come from.
+
+## The parts of the wiki
+
+<CardGrid>
+  <Card title="Concepts" icon="open-book">
+    The model every page assumes: notation, memory map, frame loop, scheduler and loading.
+  </Card>
+  <Card title="Systems" icon="setting">
+    How each part runs: boot, phases, scenario, areas, battle, screens, UI, rendering, audio, saving.
+  </Card>
+  <Card title="Formats" icon="document">
+    Byte layouts of the files on the disc, from the EMI container to the memory card save.
+  </Card>
+  <Card title="Data tables" icon="list-format">
+    Row layouts, counts and strides of the tables the game reads at run time.
+  </Card>
+  <Card title="Guides" icon="pencil">
+    How to change text, items, characters, sound, maps, graphics and saves, and what to keep intact.
+  </Card>
+  <Card title="Appendix" icon="information">
+    Glossary, open questions, documentation coverage and sources.
+  </Card>
+</CardGrid>
+
+## Start with your goal
+
+| You want to                             | Read                                                                                                                                                   |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Read a number, offset or citation       | [Notation and conventions](./concepts/notation/)                                                                                                       |
+| Understand how the game runs            | [Architecture overview](./concepts/architecture/), then [boot](./systems/boot/) and [frame loop](./concepts/frame-loop/)                               |
+| Read a file format                      | [EMI container](./formats/emi/), then [graphics](./formats/graphics/), [audio](./formats/audio/), [areas](./formats/area/)                             |
+| Edit items, skills, enemies or shops    | [Edit items, skills and shops](./guides/items/), [edit characters and enemies](./guides/characters/), [game records](./data/records/)                  |
+| Edit text or dialogue                   | [Edit text and dialogue](./guides/text/), [game text](./data/text/)                                                                                    |
+| Edit music, sound effects or voices     | [Edit sound and music](./guides/sound/), [audio formats](./formats/audio/), [STR and XA](./formats/str/), [audio system](./systems/audio/)             |
+| Edit maps and scenes                    | [Edit maps and scripts](./guides/maps/), [area formats](./formats/area/), [areas and the field](./systems/areas/), [scenario engine](./systems/scenario/) |
+| Edit textures and sprites               | [Edit graphics and textures](./guides/graphics/), [character bank](./formats/character/)                                                               |
+| Edit or inspect a save                  | [Edit saves](./guides/saves/), [memory card save](./formats/save/)                                                                                     |
+| Look up the battle or field data in RAM | [Battle records](./data/battle/), [field and party records](./data/field/)                                                                             |
+| Find a term                             | [Glossary](./appendix/glossary/)                                                                                                                       |
+| See where a fact comes from             | [Sources](./appendix/sources/)                                                                                                                         |
+
+## About this site
+
+The pages describe one release, the US disc `SLUS-00422`; [game version](./appendix/version/) lists its Redump checksums.
+
+The site holds no game data and no game assets. *Breath of Fire* and the game belong to Capcom, and
+the PlayStation belongs to Sony; they keep their rights. This site is independent and is not
+affiliated with or endorsed by either company.
