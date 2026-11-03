@@ -9,9 +9,9 @@ runtime behavior. A change needs evidence: a game address, bytes, or a cited sou
 assets or game text. To check a claim yourself, dump your own US disc (Redump-verified CUE sheet and
 BIN tracks).
 
-The wiki holds game and format facts only. Pages contain no tool output, repository paths, progress
-reports or project history. The one code form is the `c` struct block described under
-[Record layouts](#record-layouts).
+The wiki holds game and format facts only. Pages contain no tool output, progress reports or project
+history. The one code form is the `c` struct block, and the one repository path is its `Source:` link,
+both described under [Record layouts](#record-layouts).
 
 ## Repository layout
 
