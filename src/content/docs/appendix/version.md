@@ -33,7 +33,7 @@ A raw sector is 2,352 bytes. Track 1 holds 188,324 sectors and track 2 holds 15,
 ## Sources and confidence
 
 - **Confidence:** high. The names, sizes and digests are published values; the sector counts follow from the sizes.
-- **Evidence:** the Redump database entry for Breath of Fire III (USA), read through a public mirror of the Redump data at data.spludlow.co.uk. The wiki holds no image and no retail bytes.
+- **Evidence:** the Redump database entry for Breath of Fire III (USA) at redump.org, which a public mirror of the Redump data at data.spludlow.co.uk reproduces. The sheet and both tracks match on size, CRC32, MD5 and SHA-1. The wiki holds no image and no retail bytes.
 
 ## Related
 
