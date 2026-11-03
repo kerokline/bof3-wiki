@@ -15,15 +15,16 @@ reports or project history. The one code form is the `c` struct block described 
 
 ## Repository layout
 
-| Path                   | Holds                                                                       |
-| ---------------------- | --------------------------------------------------------------------------- |
-| `src/content/docs/`    | The pages, one Markdown file each, in a folder per part of the wiki.        |
-| `nav.json`             | Every page in sidebar order, grouped by part. A page not listed here fails. |
-| `redirects.json`       | Old URL to current page. Add an entry when a page moves or is renamed.      |
-| `src/styles/wiki.css`  | Typography and table styling.                                               |
-| `public/wiki.js`       | Sticky table headers, monospace data columns and copy links on headings.    |
-| `astro.config.mjs`     | Site, search, link validation, diagrams and `llms.txt` settings.            |
-| `tools/check_pages.py` | The page template check.                                                    |
+| Path                       | Holds                                                                       |
+| -------------------------- | --------------------------------------------------------------------------- |
+| `src/content/docs/`        | The pages, one Markdown file each, in a folder per part of the wiki.        |
+| `nav.json`                 | Every page in sidebar order, grouped by part. A page not listed here fails. |
+| `redirects.json`           | Old URL to current page. Add an entry when a page moves or is renamed.      |
+| `src/styles/wiki.css`      | Typography and table styling.                                               |
+| `public/wiki.js`           | Sticky table headers, monospace data columns and copy links on headings.    |
+| `astro.config.mjs`         | Site, search, link validation, diagrams and `llms.txt` settings.            |
+| `tools/check_pages.py`     | The page template check.                                                    |
+| `tools/check_diagrams.mjs` | The diagram readability check.                                              |
 
 ## Record layouts
 
@@ -126,6 +127,16 @@ A mistake that corrupts data, a save or a build of the game.
 Use a Mermaid diagram only for flow or structure that prose shows badly. Give nodes short labels. Do
 not set colors in the diagram: the theme colors it for light and dark.
 
+In a sequence diagram, break a long participant name or message with `<br/>` at about 20
+characters. Do not rely on automatic wrapping: it splits words with hyphens. Show a repeated
+self-call as one message, not as a `loop` frame around it. In a flowchart with subgraphs, use `LR`
+when edges would cross a subgraph title.
+
+After a diagram change, run `npm run build && npm run check:diagrams`. It renders every diagram at
+1440 and 390 pixels in both themes and fails on overlapping text, a label larger than its shape,
+a line across a label, clipped text, text under 12 px and contrast under 4.5:1. Set `CHROMIUM` to
+a Chrome or Chromium binary when Google Chrome is not installed.
+
 ## Where a fact lives
 
 Each fact has one page. Other pages link to it and do not copy it.
@@ -180,6 +191,7 @@ npm ci
 dprint check                    # Markdown format; dprint fmt fixes it
 python3 tools/check_pages.py    # page template, titles, orphan pages
 npm run build                   # builds dist/ and validates internal links and anchors
+npm run check:diagrams          # diagram readability, after npm run build
 npm run dev                     # live preview at http://localhost:4321/bof3-wiki/
 ```
 

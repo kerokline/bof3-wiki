@@ -15,6 +15,7 @@ npm ci
 npm run dev       # live preview at http://localhost:4321/bof3-wiki/
 npm run build     # builds dist/, validates links, writes the search index, llms.txt and the sitemap
 npm run check     # page template, titles, orphan pages
+npm run check:diagrams  # diagram readability (needs a build and Chrome)
 ```
 
 [CONTRIBUTING.md](CONTRIBUTING.md) has the page template and the full list of checks.
