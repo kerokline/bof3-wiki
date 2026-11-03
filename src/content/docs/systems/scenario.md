@@ -81,7 +81,7 @@ In `SCENA00` the five words are at `0x801FC9FC` and the mode table follows at `0
 | `0x05` | `step_05`     | Third-level step.                                                                                |
 | `0x06` | `timer_06`    | Countdown for the step.                                                                          |
 
-`SAVE_RunLoadRestore (emi/etc/start/08@0x801E5FD4)` copies 16 bytes from `D_801448D8` into `g_SceneState` on load. The flag words and the event-flag block (see [Flags](#flags)) lie inside the 4,272-byte persistent block that boot zeroes from `D_801448D8` ([boot](../boot/), [state](../state/#one-persistent-block)). Whether the save image carries them is in [saving](../saving/).
+`SAVE_RunLoadRestore (emi/etc/start/08@0x801E5FD4)` copies 16 bytes from `D_801448D8` into `g_SceneState` on load. The flag words (block `+0x5B0`) and the event-flag block (block `+0x650`) lie inside the 4,272-byte persistent block that boot zeroes from `D_801448D8` ([boot](../boot/), [state](../state/#one-persistent-block)). A save copies the whole block, so the card file carries both ([saving](../saving/#saving)). `g_SceneState` itself lies outside the block; the save copies it into the block's first 16 bytes.
 
 ## Chapter advance
 
@@ -152,19 +152,18 @@ A rebuilt or relocated scenario has to respect these limits.
 - **Flag budget.** 64 bits per scenario word, as above.
 - **Handler addresses.** A handler address in `g_SceneEvents` or `g_SceneObjects` that lies in the area window runs whatever the loaded area program places there ([area](../areas/#data-and-limits)).
 - **Slot range.** Scenario code uses EMI slots `0x295-0x2A8`. The effect overlays use `0x290-0x294`.
-- **Save compatibility.** `scenario_id` and the flag words are part of the state restored on load ([saving](../saving/)).
+- **Save compatibility.** `scenario_id`, the flag words and the event flags are part of the saved block and are restored on load ([saving](../saving/)).
 
 ## Open questions
 
-| Question                                                                  | What would settle it                                                            |
-| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| Story meaning of each scenario and each flag bit                          | Read each controller's mode table and the `SYS_SetFlag` sites.                  |
-| Mode and state counts of the 18 undecoded controllers                     | Read the five-word block and the table after it for each.                       |
-| Caller that enters `Scene_RunEffect`, and the `SCE15EF*` overlays         | Find the call into `0x801D0C10` from `SCENA10` and `SCENA15`.                   |
-| Purpose of `SCENA16` and `SCENA17`                                        | Trace the title idle path and the ending path.                                  |
-| Roles of event ids 5, 6, 10, 27, 44, 55 and the `0x801F....` handlers     | Read each handler and the writers of `D_801448EB` (`func_801B6674` and others). |
-| Whether the save image carries `g_SceneFlagWords` and `g_SceneEventFlags` | The save writer in [saving](../saving/).                                        |
-| Reader of the `flags_01 & 0x20` bit set by `func_8019A904`                | Find its readers.                                                               |
+| Question                                                              | What would settle it                                                            |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Story meaning of each scenario and each flag bit                      | Read each controller's mode table and the `SYS_SetFlag` sites.                  |
+| Mode and state counts of the 18 undecoded controllers                 | Read the five-word block and the table after it for each.                       |
+| Caller that enters `Scene_RunEffect`, and the `SCE15EF*` overlays     | Find the call into `0x801D0C10` from `SCENA10` and `SCENA15`.                   |
+| Purpose of `SCENA16` and `SCENA17`                                    | Trace the title idle path and the ending path.                                  |
+| Roles of event ids 5, 6, 10, 27, 44, 55 and the `0x801F....` handlers | Read each handler and the writers of `D_801448EB` (`func_801B6674` and others). |
+| Reader of the `flags_01 & 0x20` bit set by `func_8019A904`            | Find its readers.                                                               |
 
 ## Sources and confidence
 

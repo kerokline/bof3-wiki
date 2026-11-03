@@ -162,7 +162,6 @@ Pages: [saving](../../systems/saving/#open-questions), [state](../../systems/sta
 | The setter of save status 11, `D_801E6110` and `D_80143BB4` in state 18, and the strings behind each message      | Read the writers and decode the text resources `0x85` and `0xA6` onward.                  |
 | Whether a load resumes the save-point event (bytes `0x801448EB` to `0x801448ED` are inside the saved block)       | Save during the event, then trace `Scene_RunEventHandler` after the load.                 |
 | Driver `open`, `format` and `_card_*` semantics                                                                   | PsyQ documentation `[inferred]`. A read of the library would confirm them.                |
-| Whether the save image carries `g_SceneFlagWords` and `g_SceneEventFlags`                                         | The save writer ([saving](../../systems/saving/)).                                        |
 | Entry values at `D_80145E98`, `D_80145EC4` and `D_80145EC8`                                                       | Trace the writers of those cells in the area code `[inferred]`.                           |
 | Block content between `0x80144F60` and `0x80144FC0`, `0x80144FC4` and `0x80144FE4`, `0x80145025` and `0x8014504C` | Find readers and writers of those addresses.                                              |
 | `D_80145030` (second zenny total) has no reader                                                                   | Search every image for loads from `0x80145030`.                                           |
