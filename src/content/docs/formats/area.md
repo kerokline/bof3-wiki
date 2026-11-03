@@ -225,6 +225,19 @@ An `AreaTrail` row has 152 bytes:
 | `0x16` |    2 | `u16`            | padding                            |
 | `0x18` |  128 | `TrailPoint[32]` | 32 trail points, two `s16` each    |
 
+```c
+typedef struct AreaTrail {
+    Vec3i      pos;                     /* 0x00 */
+    s32        unk_0C;                  /* 0x0C */
+    s32        radius;                  /* 0x10 */
+    u16        angle;                   /* 0x14 */
+    u16        pad_16;                  /* 0x16 */
+    TrailPoint points[WORLD_TRAIL_MAX]; /* 0x18 */
+} AreaTrail;
+```
+
+Source: [`include/world/area.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/world/area.h)
+
 An `AreaSlotWork` row has 16 bytes:
 
 | Offset | Size | Type    | Meaning                          |
@@ -237,6 +250,20 @@ An `AreaSlotWork` row has 16 bytes:
 | `0x0C` |    2 | `u16`   | projected screen x (`u16`)       |
 | `0x0E` |    2 | `u16`   | projected screen y (`u16`)       |
 
+```c
+typedef struct AreaSlotWork {
+    u8           unk_00[4];
+    s16          offset_x; /* 0x04 */
+    s16          offset_y; /* 0x06 */
+    s16          scale;    /* 0x08 */
+    s16          unk_0A;   /* 0x0A */
+    volatile u16 screen_x; /* 0x0C */
+    volatile u16 screen_y; /* 0x0E */
+} AreaSlotWork;
+```
+
+Source: [`include/world/area.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/world/area.h)
+
 A `Vec2us` entry is two `u16` halves. An `AreaVertex` row has 40 bytes:
 
 | Offset | Size | Type             | Meaning                                 |
@@ -244,6 +271,16 @@ A `Vec2us` entry is two `u16` halves. An `AreaVertex` row has 40 bytes:
 | `0x00` |    2 | `u16`            | unknown (`u16`)                         |
 | `0x02` |   24 | `VertexPoint[4]` | four points, three `u16` each (x, y, z) |
 | `0x1A` |   14 | `u8[14]`         | unknown                                 |
+
+```c
+typedef struct AreaVertex {
+    u16         unk_00;
+    VertexPoint points[4]; /* 0x02, three u16 each */
+    u8          unk_1A[0x0E];
+} AreaVertex;
+```
+
+Source: [`include/world/area.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/world/area.h)
 
 ## Palette arena
 
@@ -291,6 +328,30 @@ The header has `u8` width and height at bytes 0 and 1. Every other field is a `u
 |         `0x28` | `u16`       | `object_list`        | object list, tag plus body size                                                                                                                      |
 |         `0x2A` | `u16`       | `height_off4`        | height bytes; `u16[+0x2A]*4 == size` in 187 bundles and `size - W*H` in 13                                                                           |
 | `0x2C`, `0x2E` | `u16`       | `zero_2C`, `zero_2E` | zero in 200 of 200, no reader                                                                                                                        |
+
+```c
+typedef struct AreaMapBundle {
+    u8  width_00;              /* 0x00 */
+    u8  height_01;             /* 0x01 */
+    u16 grid_off4_02;          /* 0x02 */
+    u16 bank_offsets_04[4][2]; /* 0x04 */
+    u16 byte_code_off4_14;     /* 0x14 */
+    u16 zero_16;               /* 0x16 */
+    u16 zero_18;               /* 0x18 */
+    u16 color_1A[2];           /* 0x1A */
+    u16 scroll_1E;             /* 0x1E */
+    u16 list_base_20;          /* 0x20 */
+    u16 list_base_22;          /* 0x22 */
+    u16 record_region_24;      /* 0x24 */
+    u16 zero_26;               /* 0x26 */
+    u16 object_list_28;        /* 0x28 */
+    u16 height_off4_2A;        /* 0x2A */
+    u16 zero_2C;               /* 0x2C */
+    u16 zero_2E;               /* 0x2E */
+} AreaMapBundle;
+```
+
+Source: [`include/world/area.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/world/area.h)
 
 The sections follow the header in this order:
 

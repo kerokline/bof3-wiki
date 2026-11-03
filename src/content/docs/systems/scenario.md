@@ -81,6 +81,22 @@ In `SCENA00` the five words are at `0x801FC9FC` and the mode table follows at `0
 | `0x05` | `u8`  | `step_05`     | Third-level step.                                                                                |
 | `0x06` | `u16` | `timer_06`    | Countdown for the step.                                                                          |
 
+```c
+typedef struct SceneState {
+    s8  scenario_id; /* 0x00 */
+    u8  flags_01;    /* 0x01 */
+    u8  mode_02;     /* 0x02 */
+    u8  unk_03;      /* 0x03 */
+    u8  state_04;    /* 0x04 */
+    u8  step_05;     /* 0x05 */
+    u16 timer_06;    /* 0x06 */
+    u16 unk_08;      /* 0x08 */
+    u8  pad_0A[6];   /* 0x0A */
+} SceneState;
+```
+
+Source: [`include/work/state.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/work/state.h)
+
 `SAVE_RunLoadRestore (emi/etc/start/08@0x801E5FD4)` copies 16 bytes from `D_801448D8` into `g_SceneState` on load. The flag words (block `+0x5B0`) and the event-flag block (block `+0x650`) lie inside the 4,272-byte persistent block that boot zeroes from `D_801448D8` ([boot](../boot/), [state](../state/#one-persistent-block)). A save copies the whole block, so the card file carries both ([saving](../saving/#saving)). `g_SceneState` itself lies outside the block; the save copies it into the block's first 16 bytes.
 
 ## Chapter advance

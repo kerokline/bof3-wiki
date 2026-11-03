@@ -19,7 +19,25 @@ An area is one place the party can stand: a town, a dungeon, the world map, a ba
 | `0x32` | `u8`                     | `flag_32`   | Map-kind flags, copied to `g_GameRequestFlags`.                                  | `func_8019FAA0`       |
 | `0x34` | `Callback*` `[inferred]` | `steps`     | Role not established `[unknown]`.                                                |                       |
 | `0x38` | `void*`                  | `matrix`    | Pointer to the GTE colour matrix, or null for the default.                       | `func_8019FAA0`       |
+| `0x3C` | `void*`                  | `unk_3C`    | Word table that `func_801ACE10` indexes and calls.                               | `func_801ACE10`       |
 | `0x40` | `Callback`               | `callback`  | Pointer to the area's own setup code, run after the setup stream when it is set. | `func_8019FAA0`       |
+
+```c
+typedef struct AreaLoad {
+    /* 0x00 */ void*     handler;
+    /* 0x04 */ u8        pad_04[0x08];
+    /* 0x0C */ u8*       unk_0C;
+    /* 0x10 */ u8        pad_10[0x22];
+    /* 0x32 */ u8        flag_32;
+                u8        pad_33;
+    /* 0x34 */ Callback* steps;
+    /* 0x38 */ void*     matrix;
+    /* 0x3C */ void*     unk_3C;
+    /* 0x40 */ Callback  callback;
+} AreaLoad;
+```
+
+Source: [`include/area/map.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/area/map.h)
 
 ## Load and transition
 
