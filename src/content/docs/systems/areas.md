@@ -9,18 +9,18 @@ An area is one place the party can stand: a town, a dungeon, the world map, a ba
 
 `g_AreaLoads` holds one pointer per area to its `AreaLoad` record inside the area program. The table lists the fields that the load reads, by offset.
 
-| Offset | Type                     | Name        | Meaning                                                                          | Evidence              |
-| -----: | ------------------------ | ----------- | -------------------------------------------------------------------------------- | --------------------- |
-| `0x00` | `void*`                  | `handler`   | Pointer to the setup stream ([below](#setup-stream)).                            | `Area_RunSetupStream` |
-| `0x20` | `void*`                  | `exits`     | Pointer to the exit entries ([doors](#doors)).                                   | `func_801A0048`       |
-| `0x24` | `void*`                  | `lists`     | Pointer to the conditional exit lists.                                           | `func_801A0048`       |
-| `0x28` | `void*`                  | `counts`    | Pointer to the row counts of those lists.                                        | `func_801A0048`       |
-| `0x30` | `u8`                     | `last_exit` | Index of the last exit entry, so an area has `last_exit + 1` entries.            | `func_801A0048`       |
-| `0x32` | `u8`                     | `flag_32`   | Map-kind flags, copied to `g_GameRequestFlags`.                                  | `func_8019FAA0`       |
-| `0x34` | `Callback*` `[inferred]` | `steps`     | Role not established `[unknown]`.                                                |                       |
-| `0x38` | `void*`                  | `matrix`    | Pointer to the GTE colour matrix, or null for the default.                       | `func_8019FAA0`       |
-| `0x3C` | `void*`                  | `unk_3C`    | Word table that `func_801ACE10` indexes and calls.                               | `func_801ACE10`       |
-| `0x40` | `Callback`               | `callback`  | Pointer to the area's own setup code, run after the setup stream when it is set. | `func_8019FAA0`       |
+| Offset | Type        | Name        | Meaning                                                                                                                               | Evidence                     |
+| -----: | ----------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| `0x00` | `void*`     | `handler`   | Pointer to the setup stream ([below](#setup-stream)).                                                                                 | `Area_RunSetupStream`        |
+| `0x20` | `void*`     | `exits`     | Pointer to the exit entries ([doors](#doors)).                                                                                        | `func_801A0048`              |
+| `0x24` | `void*`     | `lists`     | Pointer to the conditional exit lists.                                                                                                | `func_801A0048`              |
+| `0x28` | `void*`     | `counts`    | Pointer to the row counts of those lists.                                                                                             | `func_801A0048`              |
+| `0x30` | `u8`        | `last_exit` | Index of the last exit entry, so an area has `last_exit + 1` entries.                                                                 | `func_801A0048`              |
+| `0x32` | `u8`        | `flag_32`   | Map-kind flags, copied to `g_GameRequestFlags`.                                                                                       | `func_8019FAA0`              |
+| `0x34` | `Callback*` | `steps`     | Message answer handlers: an answer step id below `0x80` calls `steps[id]`; ids from `0x80` use the 16-entry shared bank `D_80149ACC`. | `Message_DispatchAnswerStep` |
+| `0x38` | `void*`     | `matrix`    | Pointer to the GTE colour matrix, or null for the default.                                                                            | `func_8019FAA0`              |
+| `0x3C` | `void*`     | `unk_3C`    | Word table that `func_801ACE10` indexes and calls.                                                                                    | `func_801ACE10`              |
+| `0x40` | `Callback`  | `callback`  | Pointer to the area's own setup code, run after the setup stream when it is set.                                                      | `func_8019FAA0`              |
 
 ```c
 typedef struct AreaLoad {
