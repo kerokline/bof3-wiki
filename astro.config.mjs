@@ -28,7 +28,10 @@ export default defineConfig({
       editLink: { baseUrl: `${repository}/edit/main/` },
       lastUpdated: true,
       customCss: ['./src/styles/wiki.css'],
-      head: [{ tag: 'script', attrs: { src: `${base}/wiki.js`, defer: true } }],
+      head: [
+        { tag: 'script', attrs: { src: `${base}/wiki.js`, defer: true } },
+        { tag: 'script', attrs: { src: `${base}/diagram-zoom.js`, defer: true } },
+      ],
       tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 3 },
       sidebar: [
         { slug: 'index' },

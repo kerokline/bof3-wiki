@@ -96,15 +96,152 @@
   color: var(--sl-color-gray-2);
 }
 
-/* Diagrams scroll sideways instead of shrinking below legibility. */
-.sl-markdown-content pre.mermaid {
-  overflow-x: auto;
-  padding: 1rem;
-  background: var(--sl-color-gray-6);
-  border: 1px solid var(--wiki-table-border);
-  border-radius: 0.3rem;
+/* Diagrams: scale to the column inside a card-style frame. A very wide diagram scrolls inside its frame. */
+.sl-markdown-content :is(pre.mermaid, .zoom-wrap) {
+  position: relative;
   display: flex;
   justify-content: safe center;
+  margin-block: 1.6rem;
+  padding: 1rem;
+  overflow-x: auto;
+  background: var(--sl-color-gray-6);
+  border: 1px solid var(--wiki-table-border);
+  border-radius: 0.5rem;
+  max-width: 100%;
+  transition: border-color 0.15s;
+}
+
+.sl-markdown-content :is(pre.mermaid, .zoom-wrap) :is(svg, img) {
+  flex: 0 1 auto;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.sl-markdown-content .zoom-frame {
+  cursor: zoom-in;
+}
+
+.sl-markdown-content .zoom-frame:is(:hover, :focus-visible) {
+  border-color: var(--sl-color-accent);
+}
+
+.sl-markdown-content .zoom-frame:focus-visible {
+  outline: 2px solid var(--sl-color-accent-high);
+  outline-offset: 2px;
+}
+
+.sl-markdown-content .zoom-frame::after {
+  content: 'Expand';
+  position: sticky;
+  inset-inline-end: 0;
+  top: 0;
+  align-self: flex-start;
+  margin: -0.5rem -0.5rem 0 -4.5rem;
+  padding: 0.1rem 0.5rem;
+  font-size: var(--sl-text-xs);
+  color: var(--sl-color-gray-2);
+  background: var(--sl-color-bg-nav);
+  border: 1px solid var(--wiki-table-border);
+  border-radius: 0.3rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+
+.sl-markdown-content .zoom-frame:is(:hover, :focus-visible)::after {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .sl-markdown-content .zoom-frame::after {
+    opacity: 0.85;
+  }
+}
+
+/* Zoom view */
+.dz {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  background: var(--sl-color-bg);
+}
+
+.dz-stage {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  outline-offset: -3px;
+}
+
+.dz-stage.dragging {
+  cursor: grabbing;
+}
+
+.dz-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+}
+
+.dz-bar {
+  position: absolute;
+  top: 0.75rem;
+  inset-inline-end: 0.75rem;
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: var(--sl-color-bg-nav);
+  border: 1px solid var(--wiki-table-border);
+  border-radius: 0.5rem;
+  box-shadow: var(--sl-shadow-md);
+}
+
+.dz-bar button {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  color: var(--sl-color-white);
+  background: none;
+  border: 0;
+  border-radius: 0.3rem;
+  cursor: pointer;
+}
+
+.dz-bar button:hover {
+  background: var(--sl-color-gray-5);
+}
+
+.dz-bar svg {
+  width: 1.3rem;
+  height: 1.3rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+html.dz-open {
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dz {
+    animation: dz-in 0.15s ease-out;
+  }
+
+  @keyframes dz-in {
+    from {
+      opacity: 0;
+    }
+  }
 }
 
 @media (max-width: 50rem) {

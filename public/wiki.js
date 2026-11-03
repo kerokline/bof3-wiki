@@ -32,17 +32,4 @@
       }, () => {});
     });
   }
-
-  // Diagrams keep their text at a readable size: a wide diagram scrolls sideways instead of shrinking.
-  const sizeDiagrams = () => {
-    for (const svg of document.querySelectorAll('.sl-markdown-content pre.mermaid svg')) {
-      const box = svg.viewBox && svg.viewBox.baseVal;
-      if (!box || !box.width || svg.dataset.sized) continue;
-      svg.dataset.sized = '';
-      svg.style.maxWidth = 'none';
-      svg.style.minWidth = Math.round(box.width * 0.85) + 'px';
-    }
-  };
-  new MutationObserver(sizeDiagrams).observe(document.body, { childList: true, subtree: true });
-  sizeDiagrams();
 })();
