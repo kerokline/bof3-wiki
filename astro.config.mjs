@@ -18,7 +18,16 @@ export default defineConfig({
   integrations: [
     redirectStubs({ redirects, base }),
     // astro-mermaid must come before Starlight.
-    mermaid({ autoTheme: true, enableLog: false }),
+    mermaid({
+      autoTheme: true,
+      enableLog: false,
+      // Diagrams must fit the content column at full text size: wrap labels and tighten spacing.
+      mermaidConfig: {
+        flowchart: { wrappingWidth: 130, nodeSpacing: 16, rankSpacing: 32, padding: 8, useMaxWidth: false },
+        sequence: { wrap: true, width: 90, actorMargin: 10, boxMargin: 6, diagramMarginX: 8, diagramMarginY: 8, messageMargin: 32, useMaxWidth: false },
+        state: { nodeSpacing: 16, rankSpacing: 32, useMaxWidth: false },
+      },
+    }),
     starlight({
       title: 'Breath of Fire III',
       favicon: '/favicon.svg',

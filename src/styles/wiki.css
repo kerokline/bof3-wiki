@@ -96,50 +96,62 @@
   color: var(--sl-color-gray-2);
 }
 
-/* Diagrams: scale to the column inside a card-style frame. A very wide diagram scrolls inside its frame. */
-.sl-markdown-content :is(pre.mermaid, .zoom-wrap) {
+/* Diagrams: scale to the column inside a card-style frame. A diagram wider than the column keeps its
+   text size and scrolls inside the frame; shadows at the edges show that more lies beyond. */
+.sl-markdown-content .zoom-box {
   position: relative;
+  margin-block: 1.6rem;
+  cursor: zoom-in;
+  border-radius: 0.5rem;
+}
+
+.sl-markdown-content :is(pre.mermaid, .zoom-frame) {
   display: flex;
   justify-content: safe center;
-  margin-block: 1.6rem;
-  padding: 1rem;
+  margin: 0;
+  padding: 2.1rem 1rem 1rem;
   overflow-x: auto;
-  background: var(--sl-color-gray-6);
+  max-width: 100%;
   border: 1px solid var(--wiki-table-border);
   border-radius: 0.5rem;
-  max-width: 100%;
+  background-color: var(--sl-color-gray-6);
+  background-image:
+    linear-gradient(to right, var(--sl-color-gray-6) 30%, transparent),
+    linear-gradient(to left, var(--sl-color-gray-6) 30%, transparent),
+    radial-gradient(farthest-side at 0 50%, rgb(0 0 0 / 0.3), transparent),
+    radial-gradient(farthest-side at 100% 50%, rgb(0 0 0 / 0.3), transparent);
+  background-repeat: no-repeat;
+  background-size: 2.5rem 100%, 2.5rem 100%, 0.9rem 100%, 0.9rem 100%;
+  background-position: 0 0, 100% 0, 0 0, 100% 0;
+  background-attachment: local, local, scroll, scroll;
   transition: border-color 0.15s;
 }
 
-.sl-markdown-content :is(pre.mermaid, .zoom-wrap) :is(svg, img) {
-  flex: 0 1 auto;
+.sl-markdown-content :is(pre.mermaid, .zoom-frame) :is(svg, img) {
+  flex: 0 0 auto;
   max-width: 100%;
   height: auto;
   margin: 0 auto;
 }
 
-.sl-markdown-content .zoom-frame {
-  cursor: zoom-in;
-}
-
-.sl-markdown-content .zoom-frame:is(:hover, :focus-visible) {
+.sl-markdown-content .zoom-box:is(:hover, :focus-visible) > :is(pre.mermaid, .zoom-frame) {
   border-color: var(--sl-color-accent);
 }
 
-.sl-markdown-content .zoom-frame:focus-visible {
+.sl-markdown-content .zoom-box:focus-visible {
   outline: 2px solid var(--sl-color-accent-high);
   outline-offset: 2px;
 }
 
-.sl-markdown-content .zoom-frame::after {
+/* The badge sits in the top strip of the frame, above the diagram. */
+.sl-markdown-content .zoom-box::after {
   content: 'Expand';
-  position: sticky;
-  inset-inline-end: 0;
-  top: 0;
-  align-self: flex-start;
-  margin: -0.5rem -0.5rem 0 -4.5rem;
-  padding: 0.1rem 0.5rem;
+  position: absolute;
+  top: 0.5rem;
+  inset-inline-end: 0.6rem;
+  padding: 0.05rem 0.5rem;
   font-size: var(--sl-text-xs);
+  line-height: 1.5;
   color: var(--sl-color-gray-2);
   background: var(--sl-color-bg-nav);
   border: 1px solid var(--wiki-table-border);
@@ -149,13 +161,20 @@
   transition: opacity 0.15s;
 }
 
-.sl-markdown-content .zoom-frame:is(:hover, :focus-visible)::after {
+.sl-markdown-content .zoom-box:is(:hover, :focus-visible)::after {
   opacity: 1;
 }
 
 @media (hover: none) {
-  .sl-markdown-content .zoom-frame::after {
-    opacity: 0.85;
+  .sl-markdown-content .zoom-box::after {
+    opacity: 0.9;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sl-markdown-content .zoom-box::after,
+  .sl-markdown-content :is(pre.mermaid, .zoom-frame) {
+    transition: none;
   }
 }
 

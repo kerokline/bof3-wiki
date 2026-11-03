@@ -2,7 +2,7 @@
 // click, Enter or Space. The view supports wheel and pinch zoom, drag to pan and keyboard control.
 (() => {
   const SCOPE = '.sl-markdown-content';
-  const MIN_SCALE = 0.55; // smallest inline text scale before the frame scrolls instead
+  const MIN_SCALE = 1; // text never renders smaller than authored: a wider diagram scrolls in its frame
   const NS = 'http://www.w3.org/2000/svg';
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
   let view = null;
@@ -25,7 +25,7 @@
     svg.style.minWidth = Math.round(w * MIN_SCALE) + 'px';
   };
 
-  const source = (frame) => frame.querySelector(':scope > svg, :scope > img');
+  const source = (frame) => frame.querySelector('svg, img');
 
   // ---- zoom view ----
   const icon = (d) => {
@@ -188,7 +188,7 @@
     const watch = new MutationObserver(() => {
       if (source(frame)) fill();
     });
-    watch.observe(frame, { childList: true });
+    watch.observe(frame, { childList: true, subtree: true });
 
     const onResize = () => reset();
     addEventListener('resize', onResize);
@@ -215,26 +215,29 @@
   };
 
   // ---- inline frames ----
+  // A box holds the scrolling frame and the corner badge, so the badge never scrolls over a node.
   const arm = (frame) => {
-    if (frame.dataset.zoom) return;
-    frame.dataset.zoom = '';
-    frame.classList.add('zoom-frame');
-    frame.tabIndex = 0;
-    frame.setAttribute('role', 'button');
-    frame.setAttribute('aria-label', frame.dataset.label || 'Expand diagram');
-    frame.addEventListener('click', (e) => {
+    if (frame.parentElement.classList.contains('zoom-box')) return;
+    const box = document.createElement('div');
+    box.className = 'zoom-box';
+    box.tabIndex = 0;
+    box.setAttribute('role', 'button');
+    box.setAttribute('aria-label', frame.dataset.label || 'Expand diagram');
+    frame.replaceWith(box);
+    box.append(frame);
+    box.addEventListener('click', (e) => {
       if (e.target.closest('a')) return;
-      open(frame);
+      open(box);
     });
-    frame.addEventListener('keydown', (e) => {
-      if (e.target !== frame || (e.key !== 'Enter' && e.key !== ' ')) return;
+    box.addEventListener('keydown', (e) => {
+      if (e.target !== box || (e.key !== 'Enter' && e.key !== ' ')) return;
       e.preventDefault();
-      open(frame);
+      open(box);
     });
   };
 
   const isFigure = (el) => {
-    if (el.closest('pre.mermaid, a, button, .zoom-frame, .sl-anchor-link, .expressive-code, .starlight-aside')) return false;
+    if (el.closest('pre.mermaid, a, button, .zoom-box, .sl-anchor-link, .expressive-code, .starlight-aside')) return false;
     if (el instanceof SVGElement && el.closest('svg') !== el) return false;
     const [w, h] = natural(el);
     return w >= 120 && h >= 60;
@@ -252,13 +255,13 @@
     }
     for (const el of document.querySelectorAll(`${SCOPE} img, ${SCOPE} > svg, ${SCOPE} figure > svg`)) {
       if (!isFigure(el)) continue;
-      const frame = document.createElement('span');
-      frame.className = 'zoom-wrap';
+      const frame = document.createElement('div');
+      frame.className = 'zoom-frame';
+      frame.dataset.label = (el.getAttribute('alt') || 'Figure') + '. Expand';
       el.replaceWith(frame);
       frame.append(el);
-      frame.dataset.label = (el.getAttribute('alt') || 'Figure') + '. Expand';
-      arm(frame);
       if (el instanceof SVGElement) sizeInline(el);
+      arm(frame);
     }
   };
 
