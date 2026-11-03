@@ -132,18 +132,18 @@ The fade body `func_8014F704` draws a 320 by 240 `TILE` with grey level `positio
 
 The table lists the engine's state in RAM by address.
 
-| Address      | Name                | Meaning                                                                            |
-| ------------ | ------------------- | ---------------------------------------------------------------------------------- |
-| `0x801490A0` | `D_801490A0`        | Message state byte (`state_00`).                                                   |
-| `0x801490A1` | `g_UiWindowStep`    | Step index inside a state's sub-table.                                             |
-| `0x801490A2` | `D_801490A2`        | Selection state.                                                                   |
-| `0x801490A4` | `g_UiWindowChannel` | Channel flags: timer, confirm, selection, request, no-wait, advance, latch, force. |
-| `0x801490A8` | `g_MessageRequest`  | Message index; `0xFFFF` means none.                                                |
-| `0x801490AC` | `D_801490AC`        | Script start pointer.                                                              |
-| `0x801490B0` | `D_801490B0`        | Current record pointer.                                                            |
-| `0x801490B9` | `D_801490B9`        | Characters shown.                                                                  |
-| `0x801490C7` | `D_801490C7`        | The player's choice.                                                               |
-| `0x801490D8` | `g_TextVariables`   | 32-byte variable strings.                                                          |
+| Address      | Type             | Name                | Meaning                                                                            |
+| ------------ | ---------------- | ------------------- | ---------------------------------------------------------------------------------- |
+| `0x801490A0` | `u8` [inferred]  | `D_801490A0`        | Message state byte (`state_00`).                                                   |
+| `0x801490A1` | `u8`             | `g_UiWindowStep`    | Step index inside a state's sub-table.                                             |
+| `0x801490A2` | `u8`             | `D_801490A2`        | Selection state.                                                                   |
+| `0x801490A4` | `u16`            | `g_UiWindowChannel` | Channel flags: timer, confirm, selection, request, no-wait, advance, latch, force. |
+| `0x801490A8` | `u16`            | `g_MessageRequest`  | Message index; `0xFFFF` means none.                                                |
+| `0x801490AC` | `u8*` [inferred] | `D_801490AC`        | Script start pointer.                                                              |
+| `0x801490B0` | `u8*`            | `D_801490B0`        | Current record pointer.                                                            |
+| `0x801490B9` | `u8`             | `D_801490B9`        | Characters shown.                                                                  |
+| `0x801490C7` | `s8`             | `D_801490C7`        | The player's choice.                                                               |
+| `0x801490D8` | `u8[][32]`       | `g_TextVariables`   | 32-byte variable strings.                                                          |
 
 ## Data and limits
 

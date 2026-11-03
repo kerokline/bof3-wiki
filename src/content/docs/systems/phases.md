@@ -153,17 +153,17 @@ There are 20 scenario overlays, `SCENA00` to `SCENA19`. Scenario 16 is the title
 
 The table lists the symbols that carry the phase state. All of them are work variables of the executable, in the range below its code that [memory](../../concepts/memory/#the-map) maps. The resident game program reads and writes them but does not own them.
 
-| Symbol                 | Address                      | Width    | Meaning                                                                                                               |
-| ---------------------- | ---------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
-| `g_GameEntryState`     | `exe/slus_004_22@0x80143B90` | u16      | index into `g_GameStates` (12 entries)                                                                                |
-| `g_GameEntrySubstate`  | `exe/slus_004_22@0x80143B92` | u16      | handler index inside states with sub-tables; also the New or Load choice (2 or 3)                                     |
-| `g_GameStateIndex`     | `exe/slus_004_22@0x80143BB0` | u8       | request code 0 to 9                                                                                                   |
-| `g_GameEntryMode`      | `exe/slus_004_22@0x80143F1E` | u8       | field-entry effect index passed to `UI_SetMode`                                                                       |
-| `g_GameRequestFlags`   | `exe/slus_004_22@0x80143F02` | u8       | area load flags: bit 0 world map, `0x08` fishing, `0x10` fairy village; `0x20` and `0x40` are also tested `[unknown]` |
-| `g_UiLocalMode`        | `exe/slus_004_22@0x80143C90` | u8       | current transition effect index                                                                                       |
-| `g_UiWindowEffectBusy` | `exe/slus_004_22@0x80143C40` | u8       | nonzero while an effect runs; blocks `UI_SetMode`                                                                     |
-| `g_SceneState`         | `exe/slus_004_22@0x80146870` | 16 bytes | `scenario_id`, `flags_01`, `mode_02`, `state_04`, `step_05`, `timer_06`                                               |
-| `g_GameAreaId`         | `exe/slus_004_22@0x80143F00` | u16      | current area; `0xFFFF` forces a reload                                                                                |
+| Symbol                 | Address                      | Type       | Meaning                                                                                                               |
+| ---------------------- | ---------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------- |
+| `g_GameEntryState`     | `exe/slus_004_22@0x80143B90` | u16        | index into `g_GameStates` (12 entries)                                                                                |
+| `g_GameEntrySubstate`  | `exe/slus_004_22@0x80143B92` | u16        | handler index inside states with sub-tables; also the New or Load choice (2 or 3)                                     |
+| `g_GameStateIndex`     | `exe/slus_004_22@0x80143BB0` | u8         | request code 0 to 9                                                                                                   |
+| `g_GameEntryMode`      | `exe/slus_004_22@0x80143F1E` | u8         | field-entry effect index passed to `UI_SetMode`                                                                       |
+| `g_GameRequestFlags`   | `exe/slus_004_22@0x80143F02` | u8         | area load flags: bit 0 world map, `0x08` fishing, `0x10` fairy village; `0x20` and `0x40` are also tested `[unknown]` |
+| `g_UiLocalMode`        | `exe/slus_004_22@0x80143C90` | u8         | current transition effect index                                                                                       |
+| `g_UiWindowEffectBusy` | `exe/slus_004_22@0x80143C40` | u8         | nonzero while an effect runs; blocks `UI_SetMode`                                                                     |
+| `g_SceneState`         | `exe/slus_004_22@0x80146870` | SceneState | `scenario_id`, `flags_01`, `mode_02`, `state_04`, `step_05`, `timer_06`                                               |
+| `g_GameAreaId`         | `exe/slus_004_22@0x80143F00` | u16        | current area; `0xFFFF` forces a reload                                                                                |
 
 ## Open questions
 

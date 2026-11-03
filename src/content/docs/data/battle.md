@@ -71,6 +71,38 @@ The mode machines step the player work row. There are three rows of 320 bytes at
 | `0x128` | `u32`         | action word (bits in [State word bits](#state-word-bits))                                                                                                                         | action gate and turn order                                                                                           |
 | `0x138` | `u8`          | charge                                                                                                                                                                            | none found                                                                                                           |
 
+```c
+typedef struct PartyBattler {
+    /* 0x000 */ u8        flags_00;
+    /* 0x001 */ u8        step_01;
+    /* 0x005 */ u8        slot;
+    /* 0x00C */ s32       unk_0C;      /* x step */
+    /* 0x010 */ s32       unk_10;      /* y step */
+    /* 0x014 */ s32       unk_14;
+    /* 0x018 */ s32       unk_18;
+    /* 0x020 */ s32       unk_20;
+    /* 0x034 */ BattleFix32 coord_x_34;
+    /* 0x038 */ BattleFix32 coord_y_38;
+    /* 0x03C */ BattleWorkWord3C word_3C;
+    /* ...    */ /* fields 0x40..0x73 folded */
+    /* 0x074 */ Character stats;       /* 0xA4-byte copy of the character record */
+    /* 0x118 */ u8        unk_118;
+    /* 0x119 */ u8        mode_119;
+    /* 0x11A */ u16       command;
+    /* 0x11C */ u16       hp_change;   /* signed HP delta shown on the hit */
+    /* 0x11E */ u16       ap_change;
+    /* 0x121 */ u8        counter_121;
+    /* 0x124 */ BattlerFlags flags_124; /* BattleBattlerDamageFlags */
+    /* 0x128 */ BattlerFlags flags_128; /* BattleBattlerActionFlags */
+    /* 0x134 */ u16       unk_134;
+    /* 0x136 */ u8        counter_136;
+    /* 0x137 */ u8        counter_137;
+    /* 0x138 */ u8        charge;
+} PartyBattler;                        /* 0x140 bytes */
+```
+
+Source: [`include/battle/records.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/battle/records.h)
+
 Other cells are read but have no proven role. `0x29`-`0x2B` are signed bytes and `0x2C` a halfword,
 read by both overlays. `0x2E` and `0x30` are halfwords that `emi/battle/battle/03` reads unsigned
 and `emi/battle/battle/15` signed, because the panels slide to negative screen positions. `0x40`,
@@ -86,41 +118,76 @@ There are eight rows of 280 bytes at `0x801EB630`. `func_800ABCE0 (emi/battle/ba
 and `func_800AC01C (emi/battle/battle/15@0x800AC01C)` arm a slot and clear the cells from `+0x06` to
 `+0x5F` first. The table lists the proven fields. Widths follow the accesses.
 
-|  Offset | Type          | Meaning                                                                                                                             | Evidence                                                                |
-| ------: | ------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `0x000` | `u8`          | bit 0 row occupied                                                                                                                  | `Battle_SlotIsBlocked (emi/battle/battle/03@0x801DB524)`                |
-| `0x001` | `u8`          | main step                                                                                                                           | none found                                                              |
-| `0x005` | `u8`          | battler slot, stored as `slot + 3`                                                                                                  | `func_800ABCE0`                                                         |
-| `0x008` | `u8`          | scroll direction `g_BattleScrollDir` (0-3) with bit 1 flipped                                                                       | the slot setup (`func_800ABCE0`, `func_800AC01C`)                       |
-| `0x029` | `u8`          | set to 4 when the slot is armed                                                                                                     | the slot setup                                                          |
-| `0x034` | `s32`         | the enemy's x                                                                                                                       | none found                                                              |
-| `0x038` | `s32`         | the enemy's y                                                                                                                       | none found                                                              |
-| `0x03C` | `s32`         | high half `+0x3E` is the vertical span at the enemy's position, from `Area_SampleHeight` of x and y; written when the slot is armed | `func_800AE82C` copies the whole word into the local work row's `+0x3C` |
-| `0x04B` | `u8`          | set to `0xFF` when the slot is armed                                                                                                | the slot setup                                                          |
-| `0x074` | `u8[8]`       | enemy name, drawn as text                                                                                                           | `func_801D8AE4`                                                         |
-| `0x07C` | `u8`          | kind id                                                                                                                             | none found                                                              |
-| `0x080` | `u16`         | event flags; bit 2 makes the enemy eligible to counter an attack                                                                    | `func_801E4368`                                                         |
-| `0x082` | `u16`         | status word; `0x4000` is knockout                                                                                                   | `func_801E496C`                                                         |
-| `0x084` | `u16`         | damage; cleared by `func_801E54EC`                                                                                                  | `func_801E54EC`                                                         |
-| `0x086` | `u16`         | damage; banked into `D_8014632C` by `func_801E54EC`                                                                                 | `func_801E54EC`                                                         |
-| `0x088` | `u16`         | turn-order ranking value                                                                                                            | the turn-order ranking reader                                           |
-| `0x08C` | `u8[8]`       | techniques; the event packet's tail is copied here                                                                                  | `func_8009C994`                                                         |
-| `0x094` | `u16`         | current HP                                                                                                                          | `func_801E496C`                                                         |
-| `0x096` | `u16`         | AP                                                                                                                                  | read by `emi/battle/battle/03`                                          |
-| `0x098` | `u8[8]`       | two drop rows (layout in [Drops](#drops))                                                                                           | `func_801E531C`                                                         |
-| `0x0A0` | `u16`         | maximum HP; every read is `lhu` or `sh`; the panel task copies it as the HP bar divisor                                             | `func_801E496C`, `func_800AFC98`                                        |
-| `0x0A4` | `u16`         | attack                                                                                                                              | read by `emi/battle/battle/15`                                          |
-| `0x0A8` | `u16`         | agility                                                                                                                             | read by `emi/battle/battle/03`                                          |
-| `0x0AF` | `u8[9]`       | one resistance level per element, in the character record's resistance order                                                        | none found                                                              |
-| `0x0E0` | `u8`          | enemy kind; selects the event handlers                                                                                              | `func_801E8DD8`                                                         |
-| `0x0E4` | `u32` pointer | per-enemy hook: mode 0 chooses, mode 1 is hit, mode 2 runs every frame                                                              | `func_801E25E0`, `func_801E3C14`                                        |
-| `0x0E8` | `u32` pointer | pointer to `u16` cells                                                                                                              | none found                                                              |
-| `0x0EC` | `u32` pointer | pointer to a `u8` script                                                                                                            | none found                                                              |
-| `0x0F6` | `u16`         | technique                                                                                                                           | none found                                                              |
-| `0x0F8` | `s16`         | damage dealt this hit; negative heals                                                                                               | `func_801E496C`                                                         |
-| `0x0FC` | `u8`          | side and slot mask                                                                                                                  | `func_800A9820`                                                         |
-| `0x100` | `u32`         | damage word (bits in [State word bits](#state-word-bits))                                                                           | both overlays                                                           |
-| `0x104` | `u32`         | action word (bits in [State word bits](#state-word-bits))                                                                           | both overlays                                                           |
+|  Offset | Type               | Meaning                                                                                                                             | Evidence                                                                |
+| ------: | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `0x000` | `u8`               | bit 0 row occupied                                                                                                                  | `Battle_SlotIsBlocked (emi/battle/battle/03@0x801DB524)`                |
+| `0x001` | `u8`               | main step                                                                                                                           | none found                                                              |
+| `0x005` | `u8`               | battler slot, stored as `slot + 3`                                                                                                  | `func_800ABCE0`                                                         |
+| `0x008` | `u8`               | scroll direction `g_BattleScrollDir` (0-3) with bit 1 flipped                                                                       | the slot setup (`func_800ABCE0`, `func_800AC01C`)                       |
+| `0x029` | `u8`               | set to 4 when the slot is armed                                                                                                     | the slot setup                                                          |
+| `0x034` | `s32`              | the enemy's x                                                                                                                       | none found                                                              |
+| `0x038` | `s32`              | the enemy's y                                                                                                                       | none found                                                              |
+| `0x03C` | `s32`              | high half `+0x3E` is the vertical span at the enemy's position, from `Area_SampleHeight` of x and y; written when the slot is armed | `func_800AE82C` copies the whole word into the local work row's `+0x3C` |
+| `0x04B` | `u8`               | set to `0xFF` when the slot is armed                                                                                                | the slot setup                                                          |
+| `0x074` | `u8[8]`            | enemy name, drawn as text                                                                                                           | `func_801D8AE4`                                                         |
+| `0x07C` | `u8`               | kind id                                                                                                                             | none found                                                              |
+| `0x080` | `u16`              | event flags; bit 2 makes the enemy eligible to counter an attack                                                                    | `func_801E4368`                                                         |
+| `0x082` | `u16`              | status word; `0x4000` is knockout                                                                                                   | `func_801E496C`                                                         |
+| `0x084` | `u16`              | damage; cleared by `func_801E54EC`                                                                                                  | `func_801E54EC`                                                         |
+| `0x086` | `u16`              | damage; banked into `D_8014632C` by `func_801E54EC`                                                                                 | `func_801E54EC`                                                         |
+| `0x088` | `u16`              | turn-order ranking value                                                                                                            | the turn-order ranking reader                                           |
+| `0x08C` | `u8[8]`            | techniques; the event packet's tail is copied here                                                                                  | `func_8009C994`                                                         |
+| `0x094` | `u16`              | current HP                                                                                                                          | `func_801E496C`                                                         |
+| `0x096` | `u16`              | AP                                                                                                                                  | read by `emi/battle/battle/03`                                          |
+| `0x098` | `u8[8]`            | two drop rows (layout in [Drops](#drops))                                                                                           | `func_801E531C`                                                         |
+| `0x0A0` | `u16`              | maximum HP; every read is `lhu` or `sh`; the panel task copies it as the HP bar divisor                                             | `func_801E496C`, `func_800AFC98`                                        |
+| `0x0A4` | `u16`              | attack                                                                                                                              | read by `emi/battle/battle/15`                                          |
+| `0x0A8` | `u16`              | agility                                                                                                                             | read by `emi/battle/battle/03`                                          |
+| `0x0AF` | `u8[9]`            | one resistance level per element, in the character record's resistance order                                                        | none found                                                              |
+| `0x0E0` | `u8`               | enemy kind; selects the event handlers                                                                                              | `func_801E8DD8`                                                         |
+| `0x0E4` | `void*` [inferred] | per-enemy hook: mode 0 chooses, mode 1 is hit, mode 2 runs every frame                                                              | `func_801E25E0`, `func_801E3C14`                                        |
+| `0x0E8` | `u16*`             | pointer to `u16` cells                                                                                                              | none found                                                              |
+| `0x0EC` | `u8*`              | pointer to a `u8` script                                                                                                            | none found                                                              |
+| `0x0F6` | `u16`              | technique                                                                                                                           | none found                                                              |
+| `0x0F8` | `s16`              | damage dealt this hit; negative heals                                                                                               | `func_801E496C`                                                         |
+| `0x0FC` | `u8`               | side and slot mask                                                                                                                  | `func_800A9820`                                                         |
+| `0x100` | `u32`              | damage word (bits in [State word bits](#state-word-bits))                                                                           | both overlays                                                           |
+| `0x104` | `u32`              | action word (bits in [State word bits](#state-word-bits))                                                                           | both overlays                                                           |
+
+```c
+typedef struct EnemyBattler {
+    /* 0x001 */ u8   step_01;
+    /* 0x005 */ u8   slot;
+    /* 0x008 */ u8   unk_08;
+    /* 0x034 */ s32  coord_x_34;
+    /* 0x038 */ s32  coord_y_38;
+    /* 0x03C */ BattleEnemyWord3C word_3C;
+    /* 0x074 */ u8   name[8];
+    /* 0x07C */ u8   kind_id;
+    /* 0x080 */ u16  event_flags;
+    /* 0x082 */ u16  status_82;
+    /* 0x088 */ u16  power;
+    /* 0x08C */ u8   techniques[8];
+    /* 0x094 */ u16  hp_94;
+    /* 0x096 */ u16  ap;
+    /* 0x098 */ EnemyBattlerDrop drops_98[2];
+    /* 0x0A0 */ BattleEnemyCellA0 cell_A0;  /* max HP */
+    /* 0x0A4 */ u16  attack;
+    /* 0x0A8 */ u16  agility;
+    /* 0x0AF */ u8   resistances[RES_SLOT_COUNT];
+    /* 0x0E0 */ u8   kind;
+    /* 0x0E4 */ EnemyBattlerEventFunc unk_E4;
+    /* 0x0E8 */ u16* unk_E8;
+    /* 0x0EC */ u8*  script;
+    /* 0x0F6 */ u16  technique;
+    /* 0x0F8 */ s16  damage_F8;
+    /* 0x0FC */ u8   target_flags_FC;
+    /* 0x100 */ u32  flags_100;   /* BattleBattlerDamageFlags */
+    /* 0x104 */ u32  flags_104;   /* BattleBattlerActionFlags */
+} EnemyBattler;                   /* 0x118 bytes; gaps are pad_XX or unk_XX */
+```
+
+Source: [`include/battle/records.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/battle/records.h)
 
 Cells with no proven role (`[unknown]`): `0x06`, `0x07`, `0x0C`-`0x24`, `0x2B`, `0x2E`, `0x30`,
 `0x32`, `0x48`, `0x5C`-`0x5F`, `0x7D`, `0x7E`, `0x7F`, `0xA6`, `0xAA`, `0xE1`-`0xE3`, `0xF0`, `0xF5`,
@@ -129,7 +196,7 @@ Cells with no proven role (`[unknown]`): `0x06`, `0x07`, `0x0C`-`0x24`, `0x2B`, 
 
 ## Drops
 
-A defeated enemy can drop up to two items. The two drop rows at enemy `+0x98` and `+0x9C` are the two item rows of the area's [enemy record](../records/#the-enemy-record), copied unchanged when the battle starts. Each row holds an item id and a rate index. The rate index selects a chance from the table in [drops](../records/#drops), which also gives the roll. The table gives the row as the battle code reads it.
+A defeated enemy can drop up to two items. The two drop rows at enemy `+0x98` and `+0x9C` are the two item rows of the area's [enemy record](../records/#the-enemy-record), copied unchanged by `func_800AC218 (emi/battle/battle/15@0x800AC218)`, which `Battle_AddEnemy` calls when the battle starts. Each row holds an item id and a rate index. The rate index selects a chance from the table in [drops](../records/#drops), which also gives the roll. The table gives the row as the battle code reads it.
 
 | Offset | Type  | Meaning                                                                                                         |
 | -----: | ----- | --------------------------------------------------------------------------------------------------------------- |
@@ -137,8 +204,18 @@ A defeated enemy can drop up to two items. The two drop rows at enemy `+0x98` an
 | `0x02` | `u8`  | index into the 8-byte drop chance table at `0x801D0CB8`: the low byte of the record's `u16` rate                |
 | `0x03` | `u8`  | padding: the high byte of the record's rate; no code reads it                                                   |
 
+```c
+typedef struct EnemyBattlerDrop {
+    /* 0x00 */ u16 item_00;
+    /* 0x02 */ u8  rate_02;
+    /* 0x03 */ u8  pad_03;
+} EnemyBattlerDrop;
+```
+
+Source: [`include/battle/records.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/battle/records.h)
+
 The spoils record collects what a battle yields. It sits at `0x80146326`, is 62 bytes long and is
-walked by `func_801E531C (emi/battle/battle/03@0x801E531C)`.
+walked by `func_801E531C (emi/battle/battle/03@0x801E531C)`, which alone rolls the drop rows.
 
 | Offset | Type      | Meaning                                                 |
 | -----: | --------- | ------------------------------------------------------- |
@@ -146,6 +223,18 @@ walked by `func_801E531C (emi/battle/battle/03@0x801E531C)`.
 | `0x01` | `u8`      | count of listed drops, capped at 15                     |
 | `0x0E` | `u16[16]` | dropped item ids                                        |
 | `0x2E` | `u8[16]`  | drops of each id                                        |
+
+```c
+typedef struct Spoils {
+    /* 0x00 */ u8  attempts;
+    /* 0x01 */ u8  count;
+    /* 0x02 */ u8  pad_02[0xC];
+    /* 0x0E */ u16 items[16];
+    /* 0x2E */ u8  counts[16];
+} Spoils;
+```
+
+Source: [`include/battle/ram.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/battle/ram.h)
 
 ## Encounter candidates
 
@@ -160,6 +249,18 @@ at `0x801463DC`. The battle overlay walks the table and places each live enemy.
 | `0x01` | `u8`          | index of one 136-byte enemy record (`&D_800E405E + id * 136`); `0xFF` means none                           |
 | `0x04` | `s32` (16.16) | encounter x; written by `func_801C6BB4 (emi/etc/game/00@0x801C6BB4)`                                       |
 | `0x08` | `s32` (16.16) | encounter y; written by `func_801C6BB4`                                                                    |
+
+```c
+typedef struct EncounterEnemy {
+    /* 0x00 */ u8  active;
+    /* 0x01 */ u8  id;
+    /* 0x02 */ u8  pad_02[2];
+    /* 0x04 */ s32 x;
+    /* 0x08 */ s32 y;
+} EncounterEnemy;
+```
+
+Source: [`include/battle/records.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/battle/records.h)
 
 The enemy record bytes `+0x82` and `+0x83` (block `+0xCA` and `+0xCB`) are the reach and height
 that `Area_BuildEncounter` and `func_801E8DD8` read. [Game records](../records/#the-enemy-record) owns
@@ -183,6 +284,22 @@ through. `emi/battle/battle/15` reads only the first 12 bytes of a task and read
 | `0x14` | `u16` | HP bar numerator, copied from the enemy row's current HP                                                                                  |
 | `0x1C` | `u16` | HP bar divisor, copied from the enemy row's maximum HP                                                                                    |
 
+```c
+typedef struct BattlePanelTask {
+    /* 0x03 */ u8  state;
+    /* 0x04 */ BattleScreenCoord x;
+    /* 0x06 */ BattleScreenCoord y;
+    /* 0x0A */ BattlePanelCell0A cell_0A;
+    /* 0x0B */ u8  ratio;
+    /* 0x0D */ u8  cursor;
+    /* 0x12 */ u16 row_base;
+    /* 0x14 */ u16 hp;
+    /* 0x1C */ u16 max_hp;
+} BattlePanelTask;
+```
+
+Source: [`include/battle/records.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/battle/records.h)
+
 `func_800B1728` and `func_800B0F9C (emi/battle/battle/15@0x800B0F9C)` also read the cells at `+0x12`
 and `+0x14` as bytes. `+0x12` is the box drawer's scale and `+0x14` is the number of rows it draws.
 
@@ -200,6 +317,22 @@ names the head fields and `emi/battle/battle/15` the tail.
 | `0x5C` | `u8[4]` | cleared by `func_801DE1D4` as a byte row                                                                         |
 | `0x60` | `s32`   | action target index, stored by `func_800AAEBC`; the low halfword is the capture count that `func_801E5CA4` draws |
 | `0x74` | `u32`   | address of the work record that the slot points at                                                               |
+
+```c
+typedef struct BattleEffect {
+    /* 0x05 */ u8  handler_index;
+    /* 0x06 */ u8  unk_06;
+    /* 0x29 */ u8  unk_29;
+    /* 0x34 */ BattleFix32 unk_34;
+    /* 0x38 */ BattleFix32 unk_38;
+    /* 0x4B */ u8  unk_4B;
+    /* 0x5C */ u8  unk_5C;
+    /* 0x60 */ BattleTargetIndex word_60;
+    /* 0x74 */ u32 work_74;
+} BattleEffect;                /* 0x78 bytes; other members folded */
+```
+
+Source: [`include/battle/records.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/battle/records.h)
 
 Three more tables belong to the panels.
 

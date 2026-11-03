@@ -136,7 +136,7 @@ The last four stage palette rows are handed out dynamically to sprites that need
 
 A fade, `GFX_AllocPaletteFade (emi/etc/game/00@0x8019651C)`, takes a free cell run for the sprite record, remembers the record's old selector in the fade record, and `GFX_FreePaletteFade` restores it and frees the cells. `GFX_UploadPaletteRows` sets bit `0x8000` (the STP bit) on every colour of the record's cells. The code that interpolates colours during a fade is in overlays (`emi/world00/area036/13`, `emi/world02/area085/13`, `emi/world02/area108/14`, `emi/bmagic/magic064/03`), not in the resident core, and was not read `[unknown]`.
 
-Palette animations read 4-byte steps (`dst`, `src`, `count`, `wait`) and copy `count` colours from `src` to `dst` inside one row of the working copy. A step whose first byte is `0xFF` loops back by its second byte (`GFX_StepPaletteAnimation`, `GFX_UploadPaletteAnimation`).
+Palette animations read 4-byte steps (`dst`, `src`, `count`, `wait`) and copy `count` colours from `src` to `dst` inside one row of the working copy. A step whose first byte is `0xFF` loops back by its second byte (`GFX_StepPaletteAnimation`, `GFX_CopyPaletteAnimationColors`). The copy sets the pending flag and uploads nothing.
 
 ## Sprite sheet queue
 
@@ -158,14 +158,14 @@ Palette animations read 4-byte steps (`dst`, `src`, `count`, `wait`) and copy `c
 
 These objects hold the state of the frame pipeline.
 
-| Object                | Address         | Role                                                                         |
-| --------------------- | --------------- | ---------------------------------------------------------------------------- |
-| `g_GfxPrimCursor`     | `0x8014598C`    | Next free primitive byte.                                                    |
-| `D_801459D0`          | main executable | 8 layer tail pointers.                                                       |
-| `D_80145990`          | main executable | 2 by 8 layer head words.                                                     |
-| `g_GfxPalettePending` | `0x80145988`    | Set when the working palette must be uploaded.                               |
-| `g_AreaDrawFlags`     | `0x8014832E`    | Bit 0 sprites, 1 negative depth, 2 cell layers, 3 and 4 appended primitives. |
-| `g_SpriteSizes`       | `0x8017F53C`    | 16 cell width and height pairs.                                              |
+| Object                | Address         | Type        | Role                                                                         |
+| --------------------- | --------------- | ----------- | ---------------------------------------------------------------------------- |
+| `g_GfxPrimCursor`     | `0x8014598C`    | `u8*`       | Next free primitive byte.                                                    |
+| `D_801459D0`          | main executable | `u32*[]`    | 8 layer tail pointers.                                                       |
+| `D_80145990`          | main executable | `u8[]`      | 2 by 8 layer head words.                                                     |
+| `g_GfxPalettePending` | `0x80145988`    | `u8`        | Set when the working palette must be uploaded.                               |
+| `g_AreaDrawFlags`     | `0x8014832E`    | `u8`        | Bit 0 sprites, 1 negative depth, 2 cell layers, 3 and 4 appended primitives. |
+| `g_SpriteSizes`       | `0x8017F53C`    | `u8[16][2]` | 16 cell width and height pairs.                                              |
 
 ## Data and limits
 

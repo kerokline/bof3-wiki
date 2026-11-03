@@ -117,6 +117,39 @@ The runtime record at `g_Characters` has the same layout as the archive row. The
 | `0x85` | `s8[6]`   | `level-up modifiers`                                                                 | HP, AP, power, defense, agility, intellect    |
 | `0x8B` | `u8[25]`  | unknown                                                                              |                                               |
 
+```c
+typedef struct Character {
+    /* 0x00 */ u8  name[CHARACTER_NAME_LENGTH];
+    /* 0x05 */ u8  character_id;
+    /* 0x06 */ u8  level;
+    /* 0x07 */ u8  unk_07;
+    /* 0x08 */ u32 exp;
+    /* 0x0C */ u16 status;
+    /* 0x0E */ u8  weapon, shield, helmet, armor;
+    /* 0x12 */ u8  accessories[CHARACTER_ACCESSORY_COUNT];
+    /* 0x14 */ u16 current_hp;
+    /* 0x16 */ u16 current_ap;
+    /* 0x18 */ u8  current_willpower;
+    /* 0x19 */ u8  inoculations;
+    /* 0x1A */ u8  fatigue;
+    /* 0x1B */ u8  master_id;
+    /* 0x1C */ u16 max_hp, max_ap, power, defense, agility, intellect;
+    /* 0x28 */ u16 unk_28;
+    /* 0x2A */ u8  willpower;
+    /* 0x2B */ u8  resistances[RES_SLOT_COUNT];
+    /* 0x34 */ u8  surprise_chance, reprisal_chance, critical_chance, evasion, accuracy;
+    /* 0x3C */ u16 base_hp, base_ap, base_power, base_defense, base_agility, base_intellect;
+    /* 0x4A */ u8  base_willpower;
+    /* 0x4B */ u8  base_resistances[RES_SLOT_COUNT];
+    /* 0x54 */ u8  base_surprise_chance, base_reprisal_chance, base_critical_chance,
+                   base_evasion, base_accuracy;
+    /* 0x5C */ u8  healing_abilities[CHARACTER_ABILITY_COUNT];
+    /*  ...  */ /* assist, attack and skill abilities, unk_84, level_up_modifiers, unk_8B */
+} Character;                      /* 0xA4 bytes */
+```
+
+Source: [`include/game/character.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/game/character.h)
+
 The record holds two copies of the stats. The "base" copy at `0x3C` is what level-ups raise. The live copy at `0x1C` is what a battle reads and what equipment and status effects change. The shop overlay reads the skill-ability bytes at `0x90` from the block base (`0x16 + 0x7A`, `emi/etc/shop/00@0x801E1710`).
 
 Whelp stores character id 10 in its record, not 7. Every starting record has `master id` `0xFF`, so no character starts with a master. The opening values are:
@@ -244,6 +277,36 @@ The table gives the offset, type and meaning of each field of the 136-byte enemy
 | `0x82` | `u8`      | `reach`                                                | footprint size for encounter placement, see the notes below `[inferred]` name |
 | `0x83` | `u8`      | `height`                                               | vertical offset in pixels, see the notes below `[inferred]` name              |
 | `0x84` | `u8[4]`   | unknown                                                |                                                                               |
+
+```c
+typedef struct Enemy {
+    /* 0x00 */ u8  name[ENEMY_NAME_LENGTH];
+    /* 0x08 */ u16 enemy_id;
+    /* 0x0A */ u8  choice_ai;
+    /* 0x0E */ u8  target_preference;
+    /* 0x10 */ u16 zenny;
+    /* 0x12 */ u16 exp;
+    /* 0x14 */ u8  level;
+    /* 0x18 */ u8  initial_skills[ENEMY_SKILL_COUNT];
+    /* 0x20 */ u16 hp, ap, power, defense, agility, intellect;
+    /* 0x2C */ u8  first_item_index, first_item_type;
+    /* 0x2E */ u16 first_item_rate;
+    /* 0x30 */ u8  second_item_index, second_item_type;
+    /* 0x32 */ u16 second_item_rate;
+    /* 0x34 */ EnemyAiBlock ai[ENEMY_AI_COUNT];  /* 16 bytes each */
+    /* 0x78 */ u8  resistances[RES_SLOT_COUNT];
+    /* 0x82 */ u8  reach;
+    /* 0x83 */ u8  height;
+} Enemy;                       /* 0x88 bytes; gaps are unk_XX */
+
+typedef struct EnemyAiBlock {
+    /* 0x00 */ u8 condition;
+    /* 0x01 */ u8 parameters[ENEMY_AI_PARAMETER_COUNT];
+    /* 0x08 */ u8 skills[ENEMY_SKILL_COUNT];
+} EnemyAiBlock;
+```
+
+Source: [`include/game/enemy.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/game/enemy.h)
 
 Notes on the fields:
 

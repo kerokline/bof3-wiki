@@ -78,8 +78,8 @@ The code reads some offsets at several widths and signs: `+0x5D`, for example, i
 | `0x38` | `s32` (16.16) | world y                                                                                                                                                    | `func_8014DE78`; `Char_SpawnActor`                                                                                                                                                                                      |
 | `0x3C` | `s32` (16.16) | elevation; readers use the high half `+0x3E` as the ground height                                                                                          | `func_8014DE78`; `Char_SpawnActor`                                                                                                                                                                                      |
 | `0x4B` | `u8`          | script-bank record index                                                                                                                                   | `Actor_BeginScript (exe/slus_004_22@0x8014D6DC)` reads `work + 0x4B` ([area](../../formats/area/#0x800d3800-area-script-bank))                                                                                          |
-| `0x50` | `u32` pointer | cursor into the area script stream                                                                                                                         | `Actor_CopyScriptEntry`; `Actor_SeekScript (exe/slus_004_22@0x8014D910)`; `func_8014DAEC (exe/slus_004_22@0x8014DAEC)`                                                                                                  |
-| `0x54` | `u32` pointer | range record pointer, also read as an integer; byte 2 is the reach, byte 3 bit `0x10` blocks                                                               | `func_8014DE78`                                                                                                                                                                                                         |
+| `0x50` | `u8*`         | cursor into the area script stream                                                                                                                         | `Actor_CopyScriptEntry`; `Actor_SeekScript (exe/slus_004_22@0x8014D910)`; `func_8014DAEC (exe/slus_004_22@0x8014DAEC)`                                                                                                  |
+| `0x54` | `ActorRange`  | range record pointer, also read as an integer; byte 2 is the reach, byte 3 bit `0x10` blocks                                                               | `func_8014DE78`                                                                                                                                                                                                         |
 | `0x5C` | `u8[4]`       | a flags byte, then three tint bytes (`+0x5D` to `+0x5F`); read whole as a packed tint, as unsigned bytes and as the signed steps a fade adds toward `0xC0` | `func_801F3728 (emi/world00/area032/13@0x801F3728)`; `func_801F3920 (emi/world00/area032/13@0x801F3920)`                                                                                                                |
 | `0x70` | `u8`          | low byte of a state word: the scene flag-table byte; packed voice numbers sit above it                                                                     | written by `Area_FindSceneRecord (exe/slus_004_22@0x8014DD3C)`; voice numbers OR'd above it by `SND_QueueSelectionFx (exe/slus_004_22@0x8015D71C)`; read as an argument by `func_801B8A9C (emi/etc/game/00@0x801B8A9C)` |
 | `0x74` | `u8`          | interaction state; bits in the flag table below                                                                                                            | `func_801A06D8`                                                                                                                                                                                                         |
@@ -88,6 +88,40 @@ The code reads some offsets at several widths and signs: `+0x5D`, for example, i
 | `0x8E` | `u16`         | fishing gauge; a signed delta is added and the result is clamped into `[0, gauge maximum]`                                                                 | `func_801E026C`                                                                                                                                                                                                         |
 | `0x90` | `u16`         | compared with `0x1F` by the update: the idle path runs when it is `>= 0x1F` and `+0x09` is 0                                                               | `func_801A06D8`                                                                                                                                                                                                         |
 | `0x92` | `u8`          | the fishing code writes `rand() & 3` into it; it is a lane or position selector, not a turn                                                                | `func_801DE5EC (emi/world00/area030/04@0x801DE5EC)`                                                                                                                                                                     |
+
+```c
+typedef struct Actor {
+    /* 0x00 */ u8    flags_00;
+    /* 0x01 */ u8    unk_01;
+    /* 0x02 */ u8    state_02;
+    /* 0x05 */ u8    unk_05;
+    /* 0x06 */ u8    unk_06;
+    /* 0x07 */ u8    unk_07;
+    /* 0x08 */ u8    direction_08;
+    /* 0x0C */ s32   unk_0C;
+    /* 0x14 */ s32   vz;
+    /* 0x20 */ s32   gravity;
+    /* 0x24 */ u8    flags_24;
+    /* 0x2E */ s16   unk_2E;
+    /* 0x30 */ s16   unk_30;
+    /* 0x34 */ Coord x;
+    /* 0x38 */ Coord y;
+    /* 0x3C */ Coord z;
+    /* 0x4B */ u8    unk_4B;
+    /* 0x50 */ u8*   source_50;
+    /* 0x54 */ ActorRange range_54;
+    /* 0x5C */ ActorTint tint;
+    /* 0x70 */ u8    speed_70;
+    /* 0x74 */ u8    flags_74;
+    /* 0x7A */ u8    callback_index;
+    /* 0x8C */ s16   stamina_max_8C;
+    /* 0x8E */ u16   stamina_8E;
+    /* 0x90 */ u16   roll_90;
+    /* 0x92 */ u8    facing_92;
+} Actor;                 /* 0x98 bytes; other members folded */
+```
+
+Source: [`include/work/actor.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/work/actor.h)
 
 Offsets `0x03`, `0x04`, `0x0A`, `0x0B`, `0x10`, `0x25-0x2D`, `0x32`, `0x40`, `0x44`, `0x49`, `0x4C`,
 `0x5A`, `0x60-0x6C`, `0x71-0x73`, `0x76-0x77`, `0x79`, `0x7B`, `0x7E`, `0x80-0x88` and `0x93-0x97`
@@ -168,6 +202,28 @@ actor rows are the live map objects. There are twenty slots of 116 bytes at `0x8
 | `0x3C` | `s32` (16.16) | `Area_SampleHeight` of x and y in the integer half (`+0x3E`); the call passes the shifted 16.16 values                                          | `Char_SpawnActor`                                                                                                                                                |
 | `0x64` | `s32[3]`      | scene origin plus offset                                                                                                                        | scene readers                                                                                                                                                    |
 
+```c
+typedef struct ActorSlot {
+    /* 0x00 */ u8    flags_00;
+    /* 0x01 */ u8    unk_01;
+    /* 0x05 */ u8    type;
+    /* 0x06 */ u8    unk_06;
+    /* 0x09 */ u8    layer_09;
+    /* 0x0B */ u8    link_0B;
+    /* 0x0C */ s32   step_0C;
+    /* 0x10 */ s32   selection_10;
+    /* 0x18 */ s32   counter_18;
+    /* 0x1C */ s32   counter_1C;
+    /* 0x29 */ u8    unk_29;
+    /* 0x34 */ Coord x;
+    /* 0x38 */ Coord y;
+    /* 0x3C */ Coord z;
+    /* 0x64 */ Vec3i pos;
+} ActorSlot;             /* 0x74 bytes; gaps are pad_XX or unk_XX */
+```
+
+Source: [`include/game/records.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/game/records.h)
+
 Other cells have no proven role: `0x02-0x04`, `0x07`, `0x08`, `0x0A`, `0x14`, `0x20-0x28`,
 `0x2A-0x33`, `0x40-0x63` (including `0x4A`) and `0x70-0x73`.
 
@@ -213,6 +269,17 @@ Zenny is a `u32` that `Party_AddZenny` clamps at 9,999,999. A shop subtracts onl
 | `0x02` | `u8` | `seconds`    | rolls at 60          |
 | `0x03` | `u8` | `thirtieths` | rolls at 30          |
 
+```c
+typedef struct GameClock {
+    /* 0x00 */ u8 hours_00;
+    /* 0x01 */ u8 minutes_01;
+    /* 0x02 */ u8 seconds_02;
+    /* 0x03 */ u8 thirtieths_03;
+} GameClock;
+```
+
+Source: [`include/menu/clock.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/menu/clock.h)
+
 The clock stops at `99:59:59`, where the low three bytes read `0x3B3B63`, instead of incrementing past
 it. The two countdown timers at `0x80145554` (celerity) and `0x80145558` (bonebreak) use the same
 fields in reverse and borrow at the same boundaries. Both lie in the saved block, at save offsets `+0xE7C` and `+0xE80` ([save layout](../records/#save-layout)). The tick loop is in the `emi/etc/game/00` overlay.
@@ -230,6 +297,18 @@ A fairy job row records one job in the village. There are 60 rows of 8 bytes at 
 | `0x02` | `u8`  | record state                                |
 | `0x03` | `u8`  | `[unknown]`                                 |
 | `0x04` | `u32` | the battle count when the job last advanced |
+
+```c
+typedef struct FairyJob {
+    /* 0x00 */ u8  active;
+    /* 0x01 */ u8  type;
+    /* 0x02 */ u8  record_state;
+    /* 0x03 */ u8  unk_03;
+    /* 0x04 */ u32 progress_anchor;
+} FairyJob;
+```
+
+Source: [`include/game/fairy.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/game/fairy.h)
 
 The 720-fairy roster and its reward tables stay in the archives ([records](../records/#area-data)).
 
