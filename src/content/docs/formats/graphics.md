@@ -94,29 +94,29 @@ The palette arena is not the only palette writer. The frontend keeps three more 
 
 A `PaletteFade` record has 12 bytes:
 
-| Offset | Size | Meaning                                                  |
-| -----: | ---: | -------------------------------------------------------- |
-| `0x00` |    1 | flags                                                    |
-| `0x01` |    1 | unknown                                                  |
-| `0x02` |    1 | red offset                                               |
-| `0x03` |    1 | green offset                                             |
-| `0x04` |    1 | blue offset                                              |
-| `0x05` |    1 | table index                                              |
-| `0x06` |    1 | step                                                     |
-| `0x07` |    1 | unknown                                                  |
-| `0x08` |    4 | target pointer (the target pattern at `+0x08` sets size) |
+| Offset | Size | Type  | Meaning                                                  |
+| -----: | ---: | ----- | -------------------------------------------------------- |
+| `0x00` |    1 | `u8`  | flags                                                    |
+| `0x01` |    1 | `u8`  | unknown                                                  |
+| `0x02` |    1 | `u8`  | red offset                                               |
+| `0x03` |    1 | `u8`  | green offset                                             |
+| `0x04` |    1 | `u8`  | blue offset                                              |
+| `0x05` |    1 | `u8`  | table index                                              |
+| `0x06` |    1 | `u8`  | step                                                     |
+| `0x07` |    1 | `u8`  | unknown                                                  |
+| `0x08` |    4 | `u8*` | target pointer (the target pattern at `+0x08` sets size) |
 
 A `GraphicsPaletteAnimation` record has 16 bytes:
 
-| Offset | Size | Meaning                                                  |
-| -----: | ---: | -------------------------------------------------------- |
-| `0x00` |    1 | flags (bit 0: slot in use)                               |
-| `0x01` |    1 | frames left on the current entry                         |
-| `0x02` |    1 | last owner animation id (`0xFF` on start)                |
-| `0x03` |    1 | initial value, copied from owner `+0x27` on start        |
-| `0x04` |    4 | pointer to the source table                              |
-| `0x08` |    4 | pointer to the current entry                             |
-| `0x0C` |    4 | pointer to the owner (owner `+0x4B` is the animation id) |
+| Offset | Size | Type  | Meaning                                                  |
+| -----: | ---: | ----- | -------------------------------------------------------- |
+| `0x00` |    1 | `u8`  | flags (bit 0: slot in use)                               |
+| `0x01` |    1 | `u8`  | frames left on the current entry                         |
+| `0x02` |    1 | `u8`  | last owner animation id (`0xFF` on start)                |
+| `0x03` |    1 | `u8`  | initial value, copied from owner `+0x27` on start        |
+| `0x04` |    4 | `u8*` | pointer to the source table                              |
+| `0x08` |    4 | `u8*` | pointer to the current entry                             |
+| `0x0C` |    4 | `u8*` | pointer to the owner (owner `+0x4B` is the animation id) |
 
 The cell map has one byte per cell, and `0xFF` is empty. `GFX_StepPaletteAnimation` selects the source-table entry named by the owner's animation id and advances four bytes at a time (entry byte 3 is the frame count). It wraps when the next entry starts with `0xFF`: that entry's second byte is the back-step, a count of four-byte entries. The battle overlay views the same address `0x80145BD4` differently, as a 12-byte `BattleSpriteSlot` that reads bytes `+0x02` (a second copy of the shared sprite value), `+0x03` and `+0x04`. The same address is not the same object in another overlay.
 
@@ -190,7 +190,7 @@ These are ranked by the bytes they leave unexplained.
 ## Sources and confidence
 
 - **Confidence:** medium. The upload, the colour words and the proven joins are read and checked on every payload, but 381 of 593 textures have no proven depth or palette.
-- **Evidence:** all 593 type-3 payloads and 620 palette banks, the loader and drawing functions named above (including `GFX_UploadPaletteAnimation`, which writes the working copy), and every CLUT and TPage write in the game code. The community [BoF3-Data-Doc](https://github.com/GlitchedDragon-dev/BoF3-Data-Doc) (texture and palette notes) only confirms. The runtime primitives are PsyQ 3.7 ([sources](../../appendix/sources/)).
+- **Evidence:** all 593 type-3 payloads and 620 palette banks, the loader and drawing functions named above (including `GFX_CopyPaletteAnimationColors`, which copies colours inside the working copy), and every CLUT and TPage write in the game code. The community [BoF3-Data-Doc](https://github.com/GlitchedDragon-dev/BoF3-Data-Doc) (texture and palette notes) only confirms. The runtime primitives are PsyQ 3.7 ([sources](../../appendix/sources/)).
 
 ## Related
 

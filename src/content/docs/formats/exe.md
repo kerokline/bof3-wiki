@@ -21,16 +21,16 @@ The disc also has one CDDA track (track 2, 37,044,044 bytes). Every sample in it
 
 Both executables begin with the standard 2,048-byte PS-X EXE header: the `PS-X EXE` magic at offset 0 and fields as `u32` from `0x10` ([psx-spx](https://psx-spx.consoledev.net/cdromformat/)). The BIOS copies `t_size` bytes from sector 1 of the file to `t_addr`, then jumps to `pc`. The table gives the fields that the game files set.
 
-| Offset | Name                           |   `SLUS_004.22` |   `LOGO.EXE` |
-| -----: | ------------------------------ | --------------: | -----------: |
-| `0x10` | `pc`                           |    `0x8014AA0C` | `0x801CE724` |
-| `0x14` | `gp`                           |             `0` |          `0` |
-| `0x18` | `t_addr`                       |    `0x80096800` | `0x801CE000` |
-| `0x1C` | `t_size`                       |      `0x160800` |    `0x1D800` |
-| `0x20` | `d_addr` to `b_size` (4 words) |             `0` |          `0` |
-| `0x30` | `s_addr`                       |    `0x801FFFF0` | `0x801FFFF0` |
-| `0x34` | `s_size`                       |             `0` |          `0` |
-| `0x4C` | region marker                  | "North America" |      "Japan" |
+| Offset | Type                  | Name                           |   `SLUS_004.22` |   `LOGO.EXE` |
+| -----: | --------------------- | ------------------------------ | --------------: | -----------: |
+| `0x10` | `u32`                 | `pc`                           |    `0x8014AA0C` | `0x801CE724` |
+| `0x14` | `u32`                 | `gp`                           |             `0` |          `0` |
+| `0x18` | `u32`                 | `t_addr`                       |    `0x80096800` | `0x801CE000` |
+| `0x1C` | `u32`                 | `t_size`                       |      `0x160800` |    `0x1D800` |
+| `0x20` | `u32[4]`              | `d_addr` to `b_size` (4 words) |             `0` |          `0` |
+| `0x30` | `u32`                 | `s_addr`                       |    `0x801FFFF0` | `0x801FFFF0` |
+| `0x34` | `u32`                 | `s_size`                       |             `0` |          `0` |
+| `0x4C` | `char[]` `[inferred]` | region marker                  | "North America" |      "Japan" |
 
 These facts hold on both files:
 

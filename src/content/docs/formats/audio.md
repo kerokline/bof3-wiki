@@ -30,8 +30,8 @@ The 32-byte PsyQ `VabHdr` opens the file.
 | Offset | Size | Type    | Name        | Meaning                                    |
 | -----: | ---: | ------- | ----------- | ------------------------------------------ |
 | `0x00` |    4 | `u8[4]` | `magic`     | bytes `70 42 41 56` (`pBAV` in file order) |
-| `0x04` |    4 | `u32`   | `version`   | 7                                          |
-| `0x08` |    4 | `u32`   | `id`        | VAB id; 0 in all 1,020 banks               |
+| `0x04` |    4 | `s32`   | `version`   | 7                                          |
+| `0x08` |    4 | `s32`   | `id`        | VAB id; 0 in all 1,020 banks               |
 | `0x0C` |    4 | `u32`   | `fsize`     | VH size plus VB size                       |
 | `0x10` |    2 | `u16`   | `reserved0` | `0xEEEE`                                   |
 | `0x12` |    2 | `u16`   | `ps`        | programs                                   |
@@ -42,6 +42,26 @@ The 32-byte PsyQ `VabHdr` opens the file.
 | `0x1A` |    1 | `u8`    | `attr1`     | 0 in all 1,020 banks                       |
 | `0x1B` |    1 | `u8`    | `attr2`     | 0 in all 1,020 banks                       |
 | `0x1C` |    4 | `u32`   | `reserved1` | `0xFFFFFFFF` in all 1,020 banks            |
+
+```c
+typedef struct VabHdr {
+    s32 form;      /* 0x00 magic bytes 70 42 41 56 */
+    s32 ver;       /* 0x04 */
+    s32 id;        /* 0x08 */
+    u32 fsize;     /* 0x0C */
+    u16 reserved0; /* 0x10 */
+    u16 ps;        /* 0x12 */
+    u16 ts;        /* 0x14 */
+    u16 vs;        /* 0x16 */
+    u8  mvol;      /* 0x18 */
+    u8  pan;       /* 0x19 */
+    u8  attr1;     /* 0x1A */
+    u8  attr2;     /* 0x1B */
+    u32 reserved1; /* 0x1C */
+} VabHdr;
+```
+
+Source: [`include/psyq/libsnd.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/psyq/libsnd.h)
 
 ### Bank layout
 
@@ -87,9 +107,37 @@ Each tone is one 32-byte `VagAtr` record.
 | `0x0E` |    2 | `u8[2]`  | `reserved1`, `reserved2` | `B1 B2` in all slots                                   |
 | `0x10` |    2 | `u16`    | `adsr1`                  | envelope register 1                                    |
 | `0x12` |    2 | `u16`    | `adsr2`                  | envelope register 2                                    |
-| `0x14` |    2 | `u16`    | `prog`                   | parent program                                         |
-| `0x16` |    2 | `u16`    | `vag`                    | VAG index, 1-based                                     |
-| `0x18` |    8 | `u16[4]` | `reserved`               | four halfwords; `C0 00 C1 00 C2 00 C3 00` in all slots |
+| `0x14` |    2 | `s16`    | `prog`                   | parent program                                         |
+| `0x16` |    2 | `s16`    | `vag`                    | VAG index, 1-based                                     |
+| `0x18` |    8 | `s16[4]` | `reserved`               | four halfwords; `C0 00 C1 00 C2 00 C3 00` in all slots |
+
+```c
+typedef struct VagAtr {
+    u8  prior;     /* 0x00 */
+    u8  mode;      /* 0x01 */
+    u8  vol;       /* 0x02 */
+    u8  pan;       /* 0x03 */
+    u8  center;    /* 0x04 */
+    u8  shift;     /* 0x05 */
+    u8  min;       /* 0x06 */
+    u8  max;       /* 0x07 */
+    u8  vibW;      /* 0x08 */
+    u8  vibT;      /* 0x09 */
+    u8  porW;      /* 0x0A */
+    u8  porT;      /* 0x0B */
+    u8  pbmin;     /* 0x0C */
+    u8  pbmax;     /* 0x0D */
+    u8  reserved1; /* 0x0E */
+    u8  reserved2; /* 0x0F */
+    u16 adsr1;     /* 0x10 */
+    u16 adsr2;     /* 0x12 */
+    s16 prog;      /* 0x14 */
+    s16 vag;       /* 0x16 */
+    s16 reserved[4]; /* 0x18 */
+} VagAtr;
+```
+
+Source: [`include/psyq/libsnd.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/psyq/libsnd.h)
 
 The pitch-bend range is tone-local. Several fields never vary on the disc: `VabHdr.id`, `attr1` and `attr2` are 0 in all 1,020 banks. `reserved0` is `0xEEEE` and `reserved1` is `0xFFFFFFFF`. `ProgAtr.attr` is 0 in the 4,416 playable records. `VagAtr.vibW`, `vibT`, `porW` and `porT` are 0 in all 70,656 slots.
 
@@ -113,17 +161,28 @@ A type-8 entry is one bank's cue table for sound effects. It is a list of 4-byte
 
 [EMI load argument](../emi/#load-argument) lists the bank selectors by archive kind. A record packs these fields into its 4 bytes:
 
-| Offset |   Bits | Name             | Meaning                                                                                                                                        |
-| -----: | -----: | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `0x00` | 0 to 2 | `alias_bank`     | bank whose record supplies the voice index; `0` own bank, `1`-`4` that bank; also takes its VAB volume, pan and tune; `0` in all 8,608 records |
-| `0x00` | 3 to 7 | unnamed          | zero in all 8,608; role unknown                                                                                                                |
-| `0x01` |      7 | `use_cue_volume` | set in 8,584 of 8,608: follow the key-on with `SsUtSetDetVVol`; clear keeps the tone volume                                                    |
-| `0x01` | 0 to 6 | `program`        | VAB program 0 to 7; `SsUtKeyOnV` argument 3                                                                                                    |
-| `0x02` | 4 to 7 | `tone`           | tone slot 0 to 14; `SsUtKeyOnV` argument 4                                                                                                     |
-| `0x02` | 0 to 3 | unnamed          | copied to voice state and compared with the previous cue; `0x10` (8,342), `0x11` (239), other values in 27; role unknown                       |
-| `0x03` |      7 | unnamed          | zero in all 8,608                                                                                                                              |
-| `0x03` | 5 to 6 | `layers`         | extra voices: 0 (525), 1 (7,662), 2 (248), 3 (173)                                                                                             |
-| `0x03` | 0 to 4 | `voice`          | first SPU voice 0 to 23, mostly 16, 18, 20 and 22; values of 24 or more wrap modulo 24 when `layers > 0`                                       |
+| Offset | Bits   | Type | Name             | Meaning                                                                                                                                        |
+| -----: | ------ | ---: | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `0x00` | 0 to 2 | `u8` | `alias_bank`     | bank whose record supplies the voice index; `0` own bank, `1`-`4` that bank; also takes its VAB volume, pan and tune; `0` in all 8,608 records |
+| `0x00` | 3 to 7 | `u8` | unnamed          | zero in all 8,608; role unknown                                                                                                                |
+| `0x01` | 7      | `u8` | `use_cue_volume` | set in 8,584 of 8,608: follow the key-on with `SsUtSetDetVVol`; clear keeps the tone volume                                                    |
+| `0x01` | 0 to 6 | `u8` | `program`        | VAB program 0 to 7; `SsUtKeyOnV` argument 3                                                                                                    |
+| `0x02` | 4 to 7 | `u8` | `tone`           | tone slot 0 to 14; `SsUtKeyOnV` argument 4                                                                                                     |
+| `0x02` | 0 to 3 | `u8` | unnamed          | copied to voice state and compared with the previous cue; `0x10` (8,342), `0x11` (239), other values in 27; role unknown                       |
+| `0x03` | 7      | `u8` | unnamed          | zero in all 8,608                                                                                                                              |
+| `0x03` | 5 to 6 | `u8` | `layers`         | extra voices: 0 (525), 1 (7,662), 2 (248), 3 (173)                                                                                             |
+| `0x03` | 0 to 4 | `u8` | `voice`          | first SPU voice 0 to 23, mostly 16, 18, 20 and 22; values of 24 or more wrap modulo 24 when `layers > 0`                                       |
+
+```c
+typedef struct EmiCue {
+    u8 alias_bank; /* 0x00 bits 0 to 2 */
+    u8 program;    /* 0x01 bit 7 use_cue_volume, bits 0 to 6 program */
+    u8 tone;       /* 0x02 bits 4 to 7 tone slot, bits 0 to 3 retrigger compare */
+    u8 voice;      /* 0x03 bits 0 to 4 voice, bits 5 to 6 layers */
+} EmiCue;
+```
+
+Source: [`include/audio/cue.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/audio/cue.h)
 
 To set up a voice, the reader indexes the bank's VAB header at `0x820 + 512*program + 32*tone` and copies `VagAtr` bytes 2 (volume), 3 (pan), 5 (pitch tune) and 6 (min note) into voice state. It keys the base voice with `note = min note` and `fine = pitch tune`, plus `layers` extra voices on `voice + n` with tone slot `tone + n`. Tone volume and pan become SPU volumes only in the layered paths, as `vol * (128 - pan) / 128` and `vol * pan / 128`. The record has no envelope, so `adsr1` and `adsr2` come from the `VagAtr`.
 
@@ -154,6 +213,23 @@ The file header is 6 bytes: the magic `70 51 45 53` (`pQES` in file order, `SEQp
 | `0x07` |    2 | `u8[2]` | `time_signature` | numerator, then log2 of the denominator       |
 | `0x09` |    4 | `u32`   | `data_size`      | payload size in bytes; big-endian             |
 
+```c
+typedef struct SepFileHeader {
+    u8 magic[4];   /* 0x00 */
+    u8 version[2]; /* 0x04 u16, big-endian */
+} SepFileHeader;
+
+typedef struct SepSequenceHeader {
+    u8 sequence_id[2];    /* 0x00 u16, big-endian */
+    u8 resolution[2];     /* 0x02 u16, big-endian */
+    u8 tempo[3];          /* 0x04 */
+    u8 time_signature[2]; /* 0x07 */
+    u8 data_size[4];      /* 0x09 u32, big-endian */
+} SepSequenceHeader;
+```
+
+Source: [`include/audio/sep.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/audio/sep.h)
+
 The headers and payloads tile the package exactly in all 119 packages. Each payload is a stream of MIDI-like events: variable-length delta times, running status, note on and off, program change, control change and pitch bend. Only the tempo and end-of-track events are meta events, and meta events carry a Standard MIDI File length. The end-of-track event is `FF 2F 00` and it closes all 476 sequences. No sequence contains a tempo meta event, so the tempo is the header field. A pitch-bend event has two MIDI data bytes. The linked renderer uses the second as the 7-bit coarse value, centered at 64, and ignores the first.
 
 The control changes include NRPN-style extensions: loop start (20), loop end (30) and VAB attribute control. The select pairs seen are CC 99 (934 events), CC 98 (186) and CC 6 (282).
@@ -171,7 +247,7 @@ Over the 476 sequences (508,471 events):
 
 The main executable has these entry points for sound:
 
-|      Address | Name                    | Role                                                                             |
+|      Address | Function                | Role                                                                             |
 | -----------: | ----------------------- | -------------------------------------------------------------------------------- |
 | `0x8015CEBC` | `SND_Exit`              | all-key-off, close active VAB ids, release seven slots, disable reverb           |
 | `0x8015D044` | `SND_UpdateVoiceStatus` | poll all 24 SPU voices into the game voice-state table                           |

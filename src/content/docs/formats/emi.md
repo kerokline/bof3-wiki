@@ -15,6 +15,16 @@ All 880 archives share one 16-byte header.
 | `0x04` |    4 | `u32`     | format version (`1` on the US disc) |
 | `0x08` |    8 | `char[8]` | `MATH_TBL`                          |
 
+```c
+typedef struct EmiArchiveHeader {
+    u32 entry_count; /* 0x00 */
+    u32 version;     /* 0x04 */
+    u8  magic[8];    /* 0x08 */
+} EmiArchiveHeader;
+```
+
+Source: [`include/sys/emi.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/sys/emi.h)
+
 ## TOC entry
 
 One 16-byte row per entry follows the header, starting at `0x10`.
@@ -26,6 +36,18 @@ One 16-byte row per entry follows the header, starting at `0x10`.
 | `0x08` |    4 | `u32` | copy of the first payload word (the loader compares it with the payload) |
 | `0x0C` |    2 | `u16` | entry type                                                               |
 | `0x0E` |    2 | `u16` | padding, always `0x2E2E`                                                 |
+
+```c
+typedef struct EmiTocEntry {
+    u32 size;       /* 0x00 */
+    u32 load_arg;   /* 0x04 */
+    u32 first_word; /* 0x08 */
+    u16 type;       /* 0x0C */
+    u16 padding;    /* 0x0E */
+} EmiTocEntry;
+```
+
+Source: [`include/sys/emi.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/sys/emi.h)
 
 The first payload starts at `0x800`. Each later payload starts at the next sector boundary after the previous one:
 
