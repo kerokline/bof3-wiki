@@ -11,26 +11,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # page "last updated" dates come from git history
       - uses: dprint/check@v2.5
-      - name: Install mdBook
-        run: |
-          mkdir -p "$HOME/.local/bin"
-          curl -fsSL https://github.com/rust-lang/mdBook/releases/download/v0.5.4/mdbook-v0.5.4-x86_64-unknown-linux-gnu.tar.gz | tar -xz -C "$HOME/.local/bin"
-          curl -fsSL https://github.com/badboy/mdbook-mermaid/releases/download/v0.17.1/mdbook-mermaid-v0.17.1-x86_64-unknown-linux-gnu.tar.gz | tar -xz -C "$HOME/.local/bin"
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-      - run: mdbook-mermaid install .
-      - run: mdbook build .
-      - run: python3 tools/build_ingest.py
-      - name: Check internal links and anchors
+      - name: Check the page template
+        run: python3 tools/check_pages.py
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Build the site and validate links
+        run: npm run build
+      - name: Check internal links and anchors offline
         run: |
           curl -fsSL -o lychee.tar.gz https://github.com/lycheeverse/lychee/releases/download/lychee-v0.24.2/lychee-x86_64-unknown-linux-gnu.tar.gz
           echo "1f4e0ef7f6554a6ed33dd7ac144fb2e1bbed98598e7af973042fc5cd43951c9a  lychee.tar.gz" | sha256sum -c -
           tar -xzf lychee.tar.gz --strip-components=1 lychee-x86_64-unknown-linux-gnu/lychee
-          ./lychee --offline --include-fragments --no-progress --root-dir "$PWD/book" --exclude-path book/404.html book
+          # Serve dist under the site's base path so that root-relative links resolve.
+          mkdir -p "$RUNNER_TEMP/site"
+          ln -s "$PWD/dist" "$RUNNER_TEMP/site/bof3-wiki"
+          ./lychee --offline --include-fragments --index-files index.html --no-progress \
+            --root-dir "$RUNNER_TEMP/site" --exclude-path 404.html "$RUNNER_TEMP/site/bof3-wiki"
       - if: github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
-          path: book
+          path: dist
   deploy:
     if: github.event_name != 'pull_request'
     needs: build
@@ -43,4 +49,4 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - id: deploy
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
