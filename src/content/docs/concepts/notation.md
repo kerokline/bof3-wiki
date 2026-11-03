@@ -55,8 +55,9 @@ shown "in file order" lists its bytes as stored, such as `70 42 41 56` for the V
 | `char[n]`     | `n` bytes of text; the game's own byte encoding ([text](../../data/text/)) unless the page says ASCII       |
 | `s32 (16.16)` | fixed point: the high 16 bits are the integer part and the low 16 bits the fraction, so `0x00018000` is 1.5 |
 
-A `u32` that holds a RAM address is written `u32` pointer. A run of bytes with no known structure is
-`u8[n]`.
+A field that holds a RAM address is written `T*`, where `T` is the type it points to: `u16*`, `void*` or a
+record name such as `Enemy*`. A run of bytes with no known structure is `u8[n]`. A field type that no
+reader proves carries the tag `[inferred]`.
 
 The MIPS terms **halfword** (16 bits) and **word** (32 bits) appear in prose about code. In prose about VRAM
 and palettes, a *word* is one 16-bit VRAM cell, as in "a 16-bit CLUT word". Layout tables use `u16` and `u32`
@@ -121,7 +122,7 @@ instance on the disc.
 
 A record is a fixed-size row of a table. A layout table lists its fields in the order they sit in memory or
 in the file, with the columns `Offset`, `Size`, `Type`, `Name`, `Meaning` and `Evidence` in that order. A page
-leaves out a column that adds nothing.
+leaves out `Size`, `Name` or `Evidence` when the column adds nothing. `Type` stays.
 
 | Offset | Size | Type  | Name      | Meaning                 |
 | -----: | ---: | ----- | --------- | ----------------------- |
@@ -136,10 +137,15 @@ This table is synthetic. The columns mean:
   RAM addresses instead.
 - **Size**: the field length in bytes. A page leaves this column out when the **Type** column already
   fixes it.
-- **Type**: a type from the table above. A field with no type is a run of bytes, or flags.
+- **Type**: a type from the table above, or a record name. Every layout table has this column. A run of
+  bytes, or flags, is `u8[n]` or `u8`.
 - **Name**: the name this wiki uses for the field.
 - **Meaning**: what the game does with the value, with its units and legal values.
 - **Evidence** (some pages): the functions that read or write the field, cited as above.
+
+A record that has a C struct in the decompilation also shows it as a `c` block after the table, with the
+struct's member names and an offset comment on each member. The table gives the meanings; the block is the
+compact view for code.
 
 In the example, the record is 4 bytes long. Reading `item_id` at record offset `0x00` from the bytes `0A 00 02 00`
 gives `item_id = 0x000A` and `count = 2`.

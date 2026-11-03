@@ -9,8 +9,9 @@ runtime behavior. A change needs evidence: a game address, bytes, or a cited sou
 assets or game text. To check a claim yourself, dump your own US disc (Redump-verified CUE sheet and
 BIN tracks).
 
-The wiki holds game and format facts only. Pages contain no source code, tool output, repository
-paths, progress reports or project history.
+The wiki holds game and format facts only. Pages contain no tool output, repository paths, progress
+reports or project history. The one code form is the `c` struct block described under
+[Record layouts](#record-layouts).
 
 ## Repository layout
 
@@ -23,6 +24,20 @@ paths, progress reports or project history.
 | `public/wiki.js`       | Sticky table headers, monospace data columns and copy links on headings.    |
 | `astro.config.mjs`     | Site, search, link validation, diagrams and `llms.txt` settings.            |
 | `tools/check_pages.py` | The page template check.                                                    |
+
+## Record layouts
+
+- Every layout table has a `Type` column. Use `u8`, `s8`, `u16`, `s16`, `u32`, `s32`, `T[N]`, `T*`,
+  `s32 (16.16)` or a record name. Tag a type that no reader proves with `[inferred]`.
+- A record that has a struct in the [decompilation](https://github.com/raulcorreia7/bof3-decomp) has a
+  `c` block after its table. The block uses the header's struct and member names, gives each member an
+  offset comment such as `/* 0x98 */`, writes gaps as `u8 unk_XX[N];` and stays within 30 lines. One line
+  under the block links to the header, for example
+  ``Source: [`include/battle/records.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/battle/records.h)``.
+- The header is the source for names and members. When a page and a header differ on an offset, a width or
+  a name, check the reader's code: if the page is wrong, fix the page; if the header is wrong, report the
+  difference to the decompilation.
+- `tools/check_pages.py` enforces the `Type` column.
 
 ## Page template
 

@@ -15,9 +15,10 @@ Rules:
   - concepts, systems, formats and data pages end with "Sources and confidence" and "Related",
     and "Sources and confidence" has a Confidence and an Evidence bullet;
   - guide pages end with "Related";
-  - code fences are `mermaid` or `text`; callouts are `:::note` or `:::caution`; page links use
+  - code fences are `mermaid`, `text` or `c`; callouts are `:::note` or `:::caution`; page links use
     URLs ("../formats/emi/"), not file names; no repository or tool names appear;
-  - hexadecimal digits are upper case; layout tables keep the standard column order.
+  - hexadecimal digits are upper case; layout tables have a Type column and keep the standard
+    column order.
 """
 
 import json
@@ -30,7 +31,7 @@ DOCS = ROOT / "src" / "content" / "docs"
 
 REFERENCE_DIRS = {"concepts", "systems", "formats", "data"}
 GUIDE_DIRS = {"guides"}
-FENCE_LANGS = {"mermaid", "text"}
+FENCE_LANGS = {"mermaid", "text", "c"}
 CALLOUTS = {"note", "caution"}
 CONFIDENCE = ("high", "medium", "low")
 DESCRIPTION_MAX = 240
@@ -174,6 +175,8 @@ def check_tables(lines, err):
         if "Field" in headers:
             err(n, "layout table: name the field column 'Name'")
             continue
+        if "Type" not in headers:
+            err(n, "layout table: add a 'Type' column")
         if any(h not in LAYOUT_ORDER for h in headers):
             continue
         index = [LAYOUT_ORDER.index(h) for h in headers]
