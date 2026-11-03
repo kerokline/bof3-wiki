@@ -25,7 +25,7 @@ The table gives the address, row size and row count of each object. Several obje
 | play clock              | `0x80144FC0` |    4 |     1 | `func_80198CAC (emi/etc/game/00@0x80198CAC)`, status, save and shop panels                                 |
 | fairy jobs              | `0x801455C8` |    8 |    60 | `Fairy_JoinVillage (emi/etc/commu00/00@0x801F00D4)`, `func_801F01F4 (emi/etc/commu00/00@0x801F01F4)`       |
 | best catches            | `0x80144FE4` |    1 |    32 | `func_801DB554 (emi/world00/area030/04@0x801DB554)`, `func_801E0B6C (emi/world00/area030/04@0x801E0B6C)`   |
-| fishing rod table       | `0x801E2748` |   10 |     6 | `func_801DDE2C (emi/world00/area030/04@0x801DDE2C)`                                                        |
+| fishing rod table       | `0x801E2748` |   10 |     - | `func_801DDE2C (emi/world00/area030/04@0x801DDE2C)`                                                        |
 | fishing lure table      | `0x801E2720` |   20 |     - | `func_801DDE2C (emi/world00/area030/04@0x801DDE2C)`                                                        |
 
 The area archive feeds these rows. The diagram shows the entries of `WORLDnn/AREAnnn.EMI` and where each one loads.
@@ -235,7 +235,7 @@ A fairy job row records one job in the village. There are 60 rows of 8 bytes at 
 
 The 720-fairy roster and its reward tables stay in the archives ([records](../records/#area-data)).
 
-Fishing keeps three state bytes, six 10-byte rod rows, 20-byte lure rows and 32 best-catch bytes.
+Fishing keeps three state bytes, 10-byte rod rows, 20-byte lure rows and 32 best-catch bytes.
 
 | Address      | Type     | Meaning                                                                                            |
 | ------------ | -------- | -------------------------------------------------------------------------------------------------- |
@@ -245,7 +245,10 @@ Fishing keeps three state bytes, six 10-byte rod rows, 20-byte lure rows and 32 
 | `0x80144FE4` | `u8[32]` | best catch, one byte per fish, in the index order of the count table; saved at save offset `0x90C` |
 
 The rod row is `rod_table + rod * 10` and the lure row is `lure_table + lure * 20`
-(`func_801DDE2C`). `func_801E0B6C` walks all 32 best-catch bytes. The fishing code reads the pond rows
+(`func_801DDE2C`). Nothing bounds either selector, so the code fixes no row count. Both selectors are
+accessory ids: the fishing screens draw their names from the accessory table, and `Party_CountItem`
+compares them with accessory ids. That table holds six rods (ids 46 to 51), so six rod rows is
+`[inferred]`. `func_801E0B6C` walks all 32 best-catch bytes. The fishing code reads the pond rows
 through the same actor table: the gauge at `+0x8E` is clamped into `[0, +0x8C]`, and `+0x92` takes
 `rand() & 3`.
 
