@@ -36,7 +36,7 @@ These facts hold on both files:
 
 - The file size equals `0x800 + t_size` (1,445,888 and 122,880 bytes).
 - Header bytes `0x83` to `0x7FF` are zero.
-- `SLUS_004.22` starts at `stup2` (the PsyQ `2MBYTE.OBJ` start-up code). `LOGO.EXE` starts at `__SN_ENTRY_POINT (exe/logo@0x801CE724)`.
+- `SLUS_004.22` starts at `stup2` (the PsyQ `2MBYTE.OBJ` start-up code). The header `gp` is `0`: `stup1` sets `gp` to `0x8018B2B4`, and `stup2` clears the BSS `0x8018B2B8..0x80190C60` ([memory map](../../concepts/memory/#the-map)). `LOGO.EXE` starts at `__SN_ENTRY_POINT (exe/logo@0x801CE724)`.
 - The `LOGO.EXE` region marker is the Japanese string, and the US executable keeps it. No reader looks at it.
 - The main executable image spans `0x80096800` to `0x801F7000`. The module windows from `0x801EEC00` and `0x801F2C00` lie inside that range, and overlays overwrite them at run time ([runtime](../../data/programs/#module-windows)). The last 17,408 bytes of the file (the `0x801F2C00` window) hold only the byte values 0, 14 and 15.
 

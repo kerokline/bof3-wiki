@@ -56,7 +56,7 @@ A battle-effect module starts with its id and then a table of callbacks, which a
 
 ## Executable layout
 
-`SYSTEM.CNF` selects `SLUS_004.22`. The header fields and the file size are in [executables](../../formats/exe/#ps-x-exe-header). The image declares `t_addr = 0x80096800`, and most of it is reservation. Code and data occupy `0x80149800..0x8018B2B4` (file offsets `0xB3800..0xF52B4`). The rest is zero-filled space that overlay windows use: `0x80096800` (176,128 bytes), the boss window `0x800C1800`, `0x800F5000`, `0x80117000`, and, above the executable, the windows from `0x80195800` to `0x801F6C00`. Each reservation begins with one marker word and nothing else.
+`SYSTEM.CNF` selects `SLUS_004.22`. The header fields and the file size are in [executables](../../formats/exe/#ps-x-exe-header). The image declares `t_addr = 0x80096800`, and most of it is reservation. Code and data occupy `0x80149800..0x8018B2B4` (file offsets `0xB3800..0xF52B4`); the BSS above them is in the [memory map](../../concepts/memory/#the-map). The rest is zero-filled space that overlay windows use: `0x80096800` (176,128 bytes), the boss window `0x800C1800`, `0x800F5000`, `0x80117000`, and, above the executable, the windows from `0x80195800` to `0x801F6C00`. Each reservation begins with one marker word and nothing else.
 
 `LOGO/LOGO.EXE` is a second PS-X executable that loads at `0x801CE000` and runs before the title. It overlaps only the character window `0x801CE400` and the scene window `0x801D0C00`.
 
