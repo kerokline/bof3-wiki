@@ -296,7 +296,12 @@ for (const view of VIEWS) {
       await page.goto(root + path, { waitUntil: 'load' });
       await page.evaluate(() => document.fonts.ready);
       const n = await page.locator('pre.mermaid').count();
-      await page.waitForFunction((n) => document.querySelectorAll('pre.mermaid[data-processed] svg').length >= n, n, { timeout: 30000 });
+      // Wait until the page script has sized every diagram; a diagram measured before that shows at column width.
+      await page.waitForFunction(
+        (n) => [...document.querySelectorAll('pre.mermaid[data-processed] svg')].filter((s) => s.dataset.sized).length >= n,
+        n,
+        { timeout: 30000 },
+      );
       await page.evaluate(() => document.fonts.ready);
       await page.waitForTimeout(150);
       for (let i = 0; i < n; i++) {
