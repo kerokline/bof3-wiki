@@ -22,24 +22,24 @@ sequenceDiagram
     participant Caller as caller thread
     participant Init as EMI_LoaderStreamInitSlot
     participant Cd as CD drive
-    participant Rdy as EMI_OnCdReady (interrupt)
-    participant Svc as EMI_LoaderServiceStream (each frame)
+    participant Rdy as EMI_OnCdReady<br/>(interrupt)
+    participant Svc as EMI_LoaderServiceStream<br/>(each frame)
     participant Ram as window in RAM
 
     Caller->>Init: slot id
-    Init->>Cd: look up LBA, start reading the header sector
-    loop until EMI_LoaderIsReady
+    Init->>Cd: look up LBA, start<br/>reading the header<br/>sector
+    loop until<br/>EMI_LoaderIsReady
         Caller->>Caller: CallbackWait(1)
         Cd-->>Rdy: one sector
         alt direct entry
-            Rdy->>Ram: copy the sector to its destination
+            Rdy->>Ram: copy the sector to its<br/>destination
         else ring entry
-            Rdy->>Svc: park the sector in a ring slot
-            Svc->>Ram: decode, stage or upload it
+            Rdy->>Svc: park the sector in a<br/>ring slot
+            Svc->>Ram: decode, stage or<br/>upload it
         end
     end
     Svc-->>Caller: state byte is 3
-    Caller->>Ram: call the fixed entry address
+    Caller->>Ram: call the fixed entry<br/>address
 ```
 
 Two properties follow. Only one stream owns the CD at a time: a new request overrides the old one, and nothing queues. `[inferred]` The loader also does not know what the window held before. A later load at the same address overwrites the overlay, and no guard stops a load into a window whose previous overlay is still running. `[unknown]` for any guard in code not read.

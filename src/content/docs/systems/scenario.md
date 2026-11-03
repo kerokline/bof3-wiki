@@ -23,19 +23,17 @@ sequenceDiagram
     participant S as Scene_Start
     participant E as EMI loader
     participant R as Game_RunScenarioEntry
-    participant O as controller entry_00
+    participant O as controller<br/>entry_00
     participant U as Game_RunSceneUpdate
     C->>S: scenario id n
-    S->>S: reset g_SceneState, clear flag word n
-    S->>E: EMI_LoaderStreamInitSlot(n + 0x295)
-    loop until EMI_LoaderIsReady
-        S->>S: CallbackWait(1)
-    end
+    S->>S: reset g_SceneState,<br/>clear flag word n
+    S->>E: EMI_LoaderStreamInitSlot(n<br/>+ 0x295)
+    S->>S: CallbackWait(1)<br/>until EMI_LoaderIsReady
     S->>R: stream complete
     R->>O: g_SceneScenes[n]->entry_00()
     O->>O: table[mode_02]()
     R->>U: g_SceneStates[D_801448EA]()
-    Note over R,U: the same pair runs every field frame from Game_RunFieldState
+    Note over R,U: the same pair runs<br/>every field frame from<br/>Game_RunFieldState
 ```
 
 After the first entry, `Game_RunFieldState (emi/etc/game/00@0x80197378)` runs `Game_RunScenarioEntry` once per field frame. `func_80199230` and `func_80199368` also call it.

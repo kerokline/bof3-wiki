@@ -24,7 +24,7 @@ export default defineConfig({
       // Diagrams must fit the content column at full text size: wrap labels and tighten spacing.
       mermaidConfig: {
         flowchart: { wrappingWidth: 130, nodeSpacing: 16, rankSpacing: 32, padding: 8, useMaxWidth: false },
-        sequence: { wrap: true, width: 90, actorMargin: 10, boxMargin: 6, diagramMarginX: 8, diagramMarginY: 8, messageMargin: 32, useMaxWidth: false },
+        sequence: { wrap: false, width: 110, actorMargin: 8, boxMargin: 6, diagramMarginX: 8, diagramMarginY: 8, messageMargin: 28, messageFontSize: 13, actorFontSize: 13, noteFontSize: 13, useMaxWidth: false },
         state: { nodeSpacing: 16, rankSpacing: 32, useMaxWidth: false },
       },
     }),

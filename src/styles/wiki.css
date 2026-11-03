@@ -134,6 +134,35 @@
   margin: 0 auto;
 }
 
+/* Message text keeps a halo in the frame colour, so a lifeline behind it does not cut the letters. */
+.sl-markdown-content pre.mermaid :is(text.messageText, text.loopText, text.noteText) {
+  paint-order: stroke;
+  stroke: var(--sl-color-gray-6);
+  stroke-width: 5px;
+  stroke-linejoin: round;
+}
+
+.dz :is(text.messageText, text.loopText, text.noteText) {
+  paint-order: stroke;
+  stroke: var(--sl-color-bg);
+  stroke-width: 5px;
+  stroke-linejoin: round;
+}
+
+.dz :is(.edgeLabel, .labelBkg, .edgeLabel p, .edgeLabel span) {
+  background-color: var(--sl-color-bg) !important;
+}
+
+/* An edge label hides the line behind it: the background matches the frame. */
+.sl-markdown-content pre.mermaid :is(.edgeLabel, .labelBkg, .edgeLabel p, .edgeLabel span, .edgeLabel rect) {
+  background-color: var(--sl-color-gray-6) !important;
+}
+
+.sl-markdown-content pre.mermaid .edgeLabel rect {
+  fill: var(--sl-color-gray-6) !important;
+  opacity: 1 !important;
+}
+
 .sl-markdown-content .zoom-box:is(:hover, :focus-visible) > :is(pre.mermaid, .zoom-frame) {
   border-color: var(--sl-color-accent);
 }

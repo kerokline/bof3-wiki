@@ -31,34 +31,34 @@ The save screen opens from the field, runs inside the main loop, and returns to 
 
 ```mermaid
 sequenceDiagram
-    participant Ev as Scene event 10, game/00
-    participant Main as g_GameStates 7, game/00
-    participant Sav as Save machine, shop/00
-    participant Drv as Card driver, start/09
-    participant Bios as PsyQ card calls
+    participant Ev as Scene event<br/>10, game/00
+    participant Main as g_GameStates<br/>7, game/00
+    participant Sav as Save machine,<br/>shop/00
+    participant Drv as Card driver,<br/>start/09
+    participant Bios as PsyQ card<br/>calls
     participant Card as Memory card
 
-    Ev->>Main: D_8014865C = -2, g_GameEntryState = 7
-    Main->>Main: Game_LoadShopOverlay EMI_LoaderStreamInitSlot SHOP
-    Main->>Sav: func_80199398 runs func_801D0EA0 each frame
-    Sav->>Drv: state 2 func_801D47AC CardAccessFile 0 per port
-    Drv->>Bios: _card_info and _card_load
+    Ev->>Main: D_8014865C = -2,<br/>g_GameEntryState = 7
+    Main->>Main: Game_LoadShopOverlay<br/>EMI_LoaderStreamInitSlot<br/>SHOP
+    Main->>Sav: func_80199398 runs<br/>func_801D0EA0 each<br/>frame
+    Sav->>Drv: state 2 func_801D47AC<br/>CardAccessFile 0 per<br/>port
+    Drv->>Bios: _card_info and<br/>_card_load
     Bios->>Card: probe
-    Sav->>Drv: state 5 func_801D4BBC CardScanDirectory
+    Sav->>Drv: state 5 func_801D4BBC<br/>CardScanDirectory
     Drv->>Bios: firstfile and nextfile
-    Sav->>Drv: func_801D7208 CardAccessFile read 0x1C at 0xEA0
-    Note over Sav: state 8 slot select, state 9 or 13 confirm
-    alt overwrite, state 10 func_801D51B8
-        Sav->>Drv: CardAccessFile mode 1 size 1
-    else new file, state 14 func_801D5894
-        Sav->>Drv: CardAccessFile mode 0x200 creates one block
+    Sav->>Drv: func_801D7208<br/>CardAccessFile read<br/>0x1C at 0xEA0
+    Note over Sav: state 8 slot select,<br/>state 9 or 13 confirm
+    alt overwrite, state 10<br/>func_801D51B8
+        Sav->>Drv: CardAccessFile mode 1<br/>size 1
+    else new file, state 14<br/>func_801D5894
+        Sav->>Drv: CardAccessFile mode<br/>0x200 creates one<br/>block
     end
-    Sav->>Sav: SAVE_BuildSlotImage gathers block, header, checksum
-    Sav->>Drv: CardAccessFile mode 2 size 4,784
-    Drv->>Bios: open, lseek, write, close
+    Sav->>Sav: SAVE_BuildSlotImage<br/>gathers block, header,<br/>checksum
+    Sav->>Drv: CardAccessFile mode 2<br/>size 4,784
+    Drv->>Bios: open, lseek, write,<br/>close
     Bios->>Card: write 4,864 bytes
-    Sav->>Sav: g_SaveCardStatus = 8 or 10, func_801D6CE4 updates the row
-    Sav-->>Main: state 0x12 func_801D5D98 leaves, func_801983D8 resumes the field
+    Sav->>Sav: g_SaveCardStatus = 8<br/>or 10, func_801D6CE4<br/>updates the row
+    Sav-->>Main: state 0x12<br/>func_801D5D98 leaves,<br/>func_801983D8 resumes<br/>the field
 ```
 
 - Scene event 10 is `Scene_RunShopSaveEvent (emi/etc/game/00@0x801A802C)`, entry 10 of `g_SceneEvents (emi/etc/game/00@0x801C84BC)`. Its cases 6 and 23 set `D_8014865C = -2` and `g_GameEntryState = 7`. The scripts or objects that select event 10 are not traced `[unknown]`.
@@ -114,33 +114,33 @@ The load screen runs only from the start menu, before any game exists.
 
 ```mermaid
 sequenceDiagram
-    participant Title as Game_LeaveTitle, game/01
-    participant Camp as Game_RunCampMenuLoop, game/00
-    participant Menu as Continue menu, start/08
-    participant Load as Load screens 0 to 16, start/08
-    participant Drv as Card driver, start/09
-    participant Main as Game_RunMainLoop, game/00
+    participant Title as Game_LeaveTitle,<br/>game/01
+    participant Camp as Game_RunCampMenuLoop,<br/>game/00
+    participant Menu as Continue menu,<br/>start/08
+    participant Load as Load screens 0<br/>to 16,<br/>start/08
+    participant Drv as Card driver,<br/>start/09
+    participant Main as Game_RunMainLoop,<br/>game/00
 
-    Title->>Camp: CallbackRegister 0, then CallbackExit
-    Camp->>Camp: Game_LoadCampMenu streams START slot 0x268
-    Camp->>Menu: substate 1 states 0 to 6
-    Menu->>Drv: func_801E7348 scans both ports
-    Note over Menu: D_801ED7EC 0 = Continue, nonzero = New Game
-    Menu->>Load: substate 3 when Continue is chosen
-    Load->>Drv: state 3 func_801E5078 probes ports
-    Load->>Drv: state 6 func_801E54A4 CardScanDirectory
-    Load->>Drv: func_801E77F0 reads the 0x1C summary row per slot
-    Note over Load: state 9 slot select, state 10 confirm
-    Load->>Drv: state 11 SAVE_RunLoadVerify CardAccessFile mode 1 size 4,784
-    Load->>Load: copy 4,272 bytes to 0x801448D8 and sum them
+    Title->>Camp: CallbackRegister 0,<br/>then CallbackExit
+    Camp->>Camp: Game_LoadCampMenu<br/>streams START slot<br/>0x268
+    Camp->>Menu: substate 1 states 0 to<br/>6
+    Menu->>Drv: func_801E7348 scans<br/>both ports
+    Note over Menu: D_801ED7EC 0 =<br/>Continue, nonzero =<br/>New Game
+    Menu->>Load: substate 3 when<br/>Continue is chosen
+    Load->>Drv: state 3 func_801E5078<br/>probes ports
+    Load->>Drv: state 6 func_801E54A4<br/>CardScanDirectory
+    Load->>Drv: func_801E77F0 reads<br/>the 0x1C summary row<br/>per slot
+    Note over Load: state 9 slot select,<br/>state 10 confirm
+    Load->>Drv: state 11<br/>SAVE_RunLoadVerify<br/>CardAccessFile mode 1<br/>size 4,784
+    Load->>Load: copy 4,272 bytes to<br/>0x801448D8 and sum<br/>them
     alt checksum matches
-        Load->>Load: g_SaveCardStatus = 5, state 13 then 15 then 16
-        Load->>Load: SAVE_RunLoadRestore rebuilds party rows, scene state, overlay
-        Load->>Main: Camp_EnterMainLoop recomputes stats, CallbackReplace
+        Load->>Load: g_SaveCardStatus = 5,<br/>state 13 then 15 then<br/>16
+        Load->>Load: SAVE_RunLoadRestore<br/>rebuilds party rows,<br/>scene state, overlay
+        Load->>Main: Camp_EnterMainLoop<br/>recomputes stats,<br/>CallbackReplace
     else mismatch
-        Load->>Load: g_SaveCardStatus = 7, state 13 message, back to state 2
+        Load->>Load: g_SaveCardStatus = 7,<br/>state 13 message, back<br/>to state 2
     end
-    Main->>Main: Game_ResetGameState, entry state 1, field
+    Main->>Main: Game_ResetGameState,<br/>entry state 1, field
 ```
 
 ### The continue menu

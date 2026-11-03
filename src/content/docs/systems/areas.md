@@ -50,28 +50,26 @@ On the next frame `Game_RunFieldState (emi/etc/game/00@0x80197378)` sees request
 ```mermaid
 sequenceDiagram
     autonumber
-    participant S as func_801B0E44 step test
-    participant X as func_801A0048 exit lookup
-    participant F as Game_RunFieldState field state
-    participant L as Game_RunAreaLoadState load state
-    participant A as func_8019FAA0 area load
+    participant S as func_801B0E44<br/>step test
+    participant X as func_801A0048<br/>exit lookup
+    participant F as Game_RunFieldState<br/>field state
+    participant L as Game_RunAreaLoadState<br/>load state
+    participant A as func_8019FAA0<br/>area load
     participant E as EMI loader
-    participant R as scenario entry_00
+    participant R as scenario<br/>entry_00
     S->>X: door cell reached
-    X-->>S: 0 and stages seed, X, Y, kind
+    X-->>S: 0 and stages seed, X,<br/>Y, kind
     S->>F: g_GameStateIndex = 5
-    F->>F: UI_SetMode(g_GameEntryMode), g_GameEntryState = 1
-    F->>L: next frame, g_GameStates[1]
+    F->>F: UI_SetMode(g_GameEntryMode),<br/>g_GameEntryState = 1
+    F->>L: next frame,<br/>g_GameStates[1]
     L->>A: seed, X, Y, kind
-    A->>A: Actor_ClearAll, GFX_ResetPaletteFades
-    A->>E: EMI_LoaderStreamInitSlot(seed + 0x2AB)
-    loop until EMI_LoaderIsReady
-        A->>A: CallbackWait(1)
-    end
-    A->>A: bind AreaLoad, flags, party, palette matrix
-    A->>A: Area_RunSetupStream(entry->handler), entry->callback()
-    A->>R: mode_02 = 1, Game_RunScenarioEntry
-    L->>L: g_GameStateIndex = 0, g_GameEntryState = 2
+    A->>A: Actor_ClearAll,<br/>GFX_ResetPaletteFades
+    A->>E: EMI_LoaderStreamInitSlot(seed<br/>+ 0x2AB)
+    A->>A: CallbackWait(1)<br/>until EMI_LoaderIsReady
+    A->>A: bind AreaLoad, flags,<br/>party, palette matrix
+    A->>A: Area_RunSetupStream(entry->handler),<br/>entry->callback()
+    A->>R: mode_02 = 1,<br/>Game_RunScenarioEntry
+    L->>L: g_GameStateIndex = 0,<br/>g_GameEntryState = 2
 ```
 
 `func_8019FAA0` runs these steps in this order.

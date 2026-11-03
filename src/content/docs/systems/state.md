@@ -92,7 +92,7 @@ flowchart TD
 ## Overlays and the block
 
 ```mermaid
-flowchart TD
+flowchart LR
     subgraph res["emi/etc/game/00 resident at 0x80195800"]
         H["g_GameStates, g_SceneEvents handlers"]
     end

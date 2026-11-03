@@ -88,18 +88,16 @@ sequenceDiagram
 
     B->>M: stup2, stup1, stup0
     M->>M: SYS_InitRuntime
-    M->>L: SYS_RunLogo: load, Exec
+    M->>L: SYS_RunLogo: load,<br/>Exec
     L-->>M: movie ends, return
     M->>M: SYS_InitHardware again
-    M->>S: CallbackRegister(0, SYS_StartFrontend)
-    loop every pass
-        M->>S: CallbackRun
-    end
-    S->>E: slot 0: stream FIRST, poll until ready
-    S->>S: CallbackRegister(1, SYS_EnterFrontend), CallbackExit
-    S->>E: slot 1: stream GAME, poll until ready
+    M->>S: CallbackRegister(0,<br/>SYS_StartFrontend)
+    M->>S: CallbackRun<br/>(every pass)
+    S->>E: slot 0: stream FIRST,<br/>poll until ready
+    S->>S: CallbackRegister(1,<br/>SYS_EnterFrontend),<br/>CallbackExit
+    S->>E: slot 1: stream GAME,<br/>poll until ready
     S->>T: call Game_RunTitle
-    T->>E: Game_BeginTitle: stream DEMO
+    T->>E: Game_BeginTitle:<br/>stream DEMO
 ```
 
 The first frame with the title drawn and input enabled is the first playable frame. The fade and input gate states between `Game_BeginTitle` and that frame are in [phases](../phases/).
