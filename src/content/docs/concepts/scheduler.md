@@ -19,7 +19,7 @@ The [frame loop](../frame-loop/) gives game code one turn per frame through `Cal
 
 ```mermaid
 stateDiagram-v2
-    direction LR
+    direction TB
     [*] --> EMPTY: CallbackInitThreads
     EMPTY --> OPEN: CallbackRegister
     OPEN --> RUNNING: CallbackRun opens and switches in

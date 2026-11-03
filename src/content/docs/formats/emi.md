@@ -143,18 +143,16 @@ All handlers sit in `exe/slus_004_22`.
 
 ```mermaid
 flowchart LR
-    S["archive slot id"] --> L["EMI_LoaderSlotLba: g_EmiSlotLbas[slot]"]
-    L --> H["archive header: MATH_TBL + TOC"]
-    H --> T{"TOC type"}
-    T -->|"0"| R["EMI_LoaderCopyPayload: RAM load argument"]
-    T -->|"1, 2"| Q["EMI_LoaderQueuePayload: LZ77 stream + decode"]
-    T -->|"3"| G["EMI_LoaderLoadGraphics: LoadImage 32x32"]
-    T -->|"6, 7, 8"| A["VAB header, body and cues by bank"]
-    T -->|"9, 10"| M["EMI_LoaderLoadSequence: alternate destination"]
-    R --> C["code or data at its RAM address"]
+    H["archive slot id,<br/>EMI_LoaderSlotLba,<br/>header: MATH_TBL<br/>+ TOC"]
+    H -->|"TOC type 0"| R["EMI_Loader<br/>CopyPayload:<br/>RAM load argument"]
+    H -->|"type 1, 2"| Q["EMI_Loader<br/>QueuePayload:<br/>LZ77 stream + decode"]
+    H -->|"type 3"| G["EMI_Loader<br/>LoadGraphics:<br/>LoadImage 32x32"]
+    H -->|"type 6, 7, 8"| A["VAB header, body<br/>and cues by bank"]
+    H -->|"type 9, 10"| M["EMI_Loader<br/>LoadSequence:<br/>alternate destination"]
+    R --> C["code or data<br/>at its RAM address"]
     Q --> C
     G --> V["VRAM page"]
-    A --> B["audio bank record"]
+    A --> B["audio bank<br/>record"]
     M --> B
 ```
 

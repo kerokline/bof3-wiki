@@ -25,7 +25,7 @@ The tables follow each other with one gap. A 232-byte block at runtime `0x801CA6
 The item, vital item, weapon, armor and accessory tables each start with a `Nothing` row, and ability 0 is zeroed. A name is 12 bytes of text in the game's encoding ([text](../text/#byte-classes)). It needs no terminator when it uses the whole field: `Healing Herb` is 12 bytes in a 12-byte field.
 
 ```mermaid
-flowchart LR
+flowchart TD
     E["BIN/ETC/GAME.EMI#0, load 0x80195800"] -->|"type 0 copy"| T["eight fixed tables"]
     T --> D["item dispatcher 0x80165D48"]
     T --> M["shop, menu and battle readers"]

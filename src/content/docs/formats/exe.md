@@ -58,7 +58,7 @@ The BIOS reads the file, and the game never opens it. `TCB` and `EVENT` size the
 The BIOS reads `SYSTEM.CNF` and loads `SLUS_004.22`. The game first runs the logo program as a nested executable, then returns and starts the frontend. [Boot](../../systems/boot/#the-logo-program) describes `SYS_RunLogo` and `SYS_LoadExec`.
 
 ```mermaid
-flowchart LR
+flowchart TD
     B["BIOS reads SYSTEM.CNF"] --> S["SLUS_004.22 at 0x80096800"]
     S --> L["SYS_RunLogo 0x8014AEE0"]
     L --> X["SYS_LoadExec 0x8014E0FC: LOGO.EXE"]

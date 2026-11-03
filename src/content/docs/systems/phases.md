@@ -14,32 +14,40 @@ stateDiagram-v2
     direction TB
     [*] --> Boot
     Boot --> Logo: SYS_RunLogo
-    Logo --> FirstLoad: slot 0 SYS_StartFrontend
+    Logo --> FirstLoad: slot 0<br/>SYS_StartFrontend
     FirstLoad: First load (FIRST.EMI)
-    FirstLoad --> Title: slot 1 SYS_EnterFrontend (GAME.EMI)
-    Title --> TitleScene: state 4, Game_StartSelectedGame
+    FirstLoad --> Title: slot 1 SYS_EnterFrontend<br/>(GAME.EMI)
+    Title --> TitleScene: state 4,<br/>Game_StartSelectedGame
     TitleScene: Title scene (scenario 16) under the title
-    TitleScene --> StartMenu: Start with the popup open, Game_LeaveTitle
+    TitleScene --> StartMenu: Start with the popup open,<br/>Game_LeaveTitle
     StartMenu: Start menu (Game_RunCampMenuLoop)
     StartMenu --> NewGame: substate 2
     StartMenu --> LoadGame: substate 3
-    NewGame --> Field: Scene_Start(0), Game_RunMainLoop
-    LoadGame --> Field: Game_RunMainLoop, Game_ResetGameState
-    Field --> Menu: index 1
-    Menu --> Field
-    Field --> Message: index 2
-    Message --> Field
-    Field --> Battle: index 3
-    Battle --> Field: victory
-    Battle --> GameOver: defeat
-    GameOver --> FirstLoad: CallbackReplace SYS_StartFrontend
-    Field --> Field: index 5, area change
-    Field --> CameraLook: index 4
-    CameraLook --> Field
-    Field --> FieldPause: index 9
-    FieldPause --> Field
-    Field --> Ending: scena15 to scena19
-    Ending --> FirstLoad: CallbackReplace SYS_StartFrontend
+    NewGame --> Field: Scene_Start(0),<br/>Game_RunMainLoop
+    LoadGame --> Field: Game_RunMainLoop,<br/>Game_ResetGameState
+```
+
+The field then reaches the other phases by request code. Four of them return to the field:
+
+```mermaid
+flowchart TD
+    Field["Field"] <-->|"index 1"| Menu["Menu"]
+    Field <-->|"index 2"| Message["Message"]
+    Field <-->|"index 4"| CameraLook["CameraLook"]
+    Field <-->|"index 9"| FieldPause["FieldPause"]
+    Field -->|"index 5,<br/>area change"| Field
+```
+
+Battle and the ending leave the field differently. Defeat and the ending go back to the first load:
+
+```mermaid
+flowchart TD
+    Field["Field"] -->|"index 3"| Battle["Battle"]
+    Battle -->|"victory"| Field
+    Battle -->|"defeat"| GameOver["GameOver"]
+    Field -->|"scena15 to scena19"| Ending["Ending"]
+    GameOver -->|"CallbackReplace<br/>SYS_StartFrontend"| FirstLoad["First load"]
+    Ending -->|"CallbackReplace<br/>SYS_StartFrontend"| FirstLoad
 ```
 
 Holding Select and Start for 61 frames jumps back to the "First load" node from any phase ([frame loop](../../concepts/frame-loop/#soft-reset)).

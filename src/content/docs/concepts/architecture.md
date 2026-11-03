@@ -16,7 +16,7 @@ The first callback loads the first archive, `FIRST.EMI`, with the EMI loader, an
 From the title, a choice leads to the start menu, which offers a new game or a saved one. Either choice installs `Game_RunMainLoop` in slot 0. That function runs a 12-entry state table once per pass. The field is one state in that table, and menus, battles and shops are the others. Within the field, the area code runs each frame and a story controller (a scenario overlay) drives events. When the game needs more code, such as a battle or a scenario, it asks the loader to stream an overlay into its window, and then calls into it. [Phases](../../systems/phases/) follows the transitions, and [memory](../memory/) shows which images share which RAM.
 
 ```mermaid
-flowchart LR
+flowchart TD
     bios["BIOS"] --> main["SYS_Main"]
     main --> logo["logo (LOGO.EXE)"]
     logo --> first["slot 0: load FIRST"]

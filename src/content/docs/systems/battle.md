@@ -110,7 +110,7 @@ The six modes make up one battle: set-up and entrance once, then rounds of comma
 
 ```mermaid
 stateDiagram-v2
-    direction LR
+    direction TB
     [*] --> M0: entry substate 3 zeroes the bytes
     state "mode 0: reset and entrance" as M0
     state "mode 1: party commands" as M1

@@ -25,7 +25,7 @@ The game draws each frame by writing GPU primitives into a fixed RAM arena, thre
 4. On the next loop pass `SYS_Main` calls `DrawOTag(record + 0x8C)`, which is entry 7. Entry 7 starts the chain, so layer 7 draws first (at the back) and layer 0 last (in front). That ordering follows PsyQ `ClearOTagR` semantics, where each entry links to the one below it `[inferred]`.
 
 ```mermaid
-flowchart LR
+flowchart TD
     A["game code builds a primitive at g_GfxPrimCursor"] --> B["GFX_AddPrim(layer, size)"]
     B -->|"fits in arena"| C["CatPrim to D_801459D0[layer], cursor += size"]
     B -->|"arena full"| D["dropped, no signal"]
@@ -66,13 +66,14 @@ The game loads no TIM files. Payloads carry no TIM header and go to VRAM as raw 
 
 ```mermaid
 flowchart TD
-    D["disc archive (EMI entry)"] -->|"type 0: palette bank"| P["palette arena 0x80033800 + offset"]
-    D -->|"type 3: graphics, 32 by 32 blocks"| V["VRAM texture pages, LoadImage per block"]
-    D -->|"sprite sheet in area/character data"| Q["transfer queue, 20 entries"]
-    Q -->|"LoadImage, RGB555 expand or LZSS"| V
-    P -->|"GFX_ResetPalette or GFX_CopyPalette"| W["working copy 0x80037800"]
-    F["fades and animations edit the working copy"] --> W
-    W -->|"GFX_UploadPalette, rect 0,0x1E0,0x100,0x20"| S["VRAM stage palette rows 480-511"]
+    D["disc archive (EMI entry)"]
+    D -->|"type 0"| P["palette bank<br/>arena 0x80033800<br/>+ offset"]
+    D -->|"type 3"| V["graphics, 32 by 32 blocks: VRAM texture pages, LoadImage per block"]
+    D -->|"sprite sheet"| Q["area or character data: transfer queue, 20 entries"]
+    Q -->|"LoadImage, RGB555<br/>expand or LZSS"| V
+    P -->|"GFX_ResetPalette or<br/>GFX_CopyPalette"| W["working copy<br/>0x80037800"]
+    F["fades and animations<br/>edit the working copy"] --> W
+    W -->|"GFX_UploadPalette,<br/>rect 0,0x1E0,0x100,0x20"| S["VRAM stage palette<br/>rows 480-511"]
     V --> X["POLY_FT4 / SPRT: tpage + CLUT word"]
     S --> X
     X --> G["pixel colour"]

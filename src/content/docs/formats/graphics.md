@@ -121,7 +121,7 @@ A `GraphicsPaletteAnimation` record has 16 bytes:
 The cell map has one byte per cell, and `0xFF` is empty. `GFX_StepPaletteAnimation` selects the source-table entry named by the owner's animation id and advances four bytes at a time (entry byte 3 is the frame count). It wraps when the next entry starts with `0xFF`: that entry's second byte is the back-step, a count of four-byte entries. The battle overlay views the same address `0x80145BD4` differently, as a 12-byte `BattleSpriteSlot` that reads bytes `+0x02` (a second copy of the shared sprite value), `+0x03` and `+0x04`. The same address is not the same object in another overlay.
 
 ```mermaid
-flowchart LR
+flowchart TD
     B["type-0 CLUT bank"] -->|"EMI_LoaderCopyPayload"| A["arena 0x80033800"]
     A -->|"GFX_ResetPalette"| W["working copy 0x80037800"]
     W -->|"LoadImage rect(0,0x1E0,0x100,0x20)"| V["VRAM rows 480-511"]

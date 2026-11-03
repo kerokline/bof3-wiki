@@ -10,31 +10,35 @@ The game plays music and effects as sampled instruments in SPU memory, driven by
 Three routes lead to the SPU: music, effects and XA. Music and effects both pass through the EMI loader. XA does not touch main RAM.
 
 ```mermaid
-flowchart LR
-    disc[("Disc EMI archive<br/>BGM, BATTLE, BOSS, SE")]
-    ldr["EMI loader<br/>types 6, 7, 8, 9, 10"]
+flowchart TD
+    disc[("Disc EMI archive<br/>BGM, BATTLE,<br/>BOSS, SE")]
+    ldr["EMI loader<br/>types 6, 7, 8,<br/>9, 10"]
     vh["Bank header window<br/>0x8011A000 and up"]
     seq["Sequence window<br/>bank 0, SEP package"]
-    cue["Cue table<br/>0x801486A0 + 124 x bank"]
-    spu[("SPU RAM<br/>per-layout addresses")]
+    cue["Cue table<br/>0x801486A0<br/>+ 124 x bank"]
+    spu[("SPU RAM<br/>per-layout<br/>addresses")]
     sep["PsyQ SEP player<br/>SsSepPlay"]
     key["SND_PlayCue<br/>SsUtKeyOnV"]
     voices(["24 SPU voices"])
-    xa[("Disc XA files<br/>0x2A9, 0x1B2, 0x2AA")]
-    cdc["CD controller<br/>CdlReadS, filter"]
     disc --> ldr
     ldr -- "type 6" --> vh
-    ldr -- "type 7, DMA" --> spu
-    ldr -- "types 9, 10" --> seq
+    ldr -- "type 7,<br/>DMA" --> spu
+    ldr -- "types<br/>9, 10" --> seq
     ldr -- "type 8" --> cue
-    vh -- "SsVabOpenHeadSticky" --> spu
+    vh -- "SsVab<br/>OpenHeadSticky" --> spu
     seq -- "SsSepOpenJ" --> sep
     sep --> voices
     cue --> key
     key --> voices
     spu --> voices
-    xa --> cdc
-    cdc -- "CdMix, no main RAM" --> voices
+```
+
+XA audio skips the loader and goes from the disc to the voices:
+
+```mermaid
+flowchart TD
+    xa[("Disc XA files<br/>0x2A9, 0x1B2, 0x2AA")] --> cdc["CD controller<br/>CdlReadS, filter"]
+    cdc -- "CdMix, no main RAM" --> voices(["24 SPU voices"])
 ```
 
 The CD controller mixes XA into the audio output itself. `SND_SetCdVolume (exe/slus_004_22@0x80163EB0)` sets that mix with `CdMix`.

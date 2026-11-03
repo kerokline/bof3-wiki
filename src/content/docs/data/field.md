@@ -31,17 +31,15 @@ The table gives the address, row size and row count of each object. Several obje
 The area archive feeds these rows. The diagram shows the entries of `WORLDnn/AREAnnn.EMI` and where each one loads.
 
 ```mermaid
-flowchart LR
-    A["WORLDnn/AREAnnn.EMI"] -->|"slot 13, type 0"| B["0x801F2C00 area program"]
-    A -->|"slot 10, type 0"| C["0x800E4000 encounters"]
-    A -->|"slot 12, type 0"| D["0x80104000 map bundle"]
-    A -->|"slot 11, type 0"| E["0x80010000 message bank"]
+flowchart TD
+    A["WORLDnn/AREAnnn.EMI<br/>entries of type 0"] -->|"slot 13"| B["0x801F2C00<br/>area program"]
+    A -->|"slots 10, 12, 11"| X["0x800E4000 encounters<br/>0x80104000 map bundle<br/>0x80010000 message bank"]
     B --> F["area overlay code"]
-    F --> G["0x80146888 actor rows"]
-    F --> H["0x80143FC8 field slots"]
-    G --> I["func_801A06D8 actor update"]
-    H --> J["Actor_FindFreeSlot, Char_SpawnActor"]
-    I --> K["draw, interaction, script dispatch"]
+    F --> G["0x80146888<br/>actor rows"]
+    F --> H["0x80143FC8<br/>field slots"]
+    G --> I["func_801A06D8<br/>actor update"]
+    H --> J["Actor_FindFreeSlot,<br/>Char_SpawnActor"]
+    I --> K["draw, interaction,<br/>script dispatch"]
 ```
 
 The slot numbers are the TOC indexes for `WORLD00/AREA001.EMI`. The seven world shapes move the area

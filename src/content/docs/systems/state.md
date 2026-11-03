@@ -92,25 +92,26 @@ flowchart TD
 ## Overlays and the block
 
 ```mermaid
-flowchart LR
-    subgraph exe["exe/slus_004_22 work variables (never overwritten by an overlay)"]
-        B["persistent block"]
-        P["g_GameState pointer"]
-        W["g_BattlePartyBattlers rows"]
-    end
+flowchart TD
     subgraph res["emi/etc/game/00 resident at 0x80195800"]
         H["g_GameStates, g_SceneEvents handlers"]
     end
     subgraph win["overlay windows"]
-        S["start/08 camp menu"]
-        SH["shop/00 save and shop"]
-        A["area and scenario overlays"]
+        S["start/08<br/>camp menu"]
+        SH["shop/00<br/>save and shop"]
+        A["area and<br/>scenario overlays"]
     end
-    S -- "reads and writes" --> B
-    SH -- "reads and writes" --> B
-    A -- "SYS_SetFlag on g_SceneFlags" --> B
+    subgraph exe["exe/slus_004_22 work variables<br/>(never overwritten by an overlay)"]
+        B["persistent block"]
+        W["g_BattlePartyBattlers rows"]
+        P["g_GameState pointer"]
+    end
+    S -- "reads,<br/>writes" --> B
+    SH -- "reads,<br/>writes" --> B
+    A -- "SYS_SetFlag<br/>on<br/>g_SceneFlags" --> B
     H -- "rebuilds" --> W
     W --- P
+    A ~~~ H
 ```
 
 Game progress lives in the block or in the executable's work variables. An overlay's own variables, such as the load screen's `D_801ED860`, vanish with the overlay. Scenario overlays write flags through `g_SceneFlags` `[inferred]` from the symbol evidence (`g_SceneFlagWords`). The writers for the block shown here (`func_801E5FD4`, `func_801D69E0`, `Scene_Start`) are read.

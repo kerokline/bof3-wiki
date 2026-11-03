@@ -26,7 +26,7 @@ A string reaches the screen in five steps.
 5. **Sprite.** `UI_DrawTextGlyphs` builds one `SPRT` per glyph and calls `GFX_AddPrim` on layer 1 ([rendering](../rendering/)).
 
 ```mermaid
-flowchart LR
+flowchart TD
     A["area bank at 0x80010000"] --> B["Message_StartAreaMessage / Resource_RequestArea"]
     B --> C["D_801490AC / D_801490B0 = record pointer"]
     C --> D["UI_UpdateLayout each frame"]
@@ -55,17 +55,15 @@ Control codes that insert text (`{GOTO}`, `{INSERT}`, `{VAR}`, `{LINK}`, [text c
 |     7 | `func_80151844`      | Box end, 2 steps by `g_UiWindowStep`.                                                            |
 
 ```mermaid
-stateDiagram-v2
-    direction LR
-    [*] --> S0: UI_ResetMessage
-    S0 --> S1: glyph, delay > 0
-    S1 --> S0: delay reaches 0
-    S0 --> S2: opcode 0x00 end
-    S0 --> S3: opcode 0x02 page
-    S0 --> S4: opcode 0x14, high nibble set
-    S0 --> S5: opcode 0x14, high nibble 0
-    S0 --> S7: opcode 0x16 box end
-    S2 --> [*]: confirm bit set
+flowchart LR
+    S0["S0<br/>start: UI_ResetMessage"]
+    S0 -->|"glyph,<br/>delay > 0"| S1["S1"]
+    S1 -->|"delay<br/>reaches 0"| S0
+    S0 -->|"opcode<br/>0x00 end"| S2["S2<br/>end: confirm bit set"]
+    S0 -->|"opcode<br/>0x02 page"| S3["S3"]
+    S0 -->|"opcode 0x14,<br/>high nibble set"| S4["S4"]
+    S0 -->|"opcode 0x14,<br/>high nibble 0"| S5["S5"]
+    S0 -->|"opcode<br/>0x16 box end"| S7["S7"]
 ```
 
 The diagram shows only the transitions out of state 0, from the `switch` in `func_8015083C` and the table `D_80149A5C`. The exits of states 2 to 7 are `[inferred]`: the handlers change the owner mode byte `D_80148333` and bits of `g_UiWindowChannel` that other code reads.

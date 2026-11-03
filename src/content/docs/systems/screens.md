@@ -34,30 +34,21 @@ The [glossary](../../appendix/glossary/) defines request code and entry state.
 | Area load flag `0x01`                                              |  2, mode 10 | World area overlay               | The world map. The map code is `[inferred]`.                    |
 
 ```mermaid
-flowchart LR
+flowchart TD
+    A["actor kind 5 or<br/>scene event 10"] -->|"g_GameEntryState = 7"| S["state 7: shop and save<br/>SHOP 0x266"]
     F["state 2: field<br/>Game_RunFieldState"]
-    M["state 3: menu<br/>STATUS 0x269"]
-    S["state 7: shop and save<br/>SHOP 0x266"]
-    P["state 8: fishing<br/>area030/04"]
-    B["state 9: BATE 0x257"]
-    H["state 10: SHISU 0x265"]
-    C["state 11: scene camera"]
-    L["state 1: area load<br/>Game_RunAreaLoadState"]
-    F -- "code 1" --> M
-    F -- "code 6" --> S
-    F -- "code 7" --> B
-    F -- "code 8" --> H
-    F -- "code 9" --> C
-    F -- "code 5" --> L
-    A["actor kind 5 or scene event 10"] -- "g_GameEntryState = 7" --> S
-    L -- "flag 0x08" --> P
-    L -- "else" --> F
-    M -- "func_801976EC" --> F
-    S -- "func_801983D8" --> F
-    B -- "map load handshake" --> F
-    H -- "map load handshake" --> F
-    P -- "func_801985C8" --> L
-    C -- "code 0" --> F
+    F <-->|"enter: code 6<br/>return: func_801983D8"| S
+    F <-->|"enter: code 1<br/>return: func_801976EC"| M["state 3: menu<br/>STATUS 0x269"]
+    F <-->|"enter: code 9<br/>return: code 0"| C["state 11:<br/>scene camera"]
+```
+
+```mermaid
+flowchart TD
+    F["state 2: field<br/>Game_RunFieldState"]
+    F <-->|"enter: code 7<br/>return: map load<br/>handshake"| B["state 9:<br/>BATE 0x257"]
+    F <-->|"enter: code 8<br/>return: map load<br/>handshake"| H["state 10:<br/>SHISU 0x265"]
+    F <-->|"enter: code 5<br/>return: else"| L["state 1: area load<br/>Game_RunAreaLoadState"]
+    L <-->|"enter: flag 0x08<br/>return: func_801985C8"| P["state 8: fishing<br/>area030/04"]
 ```
 
 Every screen state has the same three substates. Substate 0 starts the overlay stream and waits for `EMI_LoaderIsReady`. The middle substate runs one frame of the screen and `Menu_RunPanelTasks`. The last substate re-streams the character bank (`EMI_StreamFamilyArchive` with the `PL` family) and returns to state 2 with `g_GameEntrySubstate = 0` and `g_GameStateIndex = 0`.
