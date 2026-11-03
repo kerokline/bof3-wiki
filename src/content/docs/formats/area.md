@@ -89,14 +89,27 @@ The scene table lists the actors of the area: for each one, an id to match and a
 
 A record has these fields.
 
-| Offset | Size | Meaning                                                                 |
-| -----: | ---: | ----------------------------------------------------------------------- |
-| `0x00` |    2 | id; the match key in `@0x8014DD3C` and `@0x80167E00`                    |
-| `0x02` |    2 | low byte stored to `work+0x27`; the `u16` is `work+0x2C`                |
-| `0x04` |    1 | stored to `work+0x25` (4 values)                                        |
-| `0x05` |    1 | stored to `work+0x26` (31 values)                                       |
-| `0x06` |    1 | stored to `work+0x28`; read by the CLUT and texture code                |
-| `0x07` |    1 | stored to `work+0x2C`; the scene's section in the archive's script bank |
+| Offset | Size | Type  | Meaning                                                                 |
+| -----: | ---: | ----- | ----------------------------------------------------------------------- |
+| `0x00` |    2 | `u16` | id; the match key in `@0x8014DD3C` and `@0x80167E00`                    |
+| `0x02` |    2 | `u16` | low byte stored to `work+0x27`; the `u16` is `work+0x2C`                |
+| `0x04` |    1 | `u8`  | stored to `work+0x25` (4 values)                                        |
+| `0x05` |    1 | `u8`  | stored to `work+0x26` (31 values)                                       |
+| `0x06` |    1 | `u8`  | stored to `work+0x28`; read by the CLUT and texture code                |
+| `0x07` |    1 | `u8`  | stored to `work+0x2C`; the scene's section in the archive's script bank |
+
+```c
+typedef struct AreaActorDef {
+    /* 0x00 */ u16 id;
+    /* 0x02 */ u16 clut_select;
+    /* 0x04 */ u8  texture_page;
+    /* 0x05 */ u8  texture_v;
+    /* 0x06 */ u8  texture_mode;
+    /* 0x07 */ u8  script_section;
+} AreaActorDef;
+```
+
+Source: [`include/world/area.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/world/area.h)
 
 `+0x7` is a section index, not a record ordinal. With `L = u32[script_bank] / 4`, `max(+0x7) < L` in 200 of 200 payloads and the values cover `0` to `L-1` in 200 of 200. The "9 and 10 special" cases are not this byte. They belong to the actor member `+0x06` ([actor members](../../data/field/)), which `func_80167E00` reads: 9 gates the draw mode and 10 calls `func_8015A944`.
 
@@ -104,36 +117,77 @@ A record has these fields.
 
 Each area carries its own enemies. The block is 1,160 bytes in every area and tiles exactly: 8 encounters of 9 bytes and 8 enemy records of 136 bytes (`0x48 + 0x440 = 0x488`).
 
-|  Offset |  Size | Meaning                                                        |
-| ------: | ----: | -------------------------------------------------------------- |
-| `0x000` |    72 | 8 `Encounter` (9 bytes: `enemy_indexes[8]`, `appearance_rate`) |
-| `0x048` | 1,088 | 8 `Enemy` (136 bytes: `name[8]` first, `ai[4]` at `+0x34`)     |
+|  Offset |  Size | Type           | Meaning                                                        |
+| ------: | ----: | -------------- | -------------------------------------------------------------- |
+| `0x000` |    72 | `Encounter[8]` | 8 `Encounter` (9 bytes: `enemy_indexes[8]`, `appearance_rate`) |
+| `0x048` | 1,088 | `Enemy[8]`     | 8 `Enemy` (136 bytes: `name[8]` first, `ai[4]` at `+0x34`)     |
+
+```c
+typedef struct Encounter {
+    /* 0x00 */ u8 enemy_indexes[ENCOUNTER_ENEMY_COUNT]; /* 8 */
+    /* 0x08 */ u8 appearance_rate;
+} Encounter;
+```
+
+Source: [`include/game/enemy.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/game/enemy.h)
 
 An encounter lists up to eight enemy indexes into the block's own enemy records (`0xFF` is an empty slot) and an appearance rate. Only indexes 0 to 6 occur on the disc. The picker `emi/etc/game/00@0x801C6A7C` walks the 9-byte records with `sum += base[8]` until the sum reaches a threshold of 1 to 16 from `rand()`. Its caller `@0x801C60E0` stores the selected `0x800E4000 + 9*idx` into `D_801CD8CC`. A battle setup, `@0x800AC218`, copies the enemy record into the 280-byte runtime slot `D_801EB630 + slot*280`, and the byte at `D_801EB710 + slot*280` holds the record index. No store to the block exists in any overlay or resident program.
 
-An enemy record has 136 bytes. The table gives its fields by offset inside the record. A size of `-` is not recorded. Unnamed bytes (`0x0B`, `0x0F`, `0x15`, `0x74`, `0x81` and `0x84` to `0x87`) have no known role.
+An enemy record has 136 bytes. The table gives its fields by offset inside the record. Unnamed bytes (`0x0B`, `0x0F`, `0x15`, `0x74`, `0x81` and `0x84` to `0x87`) have no known role.
 
-| Offset | Size | Name                                                                                           |
-| -----: | ---: | ---------------------------------------------------------------------------------------------- |
-| `0x00` |    8 | `name`, in the game's name encoding                                                            |
-| `0x08` |    2 | `enemy_id`                                                                                     |
-| `0x0A` |    - | `choice_ai`                                                                                    |
-| `0x0E` |    - | `target_preference`                                                                            |
-| `0x10` |    2 | `zenny`                                                                                        |
-| `0x12` |    2 | `exp`                                                                                          |
-| `0x14` |    - | `level`                                                                                        |
-| `0x18` |    8 | `initial_skills`                                                                               |
-| `0x20` |    2 | `hp`                                                                                           |
-| `0x22` |    2 | `ap`                                                                                           |
-| `0x24` |    8 | `power`, `defense`, `agility`, `intellect` (`u16` each, at `0x24`, `0x26`, `0x28`, `0x2A`)     |
-| `0x2C` |    2 | first item row: item index (`u8`), item type (`u8`)                                            |
-| `0x2E` |    2 | first item row: rate (`u16`)                                                                   |
-| `0x30` |    2 | second item row: item index (`u8`), item type (`u8`)                                           |
-| `0x32` |    2 | second item row: rate (`u16`)                                                                  |
-| `0x34` |   64 | four action blocks at `0x34`, `0x44`, `0x54` and `0x64`                                        |
-| `0x78` |    9 | `resistances`: fire, frost, thunder, earth, wind, holy, psionic, status, death (levels 0 to 7) |
-| `0x82` |    1 | `reach`: footprint size for encounter placement `[inferred]` name                              |
-| `0x83` |    1 | `height`: vertical offset in pixels `[inferred]` name                                          |
+| Offset | Size | Type              | Name                                                                                           |
+| -----: | ---: | ----------------- | ---------------------------------------------------------------------------------------------- |
+| `0x00` |    8 | `u8[8]`           | `name`, in the game's name encoding                                                            |
+| `0x08` |    2 | `u16`             | `enemy_id`                                                                                     |
+| `0x0A` |    1 | `u8`              | `choice_ai`                                                                                    |
+| `0x0E` |    1 | `u8`              | `target_preference`                                                                            |
+| `0x10` |    2 | `u16`             | `zenny`                                                                                        |
+| `0x12` |    2 | `u16`             | `exp`                                                                                          |
+| `0x14` |    1 | `u8`              | `level`                                                                                        |
+| `0x18` |    8 | `u8[8]`           | `initial_skills`                                                                               |
+| `0x20` |    2 | `u16`             | `hp`                                                                                           |
+| `0x22` |    2 | `u16`             | `ap`                                                                                           |
+| `0x24` |    8 | `u16[4]`          | `power`, `defense`, `agility`, `intellect` (`u16` each, at `0x24`, `0x26`, `0x28`, `0x2A`)     |
+| `0x2C` |    2 | `u8[2]`           | first item row: item index (`u8`), item type (`u8`)                                            |
+| `0x2E` |    2 | `u16`             | first item row: rate (`u16`)                                                                   |
+| `0x30` |    2 | `u8[2]`           | second item row: item index (`u8`), item type (`u8`)                                           |
+| `0x32` |    2 | `u16`             | second item row: rate (`u16`)                                                                  |
+| `0x34` |   64 | `EnemyAiBlock[4]` | four action blocks at `0x34`, `0x44`, `0x54` and `0x64`                                        |
+| `0x78` |    9 | `u8[9]`           | `resistances`: fire, frost, thunder, earth, wind, holy, psionic, status, death (levels 0 to 7) |
+| `0x82` |    1 | `u8`              | `reach`: footprint size for encounter placement `[inferred]` name                              |
+| `0x83` |    1 | `u8`              | `height`: vertical offset in pixels `[inferred]` name                                          |
+
+```c
+typedef struct Enemy {
+    /* 0x00 */ u8           name[ENEMY_NAME_LENGTH];
+    /* 0x08 */ u16          enemy_id;
+    /* 0x0A */ u8           choice_ai;
+    /* 0x0B */ u8           unk_0B[3];
+    /* 0x0E */ u8           target_preference;
+    /* 0x0F */ u8           unk_0F;
+    /* 0x10 */ u16          zenny;
+    /* 0x12 */ u16          exp;
+    /* 0x14 */ u8           level;
+    /* 0x15 */ u8           unk_15[3];
+    /* 0x18 */ u8           initial_skills[ENEMY_SKILL_COUNT];
+    /* 0x20 */ u16          hp;
+    /* 0x22 */ u16          ap;
+    /* 0x24 */ u16          power, defense, agility, intellect; /* 0x24, 0x26, 0x28, 0x2A */
+    /* 0x2C */ u8           first_item_index, first_item_type;
+    /* 0x2E */ u16          first_item_rate;
+    /* 0x30 */ u8           second_item_index, second_item_type;
+    /* 0x32 */ u16          second_item_rate;
+    /* 0x34 */ EnemyAiBlock ai[ENEMY_AI_COUNT]; /* 4 blocks of 16 bytes */
+    /* 0x74 */ u8           unk_74[4];
+    /* 0x78 */ u8           resistances[RES_SLOT_COUNT]; /* 9 */
+    /* 0x81 */ u8           unk_81;
+    /* 0x82 */ u8           reach;
+    /* 0x83 */ u8           height;
+    /* 0x84 */ u8           unk_84[4];
+} Enemy;
+```
+
+Source: [`include/game/enemy.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/game/enemy.h)
 
 An action block is 16 bytes: a condition byte, seven AI parameters and eight ability indexes. Condition `0x63` marks an unused block. [Game records](../../data/records/#area-data) lists the same fields by group.
 
@@ -162,34 +216,34 @@ The trail and slot rows are different shapes of one window. Each area program re
 
 An `AreaTrail` row has 152 bytes:
 
-| Offset | Size | Meaning                            |
-| -----: | ---: | ---------------------------------- |
-| `0x00` |   12 | head anchor position (three `s32`) |
-| `0x0C` |    4 | unknown (`s32`)                    |
-| `0x10` |    4 | ring radius (`s32`)                |
-| `0x14` |    2 | rotation angle (`u16`)             |
-| `0x16` |    2 | padding                            |
-| `0x18` |  128 | 32 trail points, two `s16` each    |
+| Offset | Size | Type             | Meaning                            |
+| -----: | ---: | ---------------- | ---------------------------------- |
+| `0x00` |   12 | `Vec3i`          | head anchor position (three `s32`) |
+| `0x0C` |    4 | `s32`            | unknown (`s32`)                    |
+| `0x10` |    4 | `s32`            | ring radius (`s32`)                |
+| `0x14` |    2 | `u16`            | rotation angle (`u16`)             |
+| `0x16` |    2 | `u16`            | padding                            |
+| `0x18` |  128 | `TrailPoint[32]` | 32 trail points, two `s16` each    |
 
 An `AreaSlotWork` row has 16 bytes:
 
-| Offset | Size | Meaning                          |
-| -----: | ---: | -------------------------------- |
-| `0x00` |    4 | unknown                          |
-| `0x04` |    2 | random position offset x (`s16`) |
-| `0x06` |    2 | random position offset y (`s16`) |
-| `0x08` |    2 | projection scale (`s16`)         |
-| `0x0A` |    2 | unknown (`s16`)                  |
-| `0x0C` |    2 | projected screen x (`u16`)       |
-| `0x0E` |    2 | projected screen y (`u16`)       |
+| Offset | Size | Type    | Meaning                          |
+| -----: | ---: | ------- | -------------------------------- |
+| `0x00` |    4 | `u8[4]` | unknown                          |
+| `0x04` |    2 | `s16`   | random position offset x (`s16`) |
+| `0x06` |    2 | `s16`   | random position offset y (`s16`) |
+| `0x08` |    2 | `s16`   | projection scale (`s16`)         |
+| `0x0A` |    2 | `s16`   | unknown (`s16`)                  |
+| `0x0C` |    2 | `u16`   | projected screen x (`u16`)       |
+| `0x0E` |    2 | `u16`   | projected screen y (`u16`)       |
 
 A `Vec2us` entry is two `u16` halves. An `AreaVertex` row has 40 bytes:
 
-| Offset | Size | Meaning                                 |
-| -----: | ---: | --------------------------------------- |
-| `0x00` |    2 | unknown (`u16`)                         |
-| `0x02` |   24 | four points, three `u16` each (x, y, z) |
-| `0x1A` |   14 | unknown                                 |
+| Offset | Size | Type             | Meaning                                 |
+| -----: | ---: | ---------------- | --------------------------------------- |
+| `0x00` |    2 | `u16`            | unknown (`u16`)                         |
+| `0x02` |   24 | `VertexPoint[4]` | four points, three `u16` each (x, y, z) |
+| `0x1A` |   14 | `u8[14]`         | unknown                                 |
 
 ## Palette arena
 
@@ -220,23 +274,23 @@ The map bundle is the terrain and layout of the area: a grid of cells, with a he
 
 The header has `u8` width and height at bytes 0 and 1. Every other field is a `u16` at the byte offset shown, and its value is an offset in 4-byte units from the start of the bundle: `(payload byte address - 0x80104000) / 4`.
 
-|         Offset | Name                 | Meaning                                                                                                                                              |
-| -------------: | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-|         `0x00` | `width` (`u8`)       | width in cells                                                                                                                                       |
-|         `0x01` | `height` (`u8`)      | height in cells                                                                                                                                      |
-|         `0x02` | `grid_off4`          | cell grid; `(0x30 + W*H*4 + align4(W*H)) / 4`                                                                                                        |
-|    `0x04-0x13` | `bank_offsets[4][2]` | eight offsets: bank A rectangles and bank B quads, per selector                                                                                      |
-|         `0x14` | `byte_code_off4`     | per-cell byte codes; equals `W*H + 12` in 200 of 200                                                                                                 |
-| `0x16`, `0x18` | `zero_16`, `zero_18` | zero in 200 of 200, no reader                                                                                                                        |
-|         `0x1A` | `color[2]`           | runtime colour words; written by `@0x801583BC`                                                                                                       |
-|         `0x1E` | `scroll`             | nonzero in 76 of 200 and 0 in the rest; meaning unknown. One measurement gives the range `0xEC00`-`0xFFA0` and another `0xF300`-`0xFA90`; unresolved |
-|         `0x20` | `list_base_20`       | record list, opcode byte `& 0x3F`                                                                                                                    |
-|         `0x22` | `list_base_22`       | record list, opcode byte `& 0x7F`                                                                                                                    |
-|         `0x24` | `record_region_24`   | record cells, ids in `D_80141880`                                                                                                                    |
-|         `0x26` | `zero_26`            | zero in 200 of 200, no reader                                                                                                                        |
-|         `0x28` | `object_list`        | object list, tag plus body size                                                                                                                      |
-|         `0x2A` | `height_off4`        | height bytes; `u16[+0x2A]*4 == size` in 187 bundles and `size - W*H` in 13                                                                           |
-| `0x2C`, `0x2E` | `zero_2C`, `zero_2E` | zero in 200 of 200, no reader                                                                                                                        |
+|         Offset | Type        | Name                 | Meaning                                                                                                                                              |
+| -------------: | ----------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+|         `0x00` | `u8`        | `width`              | width in cells                                                                                                                                       |
+|         `0x01` | `u8`        | `height`             | height in cells                                                                                                                                      |
+|         `0x02` | `u16`       | `grid_off4`          | cell grid; `(0x30 + W*H*4 + align4(W*H)) / 4`                                                                                                        |
+|    `0x04-0x13` | `u16[4][2]` | `bank_offsets[4][2]` | eight offsets: bank A rectangles and bank B quads, per selector                                                                                      |
+|         `0x14` | `u16`       | `byte_code_off4`     | per-cell byte codes; equals `W*H + 12` in 200 of 200                                                                                                 |
+| `0x16`, `0x18` | `u16`       | `zero_16`, `zero_18` | zero in 200 of 200, no reader                                                                                                                        |
+|         `0x1A` | `u16[2]`    | `color[2]`           | runtime colour words; written by `@0x801583BC`                                                                                                       |
+|         `0x1E` | `u16`       | `scroll`             | nonzero in 76 of 200 and 0 in the rest; meaning unknown. One measurement gives the range `0xEC00`-`0xFFA0` and another `0xF300`-`0xFA90`; unresolved |
+|         `0x20` | `u16`       | `list_base_20`       | record list, opcode byte `& 0x3F`                                                                                                                    |
+|         `0x22` | `u16`       | `list_base_22`       | record list, opcode byte `& 0x7F`                                                                                                                    |
+|         `0x24` | `u16`       | `record_region_24`   | record cells, ids in `D_80141880`                                                                                                                    |
+|         `0x26` | `u16`       | `zero_26`            | zero in 200 of 200, no reader                                                                                                                        |
+|         `0x28` | `u16`       | `object_list`        | object list, tag plus body size                                                                                                                      |
+|         `0x2A` | `u16`       | `height_off4`        | height bytes; `u16[+0x2A]*4 == size` in 187 bundles and `size - W*H` in 13                                                                           |
+| `0x2C`, `0x2E` | `u16`       | `zero_2C`, `zero_2E` | zero in 200 of 200, no reader                                                                                                                        |
 
 The sections follow the header in this order:
 

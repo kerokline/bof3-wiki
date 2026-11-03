@@ -196,19 +196,19 @@ The only movie code is in `LOGO.EXE`, which [boot](../../systems/boot/#the-logo-
 
 The table lists the loader's data and where each item sits.
 
-| Data                  | Address                      | Role                                                      |
-| --------------------- | ---------------------------- | --------------------------------------------------------- |
-| `g_EmiSlotLbas`       | `exe/slus_004_22@0x80182444` | slot id to LBA                                            |
-| `g_EmiEntryHandlers`  | `exe/slus_004_22@0x80183248` | entry type to handler                                     |
-| `g_EmiCdSteps`        | `exe/slus_004_22@0x80149C3C` | CD step functions                                         |
-| `g_EmiSlotDrainFuncs` | `exe/slus_004_22@0x80149C60` | ring slot state to drain function                         |
-| `g_EmiServiceMode`    | `exe/slus_004_22@0x80146840` | CD owner: 0 idle, 1 EMI, 2 XA                             |
-| `g_EmiStreamState`    | `exe/slus_004_22@0x80146494` | stream state byte; 3 means ready                          |
-| `g_EmiStreamFlags`    | `exe/slus_004_22@0x80146854` | stream flags; bit `0x20` loads only leading audio entries |
-| `g_EmiRingBase`       | `exe/slus_004_22@0x80146464` | ring base, `0x800E4800`                                   |
-| `g_XaStateFuncs`      | `exe/slus_004_22@0x80183274` | XA state table                                            |
-| `g_GameModeHandlers`  | `emi/etc/game/00@0x801C7B54` | battle mode functions                                     |
-| `g_SceneScenes`       | `emi/etc/game/00@0x801C8454` | the 20 scenario controller pointers                       |
+| Data                  | Type                  | Address                      | Role                                                      |
+| --------------------- | --------------------- | ---------------------------- | --------------------------------------------------------- |
+| `g_EmiSlotLbas`       | `u32[]`               | `exe/slus_004_22@0x80182444` | slot id to LBA                                            |
+| `g_EmiEntryHandlers`  | `u32[11]`             | `exe/slus_004_22@0x80183248` | entry type to handler                                     |
+| `g_EmiCdSteps`        | `u32[]`               | `exe/slus_004_22@0x80149C3C` | CD step functions                                         |
+| `g_EmiSlotDrainFuncs` | `SystemDispatchFuncs` | `exe/slus_004_22@0x80149C60` | ring slot state to drain function                         |
+| `g_EmiServiceMode`    | `u8`                  | `exe/slus_004_22@0x80146840` | CD owner: 0 idle, 1 EMI, 2 XA                             |
+| `g_EmiStreamState`    | `u8`                  | `exe/slus_004_22@0x80146494` | stream state byte; 3 means ready                          |
+| `g_EmiStreamFlags`    | `u8`                  | `exe/slus_004_22@0x80146854` | stream flags; bit `0x20` loads only leading audio entries |
+| `g_EmiRingBase`       | `u32`                 | `exe/slus_004_22@0x80146464` | ring base, `0x800E4800`                                   |
+| `g_XaStateFuncs`      | `u32[55]`             | `exe/slus_004_22@0x80183274` | XA state table                                            |
+| `g_GameModeHandlers`  | `Callback[8]`         | `emi/etc/game/00@0x801C7B54` | battle mode functions                                     |
+| `g_SceneScenes`       | `void*[20]`           | `emi/etc/game/00@0x801C8454` | the 20 scenario controller pointers                       |
 
 ## Open questions
 

@@ -56,13 +56,13 @@ The first word of each loaded image is its module id, `0x105 + n` (`0x105` for `
 
 The pointer in `g_SceneScenes` leads to a handler block of five code pointers. The resident code calls them through the wrapper named in the `Evidence` column.
 
-| Offset | Name       | Meaning                                                                                                                       | Evidence                                           |
-| -----: | ---------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| `0x00` | `entry_00` | Per-frame controller. `SCENA00` and `SCENA16` read `mode_02` and jump through a mode table.                                   | `Game_RunScenarioEntry`                            |
-| `0x04` | `entry_04` | `void (record)`. The player talks to or touches an entity whose `callback_index` is set.                                      | `Game_DispatchScenarioRecord`                      |
-| `0x08` | `entry_08` | `s8 (x, y)`. A nonzero result blocks the step into the cell. Zero falls back to `func_801A8728`, a switch on the area id.     | `func_801B0E44` through `Area_IsStepBlocked`       |
-| `0x0C` | `entry_0C` | `s8 (x, y)`. A nonzero result overrides the cell test. Zero falls back to `func_801A8B84`.                                    | `func_801B146C` through `func_801A79A4`            |
-| `0x10` | `entry_10` | `s8 (a, b)`, optional. A negative or null result falls back to `func_801A8CB4`, which reads the area hook table `D_801C86F8`. | `func_801B6258` through `Game_CallScenarioHandler` |
+| Offset | Type    | Name       | Meaning                                                                                                                       | Evidence                                           |
+| -----: | ------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| `0x00` | `void*` | `entry_00` | Per-frame controller. `SCENA00` and `SCENA16` read `mode_02` and jump through a mode table.                                   | `Game_RunScenarioEntry`                            |
+| `0x04` | `void*` | `entry_04` | `void (record)`. The player talks to or touches an entity whose `callback_index` is set.                                      | `Game_DispatchScenarioRecord`                      |
+| `0x08` | `void*` | `entry_08` | `s8 (x, y)`. A nonzero result blocks the step into the cell. Zero falls back to `func_801A8728`, a switch on the area id.     | `func_801B0E44` through `Area_IsStepBlocked`       |
+| `0x0C` | `void*` | `entry_0C` | `s8 (x, y)`. A nonzero result overrides the cell test. Zero falls back to `func_801A8B84`.                                    | `func_801B146C` through `func_801A79A4`            |
+| `0x10` | `void*` | `entry_10` | `s8 (a, b)`, optional. A negative or null result falls back to `func_801A8CB4`, which reads the area hook table `D_801C86F8`. | `func_801B6258` through `Game_CallScenarioHandler` |
 
 The wrappers are `Area_IsStepBlocked (emi/etc/game/00@0x801A7914)`, `func_801A79A4`, `Game_CallScenarioHandler (emi/etc/game/00@0x801A7A34)` and `Game_DispatchScenarioRecord (emi/etc/game/00@0x801A7878)`. A scenario therefore only has to override what differs from the default; the fallbacks cover the rest.
 
@@ -72,14 +72,14 @@ In `SCENA00` the five words are at `0x801FC9FC` and the mode table follows at `0
 
 `g_SceneState` (`0x80146870`, 16 bytes) is the controller's working memory. The table lists its fields by offset.
 
-| Offset | Name          | Meaning                                                                                          |
-| -----: | ------------- | ------------------------------------------------------------------------------------------------ |
-| `0x00` | `scenario_id` | Index into `g_SceneScenes` and the EMI slot offset.                                              |
-| `0x01` | `flags_01`    | Bit `0x80` requests a chapter advance. Bit `0x20` is set by `func_8019A904`; no reader is known. |
-| `0x02` | `mode_02`     | Dispatch byte of the controller.                                                                 |
-| `0x04` | `state_04`    | Second-level state, used by `SCENA16` and others.                                                |
-| `0x05` | `step_05`     | Third-level step.                                                                                |
-| `0x06` | `timer_06`    | Countdown for the step.                                                                          |
+| Offset | Type  | Name          | Meaning                                                                                          |
+| -----: | ----- | ------------- | ------------------------------------------------------------------------------------------------ |
+| `0x00` | `s8`  | `scenario_id` | Index into `g_SceneScenes` and the EMI slot offset.                                              |
+| `0x01` | `u8`  | `flags_01`    | Bit `0x80` requests a chapter advance. Bit `0x20` is set by `func_8019A904`; no reader is known. |
+| `0x02` | `u8`  | `mode_02`     | Dispatch byte of the controller.                                                                 |
+| `0x04` | `u8`  | `state_04`    | Second-level state, used by `SCENA16` and others.                                                |
+| `0x05` | `u8`  | `step_05`     | Third-level step.                                                                                |
+| `0x06` | `u16` | `timer_06`    | Countdown for the step.                                                                          |
 
 `SAVE_RunLoadRestore (emi/etc/start/08@0x801E5FD4)` copies 16 bytes from `D_801448D8` into `g_SceneState` on load. The flag words (block `+0x5B0`) and the event-flag block (block `+0x650`) lie inside the 4,272-byte persistent block that boot zeroes from `D_801448D8` ([boot](../boot/), [state](../state/#one-persistent-block)). A save copies the whole block, so the card file carries both ([saving](../saving/#saving)). `g_SceneState` itself lies outside the block; the save copies it into the block's first 16 bytes.
 
@@ -132,11 +132,11 @@ The event stage is a two-state machine that sits beside the controller. `Game_Ru
 
 Story state lives in three bit arrays. All are read with `SYS_TestFlag (exe/slus_004_22@0x8015B5D4)`, whose bit argument is a `u8`: it indexes at most 256 bits, 32 bytes, from the array start.
 
-| Array               | Address      | Size                | Use                                                                           |
-| ------------------- | ------------ | ------------------- | ----------------------------------------------------------------------------- |
-| `g_SceneFlagWords`  | `0x80144E88` | 20 words of 8 bytes | One word per scenario. `Scene_Start` clears bits 0 to 31 of the started word. |
-| `g_SceneFlags`      | `0x8014686C` | pointer             | The active scenario's word. Controllers use `SYS_SetFlag(g_SceneFlags, bit)`. |
-| `g_SceneEventFlags` | `0x80144F28` | 40 bytes            | Event flags. `Scene_ResetEventState` resets the first 16 bytes.               |
+| Array               | Address      | Type      | Size                | Use                                                                           |
+| ------------------- | ------------ | --------- | ------------------- | ----------------------------------------------------------------------------- |
+| `g_SceneFlagWords`  | `0x80144E88` | `u8[160]` | 20 words of 8 bytes | One word per scenario. `Scene_Start` clears bits 0 to 31 of the started word. |
+| `g_SceneFlags`      | `0x8014686C` | `u32*`    | pointer             | The active scenario's word. Controllers use `SYS_SetFlag(g_SceneFlags, bit)`. |
+| `g_SceneEventFlags` | `0x80144F28` | `u8[40]`  | 40 bytes            | Event flags. `Scene_ResetEventState` resets the first 16 bytes.               |
 
 An exit door can test any scenario's word: `func_801A0048` reads `SYS_TestFlag(g_SceneFlagWords + (b << 3), bit)` for the scenario byte `b` of a door row ([area](../areas/#doors)).
 

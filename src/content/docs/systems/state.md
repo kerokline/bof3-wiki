@@ -15,31 +15,31 @@ Offsets in the table are block-relative. The save-file frame adds `0x200`, so fr
 
 The table lists the block in memory order. A name is given where the block holds a named global itself.
 
-| Offset   | Address      |  Size | Name                        | Meaning                                                      |
-| -------- | ------------ | ----: | --------------------------- | ------------------------------------------------------------ |
-| `+0x00`  | `0x801448D8` |    16 | -                           | copy of `g_SceneState` (scenario id, step, timer)            |
-| `+0x13`  | `0x801448EB` |     3 | `D_801448EB`, `EC`, `ED`    | scene-event state bytes                                      |
-| `+0x20`  | `0x801448F8` |     4 | -                           | four script variable bytes from `0x80146864` to `0x80146867` |
-| `+0x24`  | `0x801448FC` |     2 | -                           | area id, copied from `g_GameAreaId`                          |
-| `+0x27`  | `0x801448FF` |     1 | -                           | entry kind byte, from `D_80145E98` `[inferred]`              |
-| `+0x28`  | `0x80144900` |     8 | -                           | two position words, from `D_80145EC4` and `D_80145EC8`       |
-| `+0x79`  | `0x80144951` |     1 | -                           | stereo or mono sound flag, read by `func_801E5A00`           |
-| `+0x7A`  | `0x80144952` |     2 | `D_80144952`, `53`          | window style and palette bytes `[inferred]`                  |
-| `+0x90`  | `0x80144968` | 1,312 | `g_Characters`              | 8 records of 164 bytes                                       |
-| `+0x5B0` | `0x80144E88` |   160 | `g_SceneFlagWords`          | 20 scenario flag words of 8 bytes                            |
-| `+0x650` | `0x80144F28` |    40 | `g_SceneEventFlags`         | event flag bits                                              |
-| `+0x678` | `0x80144F50` |     4 | `g_Zenny`                   | the party's money                                            |
-| `+0x682` | `0x80144F5A` | 3 + 3 | `D_80144F5A`, `D_80144F5D`  | field order, then battle order                               |
-| `+0x6E8` | `0x80144FC0` |     4 | `g_PlayClock`               | hours, minutes, seconds, thirtieths                          |
-| `+0x70C` | `0x80144FE4` |    32 | `g_FishBestCatch`           | best catch per fish                                          |
-| `+0x74C` | `0x80145024` |     1 | `g_EmiLoadedCharacterIndex` | the loaded character archive                                 |
-| `+0x74D` | `0x80145025` |     1 | -                           | low byte of `g_GameFlags`                                    |
-| `+0x774` | `0x8014504C` |   512 | `g_InventoryIds`            | 4 categories of 128 id bytes                                 |
-| `+0x974` | `0x8014524C` |   512 | `g_InventoryCounts`         | matching quantities                                          |
-| `+0xB74` | `0x8014544C` |    32 | `g_VitalItemIds`            | vital item ids                                               |
-| `+0xCA0` | `0x80145578` |    28 | -                           | slot summary: name, party portraits, level, clock            |
-| `+0xCBC` | `0x80145594` |    18 | -                           | nine button mask halfwords (`g_InputMasks` copy)             |
-| `+0xCF0` | `0x801455C8` |   480 | `g_FairyJobs`               | 60 rows of 8 bytes                                           |
+| Offset   | Address      |  Size | Type                 | Name                        | Meaning                                                      |
+| -------- | ------------ | ----: | -------------------- | --------------------------- | ------------------------------------------------------------ |
+| `+0x00`  | `0x801448D8` |    16 | `SceneState`         | -                           | copy of `g_SceneState` (scenario id, step, timer)            |
+| `+0x13`  | `0x801448EB` |     3 | `u8[3]`              | `D_801448EB`, `EC`, `ED`    | scene-event state bytes                                      |
+| `+0x20`  | `0x801448F8` |     4 | `u8[4]`              | -                           | four script variable bytes from `0x80146864` to `0x80146867` |
+| `+0x24`  | `0x801448FC` |     2 | `u16`                | -                           | area id, copied from `g_GameAreaId`                          |
+| `+0x27`  | `0x801448FF` |     1 | `u8` `[inferred]`    | -                           | entry kind byte, from `D_80145E98` `[inferred]`              |
+| `+0x28`  | `0x80144900` |     8 | `s32[2]`             | -                           | two position words, from `D_80145EC4` and `D_80145EC8`       |
+| `+0x79`  | `0x80144951` |     1 | `u8`                 | -                           | stereo or mono sound flag, read by `func_801E5A00`           |
+| `+0x7A`  | `0x80144952` |     2 | `u8[2]` `[inferred]` | `D_80144952`, `53`          | window style and palette bytes `[inferred]`                  |
+| `+0x90`  | `0x80144968` | 1,312 | `Character[8]`       | `g_Characters`              | 8 records of 164 bytes                                       |
+| `+0x5B0` | `0x80144E88` |   160 | `u8[160]`            | `g_SceneFlagWords`          | 20 scenario flag words of 8 bytes                            |
+| `+0x650` | `0x80144F28` |    40 | `u8[40]`             | `g_SceneEventFlags`         | event flag bits                                              |
+| `+0x678` | `0x80144F50` |     4 | `u32`                | `g_Zenny`                   | the party's money                                            |
+| `+0x682` | `0x80144F5A` | 3 + 3 | `u8[3]` each         | `D_80144F5A`, `D_80144F5D`  | field order, then battle order                               |
+| `+0x6E8` | `0x80144FC0` |     4 | `GameClock`          | `g_PlayClock`               | hours, minutes, seconds, thirtieths                          |
+| `+0x70C` | `0x80144FE4` |    32 | `u8[32]`             | `g_FishBestCatch`           | best catch per fish                                          |
+| `+0x74C` | `0x80145024` |     1 | `u8`                 | `g_EmiLoadedCharacterIndex` | the loaded character archive                                 |
+| `+0x74D` | `0x80145025` |     1 | `u8`                 | -                           | low byte of `g_GameFlags`                                    |
+| `+0x774` | `0x8014504C` |   512 | `u8[4][128]`         | `g_InventoryIds`            | 4 categories of 128 id bytes                                 |
+| `+0x974` | `0x8014524C` |   512 | `u8[4][128]`         | `g_InventoryCounts`         | matching quantities                                          |
+| `+0xB74` | `0x8014544C` |    32 | `u8[32]`             | `g_VitalItemIds`            | vital item ids                                               |
+| `+0xCA0` | `0x80145578` |    28 | `u8[28]`             | -                           | slot summary: name, party portraits, level, clock            |
+| `+0xCBC` | `0x80145594` |    18 | `u16[9]`             | -                           | nine button mask halfwords (`g_InputMasks` copy)             |
+| `+0xCF0` | `0x801455C8` |   480 | `FairyJob[60]`       | `g_FairyJobs`               | 60 rows of 8 bytes                                           |
 
 The block also holds records this table does not split: the dragon genes at `0x80145548`, the masters at `0x8014554C`, the fairy village rooms at `0x801457A8` and the two countdown timers at `0x80145554` and `0x80145558` ([clock](../../data/field/#inventory-money-and-time)), per [game records](../../data/records/#save-layout). The code that fills the genes, masters and rooms is not traced `[inferred]`.
 
@@ -54,15 +54,15 @@ Notes on the less obvious rows:
 
 These values live outside the block. The game rebuilds or resets each one. The third column gives the reason.
 
-| Address                    | Name                                      | Meaning                                                           |
-| -------------------------- | ----------------------------------------- | ----------------------------------------------------------------- |
-| `0x80146250`               | `g_GameState`                             | pointer into `g_BattlePartyBattlers` rows, set per mode           |
-| `0x80145E90`               | `g_BattlePartyBattlers`                   | per-party work rows of 320 bytes, rebuilt from `g_Characters`     |
-| `0x80143BB0`               | `g_GameStateIndex`                        | request code for the next field step, reset on entry              |
-| `0x80143B90`, `0x80143B92` | `g_GameEntryState`, `g_GameEntrySubstate` | menu and main-loop step selectors                                 |
-| `0x8014625A`               | `g_AreaWalkFlags`                         | outside the block; `Game_ResetGameState` sets the entry bits      |
-| `0x80146254`               | `g_PartySize`                             | party size, recomputed from the order array by `Party_CountOrder` |
-| overlay windows            | area, scene and actor tables              | reloaded with the area and scenario overlays `[inferred]`         |
+| Address                    | Type               | Name                                      | Meaning                                                           |
+| -------------------------- | ------------------ | ----------------------------------------- | ----------------------------------------------------------------- |
+| `0x80146250`               | `GameStateRecord*` | `g_GameState`                             | pointer into `g_BattlePartyBattlers` rows, set per mode           |
+| `0x80145E90`               | `PartyBattler[3]`  | `g_BattlePartyBattlers`                   | per-party work rows of 320 bytes, rebuilt from `g_Characters`     |
+| `0x80143BB0`               | `u8`               | `g_GameStateIndex`                        | request code for the next field step, reset on entry              |
+| `0x80143B90`, `0x80143B92` | `u16` each         | `g_GameEntryState`, `g_GameEntrySubstate` | menu and main-loop step selectors                                 |
+| `0x8014625A`               | `u16`              | `g_AreaWalkFlags`                         | outside the block; `Game_ResetGameState` sets the entry bits      |
+| `0x80146254`               | `u8`               | `g_PartySize`                             | party size, recomputed from the order array by `Party_CountOrder` |
+| overlay windows            | -                  | area, scene and actor tables              | reloaded with the area and scenario overlays `[inferred]`         |
 
 `g_GameState` is not a record of game progress despite its name. `func_801E3EC4 (emi/etc/start/08@0x801E3EC4)` points it at a `g_BattlePartyBattlers` row for the camp menu, and `Party_BuildBattlers (emi/etc/game/00@0x801C1400)` points it at one row per party member for the field.
 

@@ -98,12 +98,12 @@ The overlays use a second form of the same idiom. The handler table is indexed b
 
 Handlers step fixed-size records that live in RAM tables. Each table has a free-slot search, so its size is the hard limit on how many of that thing exist at once. The table gives the stride in bytes and the number of rows.
 
-| Table              | Address                         | Stride x count | Allocator and walker                                                                                                                     |
-| ------------------ | ------------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `g_ActorSlots`     | `exe/slus_004_22@0x80143FC8`    | 116 x 20       | `Actor_FindFreeSlot (emi/etc/game/00@0x8019601C)` takes the first slot with `flags_00 == 0`, else `0xFF`; `Actor_Free`, `Actor_ClearAll` |
-| `g_Actors`         | `exe/slus_004_22@0x80146888`    | 152 x 30       | `Actor_FindFree (exe/slus_004_22@0x8015CA48)` takes the first record whose first byte is 0, else `0xFF`                                  |
-| `g_MenuPanelTasks` | `exe/slus_004_22@0x80148330`    | 36 x 22        | `Menu_ArmPanelTask (exe/slus_004_22@0x80158DB8)`, `Menu_ResetPanelTasks`, `Menu_RunPanelTasks`                                           |
-| battlers           | [battle](../../systems/battle/) | per overlay    | `Battle_RunParty`, `Battle_RunEnemies` in `emi/battle/battle/03`                                                                         |
+| Table              | Address                         | Type                | Stride x count | Allocator and walker                                                                                                                     |
+| ------------------ | ------------------------------- | ------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `g_ActorSlots`     | `exe/slus_004_22@0x80143FC8`    | `ActorSlot[20]`     | 116 x 20       | `Actor_FindFreeSlot (emi/etc/game/00@0x8019601C)` takes the first slot with `flags_00 == 0`, else `0xFF`; `Actor_Free`, `Actor_ClearAll` |
+| `g_Actors`         | `exe/slus_004_22@0x80146888`    | `Actor[30]`         | 152 x 30       | `Actor_FindFree (exe/slus_004_22@0x8015CA48)` takes the first record whose first byte is 0, else `0xFF`                                  |
+| `g_MenuPanelTasks` | `exe/slus_004_22@0x80148330`    | `MenuPanelTask[22]` | 36 x 22        | `Menu_ArmPanelTask (exe/slus_004_22@0x80158DB8)`, `Menu_ResetPanelTasks`, `Menu_RunPanelTasks`                                           |
+| battlers           | [battle](../../systems/battle/) | -                   | per overlay    | `Battle_RunParty`, `Battle_RunEnemies` in `emi/battle/battle/03`                                                                         |
 
 A menu panel is a task, so at most 22 panels are live. `Menu_RunPanelTasks (exe/slus_004_22@0x80158C80)` makes one pass for each mode value from `g_MenuPanelMode` up to 2. It does nothing when the mode is 3 or more. In a pass it walks the 22 records. For each record whose first byte is nonzero and whose mode byte (offset `0x0F`) equals the pass, it calls the handler `g_MenuPanels[record[1]]`, one of nine. Panel contents and drawing are in [UI and text drawing](../../systems/ui/). Field actors are in [areas and the field](../../systems/areas/).
 

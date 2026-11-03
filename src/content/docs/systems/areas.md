@@ -9,17 +9,17 @@ An area is one place the party can stand: a town, a dungeon, the world map, a ba
 
 `g_AreaLoads` holds one pointer per area to its `AreaLoad` record inside the area program. The table lists the fields that the load reads, by offset.
 
-| Offset | Name        | Meaning                                                                          | Evidence              |
-| -----: | ----------- | -------------------------------------------------------------------------------- | --------------------- |
-| `0x00` | `handler`   | Pointer to the setup stream ([below](#setup-stream)).                            | `Area_RunSetupStream` |
-| `0x20` | `exits`     | Pointer to the exit entries ([doors](#doors)).                                   | `func_801A0048`       |
-| `0x24` | `lists`     | Pointer to the conditional exit lists.                                           | `func_801A0048`       |
-| `0x28` | `counts`    | Pointer to the row counts of those lists.                                        | `func_801A0048`       |
-| `0x30` | `last_exit` | Index of the last exit entry, so an area has `last_exit + 1` entries.            | `func_801A0048`       |
-| `0x32` | `flag_32`   | Map-kind flags, copied to `g_GameRequestFlags`.                                  | `func_8019FAA0`       |
-| `0x34` | `steps`     | Role not established `[unknown]`.                                                |                       |
-| `0x38` | `matrix`    | Pointer to the GTE colour matrix, or null for the default.                       | `func_8019FAA0`       |
-| `0x40` | `callback`  | Pointer to the area's own setup code, run after the setup stream when it is set. | `func_8019FAA0`       |
+| Offset | Type                     | Name        | Meaning                                                                          | Evidence              |
+| -----: | ------------------------ | ----------- | -------------------------------------------------------------------------------- | --------------------- |
+| `0x00` | `void*`                  | `handler`   | Pointer to the setup stream ([below](#setup-stream)).                            | `Area_RunSetupStream` |
+| `0x20` | `void*`                  | `exits`     | Pointer to the exit entries ([doors](#doors)).                                   | `func_801A0048`       |
+| `0x24` | `void*`                  | `lists`     | Pointer to the conditional exit lists.                                           | `func_801A0048`       |
+| `0x28` | `void*`                  | `counts`    | Pointer to the row counts of those lists.                                        | `func_801A0048`       |
+| `0x30` | `u8`                     | `last_exit` | Index of the last exit entry, so an area has `last_exit + 1` entries.            | `func_801A0048`       |
+| `0x32` | `u8`                     | `flag_32`   | Map-kind flags, copied to `g_GameRequestFlags`.                                  | `func_8019FAA0`       |
+| `0x34` | `Callback*` `[inferred]` | `steps`     | Role not established `[unknown]`.                                                |                       |
+| `0x38` | `void*`                  | `matrix`    | Pointer to the GTE colour matrix, or null for the default.                       | `func_8019FAA0`       |
+| `0x40` | `Callback`               | `callback`  | Pointer to the area's own setup code, run after the setup stream when it is set. | `func_8019FAA0`       |
 
 ## Load and transition
 
@@ -76,16 +76,16 @@ Back in `Game_RunAreaLoadState`, a fishing area (`flag_32 & 8`) goes to entry st
 
 An exit is a rectangle record of 12 bytes. `func_801A0048 (emi/etc/game/00@0x801A0048)` takes the party's cell (x, y) and walks the area's exit list from the last entry down to entry 0. An entry covers `span` cells starting at `(cx, cy)`, along x when `mode` is 0 and along y otherwise. The [area record](#area-record) points to the entries and to the conditional lists. The table gives an entry by offset.
 
-| Offset | Name   | Meaning                                                                                                                        |
-| -----: | ------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| `0x00` | `cx`   | First cell x.                                                                                                                  |
-| `0x01` | `cy`   | First cell y.                                                                                                                  |
-| `0x02` | `key`  | Destination area id, or `0xFFFF` for a conditional destination.                                                                |
-| `0x04` | `idx`  | Destination x as `(idx << 8) & 0xFF8000`, a 16.16 position.                                                                    |
-| `0x06` | `alt`  | Destination y, same encoding. For `0xFFFF` keys it is the index of the conditional list instead.                               |
-| `0x08` | `mode` | 0: the span runs along x. Otherwise it runs along y.                                                                           |
-| `0x09` | `span` | Number of cells from `(cx, cy)`.                                                                                               |
-| `0x0A` | `kind` | Bits 4 to 6 go to byte 1 of the scratchpad work record. The low bits and bit 7 go to `g_GameContextKind` (masked with `0x8F`). |
+| Offset | Type  | Name   | Meaning                                                                                                                        |
+| -----: | ----- | ------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| `0x00` | `u8`  | `cx`   | First cell x.                                                                                                                  |
+| `0x01` | `u8`  | `cy`   | First cell y.                                                                                                                  |
+| `0x02` | `u16` | `key`  | Destination area id, or `0xFFFF` for a conditional destination.                                                                |
+| `0x04` | `u16` | `idx`  | Destination x as `(idx << 8) & 0xFF8000`, a 16.16 position.                                                                    |
+| `0x06` | `u16` | `alt`  | Destination y, same encoding. For `0xFFFF` keys it is the index of the conditional list instead.                               |
+| `0x08` | `u8`  | `mode` | 0: the span runs along x. Otherwise it runs along y.                                                                           |
+| `0x09` | `u8`  | `span` | Number of cells from `(cx, cy)`.                                                                                               |
+| `0x0A` | `u8`  | `kind` | Bits 4 to 6 go to byte 1 of the scratchpad work record. The low bits and bit 7 go to `g_GameContextKind` (masked with `0x8F`). |
 
 A conditional exit lets one door lead to different places as the story moves. The record's `alt` selects a list of 10-byte rows. A row holds a destination (area id `u16` at 0, x `u16` at 2, y `u16` at 4, same encoding as above), a scenario byte at 6, a flag bit at 7 and a kind byte at 8. The game tests rows in order with `SYS_TestFlag(g_SceneFlagWords + (scenario << 3), bit)`, that is bit `bit` of that scenario's flag word ([scenario](../scenario/#flags)). The first row whose flag is set gives the destination. If no row is set, the row after the last counted row is the default destination, and it is read as a destination only.
 
@@ -167,14 +167,17 @@ The table lists the counts and ranges that the code enforces. Other limits are i
 | Exit cell coordinates | 8-bit x and y; at most 256 entries per area                  | `func_801A0048`                                                  |
 | Exit destination      | 0 to 255 whole cells plus an optional half cell              | `(idx << 8) & 0xFF8000`                                          |
 
-The staged destination of an area change sits in these words. [Phases](../phases/) lists the state variables that the transition also uses.
+The staged destination of an area change sits in work variables of the executable (`exe/slus_004_22`), `0x80143F10..0x80143F1F`. [Phases](../phases/) lists the state variables that the transition also uses.
 
-| Address      | Type          | Name                | Meaning                                                |
-| ------------ | ------------- | ------------------- | ------------------------------------------------------ |
-| `0x80143F10` | `u16`         | `g_GameContextSeed` | Staged destination area.                               |
-| `0x80143F14` | `s32 (16.16)` | `g_GameEntryPosX`   | Staged destination x.                                  |
-| `0x80143F18` | `s32 (16.16)` | `g_GameEntryPosY`   | Staged destination y.                                  |
-| `0x80143F1C` | `u8`          | `g_GameContextKind` | Staged kind byte. Bit 7 selects the world-map arrival. |
+| Address      | Type          | Name                  | Meaning                                                                                |
+| ------------ | ------------- | --------------------- | -------------------------------------------------------------------------------------- |
+| `0x80143F10` | `u16`         | `g_GameContextSeed`   | Staged destination area.                                                               |
+| `0x80143F14` | `s32 (16.16)` | `g_GameEntryPosX`     | Staged destination x.                                                                  |
+| `0x80143F18` | `s32 (16.16)` | `g_GameEntryPosY`     | Staged destination y.                                                                  |
+| `0x80143F1C` | `u8`          | `g_GameContextKind`   | Staged kind byte. Bit 7 selects the world-map arrival.                                 |
+| `0x80143F1D` | `u8`          | `g_GameRequestKind`   | Request kind: `func_801A02E8` writes it, `func_801971E8` reads it.                     |
+| `0x80143F1E` | `u8`          | `g_GameEntryMode`     | Arrival effect: `func_801971E8` selects it, `func_80197378` passes it to `UI_SetMode`. |
+| `0x80143F1F` | `u8`          | `g_GamePrevSelection` | Previous selection: `func_801A0380` writes it, `func_80197378` compares it.            |
 
 An edited area must keep these limits.
 
