@@ -35,18 +35,18 @@ flowchart TD
 
 ### Row layouts
 
-The table gives each row's size and the offset of each field. A field is one byte wide unless the cell says otherwise. A `description` is a little-endian `u16` resource id in the `0x4000`-based id space of `Resource_Resolve` ([text](../text/#references)).
+The table gives each row's size and the offset of each field. Each field carries its type. A `description` is a little-endian `u16` resource id in the `0x4000`-based id space of `Resource_Resolve` ([text](../text/#references)).
 
-| Table        | Size | Fields (offset)                                                                                                                                                                                   |
-| ------------ | ---: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Item         |   18 | name `[12]` (0), flags (`0x0C`), unknown (`0x0D`), description `u16` (`0x0E`), price `u16` (`0x10`)                                                                                               |
-| Vital item   |   16 | name `[12]`, description `u16` (`0x0C`), unknown `u16` (`0x0E`)                                                                                                                                   |
-| Weapon       |   24 | name, equipability (`0x0C`), flags (`0x0D`), kind (`0x0E`), element (`0x0F`), weight (`0x10`), sound (`0x11`), power (`0x12`), unknown (`0x13`), description `u16` (`0x14`), price `u16` (`0x16`) |
-| Armor        |   22 | name, equipability (`0x0C`), flags (`0x0D`), equip type (`0x0E`), weight (`0x0F`), power (`0x10`), unknown (`0x11`), description `u16` (`0x12`), price `u16` (`0x14`)                             |
-| Accessory    |   20 | name, equipability (`0x0C`), flags (`0x0D`), kind (`0x0E`), weight (`0x0F`), description `u16` (`0x10`), price `u16` (`0x12`)                                                                     |
-| Ability      |   20 | name, targeting flags (`0x0C`), type (`0x0D`), cost (`0x0E`), power (`0x0F`), element (`0x10`), flags (`0x11`), description `u16` (`0x12`)                                                        |
-| Shop stock   |   23 | item count (`0x00`), then eleven item references of two bytes from `0x01`: item type, item index                                                                                                  |
-| Level growth |    8 | experience `u16` (`0x00`), HP (`0x02`), AP (`0x03`), power and defense (`0x04`), agility and intellect (`0x05`), ability (`0x06`), extra ability (`0x07`)                                         |
+| Table        | Size | Fields (offset)                                                                                                                                                                                                                                    |
+| ------------ | ---: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Item         |   18 | name `u8[12]` (0), flags `u8` (`0x0C`), unknown `u8` (`0x0D`), description `u16` (`0x0E`), price `u16` (`0x10`)                                                                                                                                    |
+| Vital item   |   16 | name `u8[12]`, description `u16` (`0x0C`), unknown `u16` (`0x0E`)                                                                                                                                                                                  |
+| Weapon       |   24 | name `u8[12]`, equipability `u8` (`0x0C`), flags `u8` (`0x0D`), kind `u8` (`0x0E`), element `u8` (`0x0F`), weight `u8` (`0x10`), sound `u8` (`0x11`), power `u8` (`0x12`), unknown `u8` (`0x13`), description `u16` (`0x14`), price `u16` (`0x16`) |
+| Armor        |   22 | name `u8[12]`, equipability `u8` (`0x0C`), flags `u8` (`0x0D`), equip type `u8` (`0x0E`), weight `u8` (`0x0F`), power `u8` (`0x10`), unknown `u8` (`0x11`), description `u16` (`0x12`), price `u16` (`0x14`)                                       |
+| Accessory    |   20 | name `u8[12]`, equipability `u8` (`0x0C`), flags `u8` (`0x0D`), kind `u8` (`0x0E`), weight `u8` (`0x0F`), description `u16` (`0x10`), price `u16` (`0x12`)                                                                                         |
+| Ability      |   20 | name `u8[12]`, targeting flags `u8` (`0x0C`), type `u8` (`0x0D`), cost `u8` (`0x0E`), power `u8` (`0x0F`), element `u8` (`0x10`), flags `u8` (`0x11`), description `u16` (`0x12`)                                                                  |
+| Shop stock   |   23 | item count `u8` (`0x00`), then eleven item references of two bytes from `0x01`: item type `u8`, item index `u8`                                                                                                                                    |
+| Level growth |    8 | experience `u16` (`0x00`), HP `u8` (`0x02`), AP `u8` (`0x03`), power and defense `u8` (`0x04`), agility and intellect `u8` (`0x05`), ability `u8` (`0x06`), extra ability `u8` (`0x07`)                                                            |
 
 How to read the fields:
 
