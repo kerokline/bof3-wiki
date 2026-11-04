@@ -284,7 +284,7 @@ Source: [`include/world/area.h`](https://github.com/raulcorreia7/bof3-decomp/blo
 
 ## Palette arena
 
-The area's CLUT entries do not own their addresses. They fill slices of one 16 KiB CLUT arena (256 units of 64 bytes, 8,192 colour words). The arena has a working copy at `0x80037800`, which the engine uploads as one rectangle. Arena row `r` is VRAM row `480 + r`. A colour word is `STP | B5 | G5 | R5` ([graphics](../graphics/#palettes)). The table gives the slices and the entries that fill them.
+The area's CLUT entries do not own their addresses. They fill slices of one 16 KiB CLUT arena (256 units of 64 bytes, 8,192 color words). The arena has a working copy at `0x80037800`, which the engine uploads as one rectangle. Arena row `r` is VRAM row `480 + r`. A color word is `STP | B5 | G5 | R5` ([graphics](../graphics/#palettes)). The table gives the slices and the entries that fill them.
 
 | Address                    |       Arena offset | Loaded by                                 |
 | -------------------------- | -----------------: | ----------------------------------------- |
@@ -303,7 +303,7 @@ The area's CLUT entries do not own their addresses. They fill slices of one 16 K
 
 Readers take the arena base and index it in 64-byte units. `0x80035800` has no literal reader.
 
-The `+0x200` bank (`ETC/BATE.EMI#3` and its copies) is also read on the CPU. `battle/battle/03` (`@0x801D8AE4`, `@0x801D8DF8`, `@0x801D9AB4` and `@0x801D9C80`) and `etc/game/00` (`@0x801AEBA0`) take word 4 of the 16-colour CLUT `D_80144952 * 2 + shade`, at `0x80033A08 + ((D_80144952 * 2 + shade) << 5)`, as the RGB of a flat panel primitive.
+The `+0x200` bank (`ETC/BATE.EMI#3` and its copies) is also read on the CPU. `battle/battle/03` (`@0x801D8AE4`, `@0x801D8DF8`, `@0x801D9AB4` and `@0x801D9C80`) and `etc/game/00` (`@0x801AEBA0`) take word 4 of the 16-color CLUT `D_80144952 * 2 + shade`, at `0x80033A08 + ((D_80144952 * 2 + shade) << 5)`, as the RGB of a flat panel primitive.
 
 ## `0x80104000`: map bundle
 
@@ -319,7 +319,7 @@ The header has `u8` width and height at bytes 0 and 1. Every other field is a `u
 |    `0x04-0x13` | `u16[4][2]` | `bank_offsets[4][2]` | eight offsets: bank A rectangles and bank B quads, per selector                                                                                      |
 |         `0x14` | `u16`       | `byte_code_off4`     | per-cell byte codes; equals `W*H + 12` in 200 of 200                                                                                                 |
 | `0x16`, `0x18` | `u16`       | `zero_16`, `zero_18` | zero in 200 of 200, no reader                                                                                                                        |
-|         `0x1A` | `u16[2]`    | `color[2]`           | runtime colour words; written by `@0x801583BC`                                                                                                       |
+|         `0x1A` | `u16[2]`    | `color[2]`           | runtime color words; written by `@0x801583BC`                                                                                                        |
 |         `0x1E` | `u16`       | `scroll`             | nonzero in 76 of 200 and 0 in the rest; meaning unknown. One measurement gives the range `0xEC00`-`0xFFA0` and another `0xF300`-`0xFA90`; unresolved |
 |         `0x20` | `u16`       | `list_base_20`       | record list, opcode byte `& 0x3F`                                                                                                                    |
 |         `0x22` | `u16`       | `list_base_22`       | record list, opcode byte `& 0x7F`                                                                                                                    |
@@ -379,7 +379,7 @@ A tile descriptor is a 4-byte word. `func_80155560 (exe/slus_004_22@0x80155560)`
 | 31       | depth: 0 is 8bpp, 1 is 4bpp                                                                    |
 | 28 to 29 | bank selector (material `bank0` to `bank3`)                                                    |
 | 24 to 27 | CLUT index                                                                                     |
-| 19 to 23 | colour (byte 2 masked with `0xF8`)                                                             |
+| 19 to 23 | color (byte 2 masked with `0xF8`)                                                              |
 | 16 to 18 | corner-order flags: bit 18 turns the corners a quarter, bit 16 flips across x, bit 17 across z |
 | 8 to 11  | mode                                                                                           |
 | 11       | with a nonzero mode: 1 picks bank B (quad), 0 picks bank A (rectangle)                         |
@@ -395,7 +395,7 @@ The bundle decodes to a terrain mesh (Wavefront OBJ, glTF 2.0 or similar) with t
 
 - Corners: the mesh builder `exe/slus_004_22@0x801530D0` places corner `k` at the step `(0,0)`, `(1,0)`, `(0,1)` and `(1,1)` from the cell's near corner, and corner `k` takes record byte `k` (loads at `0x801535A8` to `0x80153640`). The GTE vertex holds `-(byte << 4)`. A mesh uses `y = byte * 16`, so a larger byte is higher. A face walks the perimeter (corners 0, 2, 3, 1), because the stored order would cross, and that walk gives an upward normal.
 - Height table: 13 of the 200 payloads ship the height-byte table, one signed byte per cell. The mesh builder never reads it. The height query `@0x8015477C` does. A mesh built from the corners does not use it.
-- Not applied: the CLUT index and the colour need runtime palette and colour words. The object list is not part of a mesh.
+- Not applied: the CLUT index and the color need runtime palette and color words. The object list is not part of a mesh.
 - Textures: the materials carry no texture. A tile's page and palette come from the texture association in [graphics](../graphics/#texture-to-palette-join), which is not proven for world maps.
 - Editing: each corner's height is its `y` divided by 16, and each corner must stay at its cell. A mesh does not carry the tiles, objects or height table, so the stored bundle must supply them. On the retail disc all 200 bundles return their stored bytes from a glTF mesh, from an OBJ mesh and from their byte-code, object and height lists.
 
@@ -403,7 +403,7 @@ Over the 200 retail bundles there are 1,263,531 cells, and 688,714 (54.5 percent
 
 ### Readers
 
-The code that reads the bundle: `@0x80153DE8` (area init, publishes `g_AreaCellCodes`), `@0x80166CB0` (byte code), `@0x8015477C` (height query, 538 direct call sites: 7 in the executable and 531 across the overlay images), `@0x801530D0`, `@0x8015684C` and `@0x80157CE4` (mesh), `@0x80154438` and `@0x80158400` (grid), `@0x801576FC`, `@0x80157F98`, `@0x801580A4` and `@0x80158B24` (record lists), `@0x80155560` (tile banks) and `@0x80156ED4` (inline colours). `emi/etc/game/00` reads the grid at `@0x8019C4F0`, `@0x8019C794` and `@0x8019EC20`, and writes the byte code at `@0x801A4BC0`. Writers are limited to the byte-code table, the height table, the runtime colour words and the record fields. No loader fixup exists.
+The code that reads the bundle: `@0x80153DE8` (area init, publishes `g_AreaCellCodes`), `@0x80166CB0` (byte code), `@0x8015477C` (height query, 538 direct call sites: 7 in the executable and 531 across the overlay images), `@0x801530D0`, `@0x8015684C` and `@0x80157CE4` (mesh), `@0x80154438` and `@0x80158400` (grid), `@0x801576FC`, `@0x80157F98`, `@0x801580A4` and `@0x80158B24` (record lists), `@0x80155560` (tile banks) and `@0x80156ED4` (inline colors). `emi/etc/game/00` reads the grid at `@0x8019C4F0`, `@0x8019C794` and `@0x8019EC20`, and writes the byte code at `@0x801A4BC0`. Writers are limited to the byte-code table, the height table, the runtime color words and the record fields. No loader fixup exists.
 
 The `+0x20` and `+0x22` lists use a header word whose byte 3 is the dispatcher opcode and byte 2 the size in words. The dispatch tables are `D_8017F8F0` (mask `0x3F`) and `D_8017F8FC` (mask `0x7F`). The `+0x24` cells start with `{y, x, size}`, and the `+0x28` objects start with `{tag, body_words}`.
 
@@ -448,7 +448,7 @@ Nineteen payloads hold no `addiu $sp` and no `jr $ra` at any word offset, so the
 
 - [Areas and the field](../../systems/areas/): how the engine loads and runs these blocks.
 - [EMI container](../emi/): the entry types and the archive shapes that hold the blocks.
-- [Graphics formats](../graphics/): the colour word, the CLUT and the texture-to-palette join.
+- [Graphics formats](../graphics/): the color word, the CLUT and the texture-to-palette join.
 - [Game records](../../data/records/): the encounter and enemy record fields by group.
 - [Game text](../../data/text/): the message bank and its control codes.
 - [Edit maps and scripts](../../guides/maps/): what can change in a map or script.

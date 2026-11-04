@@ -145,7 +145,7 @@ The pitch-bend range is tone-local. Several fields never vary on the disc: `VabH
 
 A note-on uses `fine = 0`: `_SsNoteOn`, `_SsVmKeyOn` and `_SsVmSelectToneAndVag` call `note2pitch(note, 0, center, shift)`. The channel's stored bend applies only on a pitch-bend event (`_SsVmPitchBend (exe/slus_004_22@0x801728E0)`). The voice manager layers every tone whose `min <= note <= max`, one SPU voice per layer. The physical tone block is the count of non-empty programs before the logical program, and `VagAtr.prog` is the lookup key a renderer uses.
 
-`SsPitchFromNote` quantises the combined fine tune to 16 steps per semitone and reads the linked integer table at `0x8018445C` (executable file offset `0xEE45C`). The table has 386 bytes, and it is the only pitch table. The addresses `0x800FDA84` and `0x800FDC5C` hold zeros and are not pitch data. The renderer applies bank volume and pan with the selected program and tone attributes, and no bass boost or EQ.
+`SsPitchFromNote` quantizes the combined fine tune to 16 steps per semitone and reads the linked integer table at `0x8018445C` (executable file offset `0xEE45C`). The table has 386 bytes, and it is the only pitch table. The addresses `0x800FDA84` and `0x800FDC5C` hold zeros and are not pitch data. The renderer applies bank volume and pan with the selected program and tone attributes, and no bass boost or EQ.
 
 ## EMI type-8 cue records
 
@@ -230,7 +230,7 @@ typedef struct SepSequenceHeader {
 
 Source: [`include/audio/sep.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/include/audio/sep.h)
 
-The headers and payloads tile the package exactly in all 119 packages. Each payload is a stream of MIDI-like events: variable-length delta times, running status, note on and off, program change, control change and pitch bend. Only the tempo and end-of-track events are meta events, and meta events carry a Standard MIDI File length. The end-of-track event is `FF 2F 00` and it closes all 476 sequences. No sequence contains a tempo meta event, so the tempo is the header field. A pitch-bend event has two MIDI data bytes. The linked renderer uses the second as the 7-bit coarse value, centred at 64, and ignores the first.
+The headers and payloads tile the package exactly in all 119 packages. Each payload is a stream of MIDI-like events: variable-length delta times, running status, note on and off, program change, control change and pitch bend. Only the tempo and end-of-track events are meta events, and meta events carry a Standard MIDI File length. The end-of-track event is `FF 2F 00` and it closes all 476 sequences. No sequence contains a tempo meta event, so the tempo is the header field. A pitch-bend event has two MIDI data bytes. The linked renderer uses the second as the 7-bit coarse value, centered at 64, and ignores the first.
 
 The control changes include NRPN-style extensions: loop start (20), loop end (30) and VAB attribute control. The select pairs seen are CC 99 (934 events), CC 98 (186) and CC 6 (282).
 

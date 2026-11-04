@@ -89,7 +89,7 @@ flowchart TD
     G["Battle_Update"] --> E
 ```
 
-The flag changes three behaviours:
+The flag changes three behaviors:
 
 - **Party rows.** `func_801BFF9C (emi/etc/game/00@0x801BFF9C)` sets the party to one row when the map is not loading and the area is a world map or fishing area, is area 187 or 189 (`0xBB`, `0xBD`), or is a camp scene while event flag `0x77` is clear. On a world map it then looks up a scene record by Ryu's form (`character_id` 0 gives record `0x52`, 9 gives `0xCB`, 7 gives `0x27A`, and any other form gives none). Otherwise the row count is the whole party.
 - **Cell layer.** With bit 0 set, `Area_DrawCellLayer (exe/slus_004_22@0x80155B40)` and `func_801530D0 (exe/slus_004_22@0x801530D0)` skip the column count minus 2 columns, never fewer than 0.
@@ -115,7 +115,7 @@ The retail build has `checkRECT(char *, RECT *)` at `0x8017B438` and an argument
 
 - The entry path of the battle-effect modules (no static caller).
 - Which code owns name entry after New Game; the mutable character record is `g_Characters` (`0x80144968`), name bytes `0x00..0x04`.
-- The `emi/etc/game/00` handler tables at `0x801C7B08..0x801C7BB0` (`g_GameCampMenuLoad`, `g_GameStates`, `g_GameEntryHandlers`, `g_GameModeHandlers`, `g_GameStateHandlers`, `g_GameSubstateHandlers`, `g_MenuAbilityOpen`, `g_MenuStatusOpen`, `g_GameFlowHandlers`) are initialised data. No code writes them, so the load fixes the handlers.
+- The `emi/etc/game/00` handler tables at `0x801C7B08..0x801C7BB0` (`g_GameCampMenuLoad`, `g_GameStates`, `g_GameEntryHandlers`, `g_GameModeHandlers`, `g_GameStateHandlers`, `g_GameSubstateHandlers`, `g_MenuAbilityOpen`, `g_MenuStatusOpen`, `g_GameFlowHandlers`) are initialized data. No code writes them, so the load fixes the handlers.
 - The effect of map-kind bit `0x20`.
 
 ## Sources and confidence

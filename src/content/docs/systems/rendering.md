@@ -3,7 +3,7 @@ title: "Rendering"
 description: "The game draws each frame by writing GPU primitives into a fixed RAM arena, threading them into eight depth layers of an ordering table and handing the table to the GPU."
 ---
 
-The game draws each frame by writing GPU primitives into a fixed RAM arena, threading them into eight depth layers of an ordering table and handing the table to the GPU. It has no scene graph and no draw library beyond a few helpers. Textures and palettes sit in VRAM, and each primitive names the texture page and palette row it samples. This page covers the primitive arena, the VRAM layout, how textures and palettes reach VRAM and how a sprite picks its colours. It does not cover the order of a whole frame, text drawing or the loader that fills VRAM.
+The game draws each frame by writing GPU primitives into a fixed RAM arena, threading them into eight depth layers of an ordering table and handing the table to the GPU. It has no scene graph and no draw library beyond a few helpers. Textures and palettes sit in VRAM, and each primitive names the texture page and palette row it samples. This page covers the primitive arena, the VRAM layout, how textures and palettes reach VRAM and how a sprite picks its colors. It does not cover the order of a whole frame, text drawing or the loader that fills VRAM.
 
 ## Terms
 
@@ -12,7 +12,7 @@ The game draws each frame by writing GPU primitives into a fixed RAM arena, thre
 | Primitive     | One GPU packet (`SPRT`, `POLY_FT4`, `DR_MODE`, `DR_AREA`) built at `g_GfxPrimCursor`.                                 |
 | Arena         | The RAM block that holds one frame's primitives. Two arenas, one per render record.                                   |
 | Layer         | One of 8 ordering-table entries. `GFX_AddPrim` appends a primitive to one layer's chain.                              |
-| Cell          | A 16-colour palette unit: 16 VRAM words of one palette row. A 256-colour palette is 16 cells.                         |
+| Cell          | A 16-color palette unit: 16 VRAM words of one palette row. A 256-color palette is 16 cells.                           |
 | Palette arena | The RAM block at `0x80033800` that holds loaded palette banks. Its working copy at `0x80037800` is what the GPU sees. |
 | Stage palette | The VRAM rectangle (0, 0x1E0, 0x100, 0x20): 32 palette rows of 256 words.                                             |
 | Sprite record | The work record (`Actor`) at scratchpad `work_ptr`. Its bytes `+0x24` to `+0x29` pick page, CLUT and layer.           |
@@ -43,7 +43,7 @@ The game code calls `GFX_AddPrim` with a literal layer about 200 times for layer
 
 ## Display and VRAM
 
-`SYS_InitDisplay (exe/slus_004_22@0x8014AE08)` sets two 320 by 240 draw and display environments. Record 0 draws to (0, 0) and shows (0, 240). Record 1 draws to (0, 240) and shows (0, 0). `SYS_InitHardware` sets `SetGeomScreen(0x3E8)` and `SetGeomOffset(0xA0, 0x78)`: projection distance 1,000 and screen centre (160, 120).
+`SYS_InitDisplay (exe/slus_004_22@0x8014AE08)` sets two 320 by 240 draw and display environments. Record 0 draws to (0, 0) and shows (0, 240). Record 1 draws to (0, 240) and shows (0, 0). `SYS_InitHardware` sets `SetGeomScreen(0x3E8)` and `SetGeomOffset(0xA0, 0x78)`: projection distance 1,000 and screen center (160, 120).
 
 The code names these regions of VRAM.
 
@@ -79,7 +79,7 @@ flowchart TD
     X --> G["pixel colour"]
 ```
 
-### The chain for one colour
+### The chain for one color
 
 1. **Palette bank.** A type-0 EMI entry is copied to the RAM address in its table row. Arena offsets `+0x000`, `+0x200`, `+0x400`, `+0x600`, `+0x2000` and `+0x3600` are used ([area formats](../../formats/area/) has the table).
 2. **Working copy.** `GFX_ResetPalette (exe/slus_004_22@0x8014E284)` zeroes arena rows 28 to 31, then copies all 32 rows (512 bytes each) to `0x80037800`. `GFX_CopyPalette (exe/slus_004_22@0x8014E3A0)` copies one row. Both set `g_GfxPalettePending`. Code that changes a palette (fades, animations, battle row moves) writes the working copy, not the arena.
@@ -91,17 +91,17 @@ flowchart TD
 
 `Area_BuildClut (exe/slus_004_22@0x8014CE78)` builds the word from three bytes of the sprite record: flags `+0x24` (bit `0x04`), selector `+0x27` (`sel`) and kind `+0x28`. `base` is `0x1E0`, or `0x1F0` when flag bit `0x04` is set. The kind sets how many palette cells the sprite owns:
 
-| Kind (`+0x28`) | CLUT word                                       | Palette size           | Cells per row |
-| -------------: | ----------------------------------------------- | ---------------------- | ------------: |
-|              0 | `((base + (sel >> 4)) << 6) \| (sel & 0xF)`     | 1 cell, 16 colours     |            16 |
-|              1 | `(base + sel) << 6`                             | Whole row, 256 colours |             1 |
-|              2 | `((base + (sel >> 3)) << 6) \| ((sel & 7) * 2)` | 2 cells                |             8 |
-|              3 | `((base + (sel >> 2)) << 6) \| ((sel & 3) * 4)` | 4 cells                |             4 |
-|              4 | `((base + (sel >> 1)) << 6) \| ((sel & 1) * 8)` | 8 cells                |             2 |
+| Kind (`+0x28`) | CLUT word                                       | Palette size          | Cells per row |
+| -------------: | ----------------------------------------------- | --------------------- | ------------: |
+|              0 | `((base + (sel >> 4)) << 6) \| (sel & 0xF)`     | 1 cell, 16 colors     |            16 |
+|              1 | `(base + sel) << 6`                             | Whole row, 256 colors |             1 |
+|              2 | `((base + (sel >> 3)) << 6) \| ((sel & 7) * 2)` | 2 cells               |             8 |
+|              3 | `((base + (sel >> 2)) << 6) \| ((sel & 3) * 4)` | 4 cells               |             4 |
+|              4 | `((base + (sel >> 1)) << 6) \| ((sel & 1) * 8)` | 8 cells               |             2 |
 
-The row is `word >> 6` and the column is `(word & 0x3F) * 16`. The cell counts match the table `s_PaletteFadeColorCounts = {1, 16, 2, 4, 8}` that the fade code uses. The texture depth follows the kind: `Area_DrawObjectSprite` passes `tp = (kind != 0)`, so kind 0 is a 4-bit texture and kinds 1 to 4 are 8-bit. That kinds 2 to 4 use only the first 32, 64 or 128 colours of a CLUT placed at a multiple of its width is `[inferred]`.
+The row is `word >> 6` and the column is `(word & 0x3F) * 16`. The cell counts match the table `s_PaletteFadeColorCounts = {1, 16, 2, 4, 8}` that the fade code uses. The texture depth follows the kind: `Area_DrawObjectSprite` passes `tp = (kind != 0)`, so kind 0 is a 4-bit texture and kinds 1 to 4 are 8-bit. That kinds 2 to 4 use only the first 32, 64 or 128 colors of a CLUT placed at a multiple of its width is `[inferred]`.
 
-The transparency mode in the page word is the low two bits of record byte `+0x5C` (`tint.bytes.flags`). The vertex colour for each of `+0x5D`, `+0x5E` and `+0x5F` is `byte - 0x80`.
+The transparency mode in the page word is the low two bits of record byte `+0x5C` (`tint.bytes.flags`). The vertex color for each of `+0x5D`, `+0x5E` and `+0x5F` is `byte - 0x80`.
 
 ### Texture page and sheet upload
 
@@ -113,9 +113,9 @@ with `x = (page % 16) << 6` and `y = (page / 16) << 8`. `v` is the cell `v` plus
 
 `Actor_SelectScriptBank (exe/slus_004_22@0x8014DC08)` queues the sheet for the record unless record flag `0x02` is set. For `level = +0x25` up to `0x10`, x is `level << 6`. Above that, x is `(level - 0x10) << 6` and y gains `0x100`. Y is otherwise record byte `+0x26`. Page `0x10` gives x = 1024 in this formula, but the draw code maps page 16 to x = 0 and y = 256. Which of the two shipped data uses is `[unknown]`.
 
-### Causes of wrong texture colours
+### Causes of wrong texture colors
 
-When a texture shows the wrong colours, one of these four items disagrees with the others `[inferred]`:
+When a texture shows the wrong colors, one of these four items disagrees with the others `[inferred]`:
 
 - The palette bank sits at another arena offset.
 - The CLUT word names another row or column.
@@ -124,19 +124,19 @@ When a texture shows the wrong colours, one of these four items disagrees with t
 
 ## Palette runtime
 
-The last four stage palette rows are handed out dynamically to sprites that need their own colours, such as fading or recoloured characters. Three tables track them.
+The last four stage palette rows are handed out dynamically to sprites that need their own colors, such as fading or recolored characters. Three tables track them.
 
 | Object          | Address      | Size                              | Role                                                                              |
 | --------------- | ------------ | --------------------------------- | --------------------------------------------------------------------------------- |
-| Cell map        | `D_80145D54` | 4 rows by 16 bytes, `0xFF` = free | One byte per 16-colour cell. It holds the fade record id that owns it.            |
+| Cell map        | `D_80145D54` | 4 rows by 16 bytes, `0xFF` = free | One byte per 16-color cell. It holds the fade record id that owns it.             |
 | Fade records    | `D_80145BD4` | 32 records of 12 bytes            | `GFX_AllocPaletteFade` fills the first record with bit 0 clear.                   |
 | Animation slots | `D_80145D94` | 8 slots                           | `GFX_StartPaletteAnimation` starts one. `GFX_UpdatePaletteAnimations` steps them. |
 
 `GFX_AllocPaletteCell (emi/etc/game/00@0x801968BC)` takes a mode and scans the map row by row, returning the first run of free cells that fits. Mode 0 is one cell, 1 a whole row, 2 two cells (even column), 3 four cells (column multiple of 4) and 4 eight cells. The result is a selector for `Area_BuildClut` of the same kind. Mode 0 returns `cell - 0x40` as a byte. With record flag `0x04` set, `Area_BuildClut` turns that into rows `0x1FC` to `0x1FF`. Those are the same rows (28 to 31) that `GFX_ResetPalette` zeroes, so the dynamic cells live in the last four rows of the stage palette `[inferred]`.
 
-A fade, `GFX_AllocPaletteFade (emi/etc/game/00@0x8019651C)`, takes a free cell run for the sprite record, remembers the record's old selector in the fade record, and `GFX_FreePaletteFade` restores it and frees the cells. `GFX_UploadPaletteRows` sets bit `0x8000` (the STP bit) on every colour of the record's cells. The code that interpolates colours during a fade is in overlays (`emi/world00/area036/13`, `emi/world02/area085/13`, `emi/world02/area108/14`, `emi/bmagic/magic064/03`), not in the resident core, and was not read `[unknown]`.
+A fade, `GFX_AllocPaletteFade (emi/etc/game/00@0x8019651C)`, takes a free cell run for the sprite record, remembers the record's old selector in the fade record, and `GFX_FreePaletteFade` restores it and frees the cells. `GFX_UploadPaletteRows` sets bit `0x8000` (the STP bit) on every color of the record's cells. The code that interpolates colors during a fade is in overlays (`emi/world00/area036/13`, `emi/world02/area085/13`, `emi/world02/area108/14`, `emi/bmagic/magic064/03`), not in the resident core, and was not read `[unknown]`.
 
-Palette animations read 4-byte steps (`dst`, `src`, `count`, `wait`) and copy `count` colours from `src` to `dst` inside one row of the working copy. A step whose first byte is `0xFF` loops back by its second byte (`GFX_StepPaletteAnimation`, `GFX_CopyPaletteAnimationColors`). The copy sets the pending flag and uploads nothing.
+Palette animations read 4-byte steps (`dst`, `src`, `count`, `wait`) and copy `count` colors from `src` to `dst` inside one row of the working copy. A step whose first byte is `0xFF` loops back by its second byte (`GFX_StepPaletteAnimation`, `GFX_CopyPaletteAnimationColors`). The copy sets the pending flag and uploads nothing.
 
 ## Sprite sheet queue
 
@@ -174,7 +174,7 @@ Each row gives a limit, where the code shows it and what an asset must stay with
 | Limit                 | Value                                              | Source                                     | Asset must stay within                                                                           |
 | --------------------- | -------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------ |
 | Primitive arena       | 36,812 bytes per buffer, `0x80020000 + b * 0x9000` | `SYS_PrepareFrame`, `GFX_AddPrim`          | At most about 920 `POLY_FT4`, 1,840 `SPRT` or 2,300 `SPRT_8` per frame, all primitives together. |
-| Overflow behaviour    | The primitive is dropped; no error.                | `GFX_AddPrim`                              | Too many cells or glyphs make sprites vanish, not crash.                                         |
+| Overflow behavior     | The primitive is dropped; no error.                | `GFX_AddPrim`                              | Too many cells or glyphs make sprites vanish, not crash.                                         |
 | Primitive size        | One byte                                           | `GFX_AddPrim` `u8 size`                    | A packet over 255 bytes is not supported.                                                        |
 | Layers                | 8; no range check on the argument                  | `D_801459D0[8]`                            | Sprite record layer byte `+0x29` stays in 0 to 7.                                                |
 | Frame size            | 320 by 240                                         | `SYS_InitDisplay`                          | UI coordinates are in this space.                                                                |
@@ -193,12 +193,12 @@ Each row gives a limit, where the code shows it and what an asset must stay with
 
 - Ordering meaning of each layer number. Settled by: listing every `GFX_AddPrim` layer literal per overlay and comparing with screenshots.
 - VRAM page allocation between area, character, battle and font sheets. Settled by: a VRAM dump from an emulator at each phase.
-- Whether `LoadImage` finishes before `DrawOTag` in the same frame. Settled by: PsyQ `LoadImage` queue behaviour or a trace of the GPU DMA.
+- Whether `LoadImage` finishes before `DrawOTag` in the same frame. Settled by: PsyQ `LoadImage` queue behavior or a trace of the GPU DMA.
 - Purpose of the `(0x340, 0x100, 0xC0, 0x100)` draw area. Settled by: tracing which records set record flag `0x08`.
 - Page 16 mismatch between the sheet upload and the draw formulas. Settled by: reading the page bytes of shipped sprite records.
-- Behaviour of `func_8014BC70`. Settled by: a full read of its assembly.
+- Behavior of `func_8014BC70`. Settled by: a full read of its assembly.
 - Layers above 7 passed to `GFX_AddPrim`. Settled by: searching call sites for non-literal layer values.
-- Draw code for fade colour interpolation in overlays. Settled by: reading `emi/world00/area036/13` and the other overlays listed under palette runtime.
+- Draw code for fade color interpolation in overlays. Settled by: reading `emi/world00/area036/13` and the other overlays listed under palette runtime.
 
 ## Sources and confidence
 

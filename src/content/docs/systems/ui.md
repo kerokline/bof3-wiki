@@ -84,7 +84,7 @@ A box opens by growing from a point to its full size, stays, then shrinks:
 | State 1, growing | `func_8015920C` adds the step each frame, snaps to the origin table, then draws the frame with `func_80159FA0`.                                                                 |
 | State 2, open    | `func_80159510`. Not read `[unknown]`. It is the step between growing and shrinking.                                                                                            |
 | State 3, closing | `func_80159580` shrinks the box the same way and calls `UI_UpdateLayout` while the sub-kind is 0.                                                                               |
-| Frame            | `func_80159FA0` draws a grey (`0x78`) four-point outline and `func_8015A2B0` draws the inner line, both on layer 1.                                                             |
+| Frame            | `func_80159FA0` draws a gray (`0x78`) four-point outline and `func_8015A2B0` draws the inner line, both on layer 1.                                                             |
 | Text origin      | `UI_UpdateLayout` sets it to `(D_80148334 >> 4) + 10`, `(D_80148336 >> 4) + 6` before each redraw.                                                                              |
 | Position         | `g_MenuPanelOrigins (exe/slus_004_22@0x8017F90C)`, 32 bytes: two sets of 8 (x, y) byte pairs, selected by `D_801490CE`.                                                         |
 
@@ -104,7 +104,7 @@ Five drawers cover all text. Each builds sprites from one of three glyph sheets 
 
 `UI_DrawTextGlyphs` handles control bytes and glyphs for message text. `UI_DrawTextString` draws name-style strings (control bytes `0x01`, `0xFF`, `0x15`). `UI_DrawAsciiString` draws ASCII as 8 by 12 sprites, and `UI_DrawGlyphString` as 8 by 8 sprites.
 
-All of them first call `func_8014FC00(0)`, which emits a draw-mode packet with texture page `0x2F` (column 15, 4 bits per pixel) on layer 1, so the glyph sheets live in that page. The `flags` byte holds the palette in its low nibble and a row style in its high nibble. The high nibble indexes a pair of bytes in `g_NumberRowShades` or `g_TextRowShades` that offset `v` and trim the cell height. Glyph colours are the 16 cells of stage palette row 0 (`0x7800 | n` is VRAM row 480, column `n * 16`); see [rendering](../rendering/#textures-tims-and-palettes).
+All of them first call `func_8014FC00(0)`, which emits a draw-mode packet with texture page `0x2F` (column 15, 4 bits per pixel) on layer 1, so the glyph sheets live in that page. The `flags` byte holds the palette in its low nibble and a row style in its high nibble. The high nibble indexes a pair of bytes in `g_NumberRowShades` or `g_TextRowShades` that offset `v` and trim the cell height. Glyph colors are the 16 cells of stage palette row 0 (`0x7800 | n` is VRAM row 480, column `n * 16`); see [rendering](../rendering/#textures-tims-and-palettes).
 
 `UI_DrawText (exe/slus_004_22@0x8014F800)` seeds the cursor: `D_80145ACA` (x), `D_80145ACC` (y) and `D_80145ACE` (line start x). A newline moves y by 12, or by 14 in the message engine (`UI_DrawMessageScript`). Formatted numbers go through `g_UiFormatBuffer` (`0x80145AD4`) with `sprintf`, then `UI_DrawGlyphString`; the `sprintf` call sites are not listed.
 
@@ -124,7 +124,7 @@ All of them first call `func_8014FC00(0)`, which emits a draw-mode packet with t
 | 13, 14, 15, 16      | `+0x200 / -0x200` with `F514` or `F5F0`         | Slow fades, 64 frames.             |
 | 19                  | `GFX_RunBlackFade(0x100, 1, 0)`                 | Very slow fade, 128 frames.        |
 
-The fade body `GFX_StepScreenFade` draws a 320 by 240 `TILE` with grey level `position >> 7`, semi-transparent with draw mode `GetTPage(1, abr, 0x140, 0)`, and adds the step to a 16-bit level each frame until the sign bit flips. The frame count is `0x8000 / step`. The thread then calls `CallbackExit`, so every effect ends its slot. That `abr = 2` is a subtractive blend, a fade to black, is PlayStation GPU behaviour rather than game data `[inferred]`. The modes with camera changes were read only for their loop shape `[unknown]`.
+The fade body `GFX_StepScreenFade` draws a 320 by 240 `TILE` with gray level `position >> 7`, semi-transparent with draw mode `GetTPage(1, abr, 0x140, 0)`, and adds the step to a 16-bit level each frame until the sign bit flips. The frame count is `0x8000 / step`. The thread then calls `CallbackExit`, so every effect ends its slot. That `abr = 2` is a subtractive blend, a fade to black, is PlayStation GPU behavior rather than game data `[inferred]`. The modes with camera changes were read only for their loop shape `[unknown]`.
 
 `g_UiWindowEffectBusy` (`0x80143C40`) is the flag other code tests before it starts input or a new effect. The readers are `UI_SetMode` and the title code (`UI_WaitTitleInput` at `0x801D0F00`, `UI_UpdateChoicePrompt` at `0x801D0FB8`, `UI_DrawChoicePrompt` at `0x801D11E4`, all `emi/etc/game/01`). No writer is in the resident code. The overlay functions `func_801D74D4`, `func_80198780` and `func_801985C8` touch it, but who sets it is `[unknown]`.
 
@@ -160,7 +160,7 @@ The table lists the limits of the text engine and what a replacement asset must 
 | Window size                 | 200 by 54 or 120 by 54 pixels                                                                    | `func_80159050`                                                | Message text fits the box: glyphs advance 8 pixels, a newline moves 14. |
 | Window positions            | 8 per set, 2 sets                                                                                | `g_MenuPanelOrigins`, `D_801490CE`                             | Position index below 8.                                                 |
 | Glyph sheet                 | 31 columns of 8 by 12 cells at texture page `0x2F`; 32 columns of 8 by 8; 21 columns of 12 by 12 | `UI_DrawTextGlyphs`, `UI_DrawTextString`, `UI_DrawGlyphString` | A replacement font keeps the cell grid and page.                        |
-| Palette for text            | 16 cells (columns 0 to 15) of stage row 0                                                        | CLUT `0x7800 \| n`                                             | Text colours sit in the first 16 cells of arena row 0.                  |
+| Palette for text            | 16 cells (columns 0 to 15) of stage row 0                                                        | CLUT `0x7800 \| n`                                             | Text colors sit in the first 16 cells of arena row 0.                   |
 
 ## Open questions
 

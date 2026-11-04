@@ -30,7 +30,7 @@ What the common fields do:
 ## Limits and pitfalls
 
 - **Row counts are fixed.** The tables hold 92 items, 16 vital items, 83 weapons, 68 armor pieces, 52 accessories, 40 shops and 228 abilities. A new row has no documented reader, so reuse an existing row.
-- **The entry keeps its size and address.** Entry 0 loads at a fixed address, and every table sits at a fixed payload offset from it. A table that changes size moves its neighbours.
+- **The entry keeps its size and address.** Entry 0 loads at a fixed address, and every table sits at a fixed payload offset from it. A table that changes size moves its neighbors.
 - **Row 0 is empty.** Each equipment table starts with a `Nothing` row, and ability 0 is zeroed. Leave them.
 - **The gap before the abilities.** A 232-byte block lies between the shops and the abilities. Its use is `[unknown]`. Leave it as it is.
 - **Unnamed bytes.** One byte of the item row, the high nibble of `kind` and the ability flag bits beyond the named ones are `[unknown]`.
@@ -38,7 +38,7 @@ What the common fields do:
 
 ## Check in the game
 
-Items and equipment show their name and price in the item and equipment menus. A changed ability shows its cost in the ability list and its effect in a battle. A changed shop row shows in the shop that reads it. A row with a wrong stride shows names from a neighbouring row.
+Items and equipment show their name and price in the item and equipment menus. A changed ability shows its cost in the ability list and its effect in a battle. A changed shop row shows in the shop that reads it. A row with a wrong stride shows names from a neighboring row.
 
 ## Related
 

@@ -49,7 +49,7 @@ The state values are `EMPTY` 0, `YIELD` 1, `OPEN` 2, `SWITCH` 4 and `IDLE` 0x7F.
 | `SWITCH`   | switch in                                                                                         |
 | other      | skip                                                                                              |
 
-"Switch in" sets the state to `IDLE` and calls `ChangeTh` with the thread id. The yielding functions return control the other way with `ChangeTh(0xFF000000)`. That this value returns to the thread that called `CallbackRun` is PsyQ kernel behaviour that the code relies on. `[inferred]`
+"Switch in" sets the state to `IDLE` and calls `ChangeTh` with the thread id. The yielding functions return control the other way with `ChangeTh(0xFF000000)`. That this value returns to the thread that called `CallbackRun` is PsyQ kernel behavior that the code relies on. `[inferred]`
 
 Because the walk goes from slot 0 to slot 3, a callback in slot 0 that registers slot 1 gets slot 1 started in the same pass. The boot does exactly this ([boot](../../systems/boot/)).
 
@@ -111,7 +111,7 @@ A menu panel is a task, so at most 22 panels are live. `Menu_RunPanelTasks (exe/
 
 `UI_SetMode(m)` starts a screen effect such as a fade, wipe or zoom. It does nothing while `g_UiWindowEffectBusy (exe/slus_004_22@0x80143C40)` is nonzero. Otherwise it stores `m & 0xFF` in `g_UiLocalMode (exe/slus_004_22@0x80143C90)` and registers `UI_DispatchLocalMode` in slot 2. That callback copies the 21-entry table to the stack and calls the entry `g_UiLocalMode` selects, once. Several entries are one-line wrappers around the fade routine `GFX_RunBlackFade`, which loops with `CallbackWait(1)` and ends the thread with `CallbackExit`. The other entries end through their own `CallbackWait` and `CallbackExit` calls. `UI_SetModeWait` is the same call, followed by a `CallbackWait(1)` loop until the effect ends.
 
-The effect table is a table of transitions and not of game phases. Phase code calls `UI_SetMode` at a boundary. The field handler for an area change calls `UI_SetMode(g_GameEntryMode)` ([game phases](../../systems/phases/)). The effect catalogue is in [UI and text drawing](../../systems/ui/).
+The effect table is a table of transitions and not of game phases. Phase code calls `UI_SetMode` at a boundary. The field handler for an area change calls `UI_SetMode(g_GameEntryMode)` ([game phases](../../systems/phases/)). The effect catalog is in [UI and text drawing](../../systems/ui/).
 
 ## Data and limits
 

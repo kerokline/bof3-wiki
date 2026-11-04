@@ -73,7 +73,7 @@ The pixel and script formats inside a node are not decoded.
 
 ## Palette layer
 
-The word at section `+4` is the offset of the section's palette table, relative to the section. The table starts with the word `4n` for `n` palettes, followed by the palette offsets `4n + 0x40k`. Each palette is 32 16-bit colours. `n` is 1, 2 or 8 in all 141 bank entries (66 containers with three tables each, and 75 sections). The three `BMAGIC` blocks do not have this layout and stay raw.
+The word at section `+4` is the offset of the section's palette table, relative to the section. The table starts with the word `4n` for `n` palettes, followed by the palette offsets `4n + 0x40k`. Each palette is 32 16-bit colors. `n` is 1, 2 or 8 in all 141 bank entries (66 containers with three tables each, and 75 sections). The three `BMAGIC` blocks do not have this layout and stay raw.
 
 `GFX_StagePalette (exe/slus_004_22@0x80166C48)` copies palette `mode` into the palette RAM of a work slot (`0x80035600 + slot * 0x40`). It reads the section from work `+0x4C`, which `func_801C1254 (emi/etc/game/00@0x801C1254)` stages. The callers seen pass `mode` 0, except `func_8019C664 (emi/etc/game/00@0x8019C664)`, which passes 1.
 
@@ -85,7 +85,7 @@ The loader copies a type-0 entry to the load argument and queues a type-1 entry 
 
 ## Readers
 
-A field-side reader exists. `func_801C1254` reads the container's section offsets (the word at `0x8003B800 + idx * 4`, plus `0x8003B800`) and stores the section in work `+0x4C`. `GFX_StagePalette` reads `section+4` (the palette table), then `table[field]`, and copies 32 colours.
+A field-side reader exists. `func_801C1254` reads the container's section offsets (the word at `0x8003B800 + idx * 4`, plus `0x8003B800`) and stores the section in work `+0x4C`. `GFX_StagePalette` reads `section+4` (the palette table), then `table[field]`, and copies 32 colors.
 
 ## Open questions
 
@@ -107,5 +107,5 @@ A field-side reader exists. `func_801C1254` reads the container's section offset
 - [EMI container](../emi/): the entry types and the load argument that place a bank.
 - [Type-1 LZ77 payload](../lz77/): the compressed form of most banks.
 - [Disc and files](../disc/): the `BPLCHAR` and `PLCHAR` directories and their slot ids.
-- [Graphics formats](../graphics/): the colour word and the VRAM upload that the sprites use.
+- [Graphics formats](../graphics/): the color word and the VRAM upload that the sprites use.
 - [Edit characters and enemies](../../guides/characters/): what can change in a character.

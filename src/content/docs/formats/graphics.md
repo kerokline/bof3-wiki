@@ -1,9 +1,9 @@
 ---
 title: "Graphics formats"
-description: "A texture on the disc is a headerless block of raw VRAM words (EMI type 3), and its palette is a separate block of colour words (a type-0 entry)."
+description: "A texture on the disc is a headerless block of raw VRAM words (EMI type 3), and its palette is a separate block of color words (a type-0 entry)."
 ---
 
-A texture on the disc is a headerless block of raw VRAM words (EMI type 3), and its palette is a separate block of colour words (a type-0 entry). Nothing in either block says which palette goes with which texture: the drawing code holds that link, because it names a texture page and a palette row for each primitive. This page covers how both blocks are stored and loaded, how the VRAM words are encoded and which texture-to-palette joins are proven. The map-tile descriptor is in [area formats](../area/#tile-descriptor).
+A texture on the disc is a headerless block of raw VRAM words (EMI type 3), and its palette is a separate block of color words (a type-0 entry). Nothing in either block says which palette goes with which texture: the drawing code holds that link, because it names a texture page and a palette row for each primitive. This page covers how both blocks are stored and loaded, how the VRAM words are encoded and which texture-to-palette joins are proven. The map-tile descriptor is in [area formats](../area/#tile-descriptor).
 
 ## Primitives
 
@@ -28,7 +28,7 @@ Each 2,048-byte chunk of the payload is one 32x32 rectangle of 16-bit VRAM words
 
 All 593 payloads are a whole number of rectangles, and the count divides into whole rows (54,840 rectangles in all). A rectangle uploads only if its whole 32x32 extent is inside the 1,024 by 512 word frame buffer. The loader drops the rest instead of clipping: `EMI_LoaderUploadSector (exe/slus_004_22@0x80163378)` calls `LoadImage` while `x < 1001` and `y < 501`, which for these 32-aligned destinations means the rectangle fits. `ETC/FIRST.EMI#6` starts at row 15 and spans 8 rectangle rows, so rows 16 to 22 fall outside. All 14 rectangles dropped on the disc are zero.
 
-A rectangle is 32 VRAM words wide in every mode, so its size in pixels depends on the colour depth of the draw. No payload or descriptor field carries the depth.
+A rectangle is 32 VRAM words wide in every mode, so its size in pixels depends on the color depth of the draw. No payload or descriptor field carries the depth.
 
 | Mode  | Pixels per rectangle |
 | ----- | -------------------- |
@@ -38,7 +38,7 @@ A rectangle is 32 VRAM words wide in every mode, so its size in pixels depends o
 
 ## Palettes
 
-A palette is a run of colour words. A word is a raw little-endian PSX colour:
+A palette is a run of color words. A word is a raw little-endian PSX color:
 
 ```text
 15      14..10 9..5 4..0
@@ -47,24 +47,24 @@ STP     blue   green red
 
 STP is the semi-transparency bit. A texel of `0x0000` is never drawn. With any other value, STP set marks the texel as semi-transparent when the primitive's blend mode is on. A desktop viewer expands each 5-bit channel to 8 bits.
 
-A 4bpp texture uses a row of 16 colours and an 8bpp texture a row of 256. A CLUT bank is a whole number of 4bpp rows, so its payload is a multiple of 32 bytes. A bank whose word count is also a multiple of 256 is a whole number of 8bpp rows.
+A 4bpp texture uses a row of 16 colors and an 8bpp texture a row of 256. A CLUT bank is a whole number of 4bpp rows, so its payload is a multiple of 32 bytes. A bank whose word count is also a multiple of 256 is a whole number of 8bpp rows.
 
-| Mode | Colours | Row size |
-| ---- | ------: | -------: |
-| 4bpp |      16 |       32 |
-| 8bpp |     256 |      512 |
+| Mode | Colors | Row size |
+| ---- | -----: | -------: |
+| 4bpp |     16 |       32 |
+| 8bpp |    256 |      512 |
 
-Nothing in a bank names its depth, geometry or owner. Palette banks are type-0 entries that load into `0x80033800` to `0x80036E00` and the engine uploads them to VRAM rows 480 to 511 ([palette arena](../area/#palette-arena)). The disc holds 620 such entries: 32 to 6,144 bytes each, 1,121,696 bytes in all, and every size is a multiple of 32. 577 carry 64 bytes or more, and 43 are a single 16-colour row. The arena of one area is a single type-0 entry, and its load argument is `0x80033E00` in most areas.
+Nothing in a bank names its depth, geometry or owner. Palette banks are type-0 entries that load into `0x80033800` to `0x80036E00` and the engine uploads them to VRAM rows 480 to 511 ([palette arena](../area/#palette-arena)). The disc holds 620 such entries: 32 to 6,144 bytes each, 1,121,696 bytes in all, and every size is a multiple of 32. 577 carry 64 bytes or more, and 43 are a single 16-color row. The arena of one area is a single type-0 entry, and its load argument is `0x80033E00` in most areas.
 
 ## VRAM coordinates
 
-A palette-arena word `w` sits at VRAM column `w % 256` and row `480 + w / 256`. A 16-colour CLUT at arena offset `o` sits at VRAM `x = (o mod 0x200) / 2` and `y = 480 + o / 0x200`.
+A palette-arena word `w` sits at VRAM column `w % 256` and row `480 + w / 256`. A 16-color CLUT at arena offset `o` sits at VRAM `x = (o mod 0x200) / 2` and `y = 480 + o / 0x200`.
 
 A CLUT word packs the position of a palette row in VRAM. A texture-page word (`tpage`) packs a page, a depth and a blend mode.
 
 - CLUT word: `(x / 16) | (y << 6)`.
 - `tpage` page column: `(w & 0xF) * 64` words. Page row: 256 if `w & 0x10`, else 0.
-- `tpage` colour mode: `(w >> 7) & 3` (0 is 4bpp, 1 is 8bpp, 2 is 15bpp, 3 is reserved). Blend: `(w >> 5) & 3`.
+- `tpage` color mode: `(w >> 7) & 3` (0 is 4bpp, 1 is 8bpp, 2 is 15bpp, 3 is reserved). Blend: `(w >> 5) & 3`.
 
 ### Palette words and runtime records
 
@@ -131,15 +131,15 @@ flowchart TD
     S --> A
 ```
 
-The arena base holds 256 units of 64 bytes (32 rows of 512). [Rendering](../../systems/rendering/) describes how the working copy and the upload run each frame. `GFX_StepPaletteAnimation` copies colours inside the working copy and sets the upload flag. It does not change the arena.
+The arena base holds 256 units of 64 bytes (32 rows of 512). [Rendering](../../systems/rendering/) describes how the working copy and the upload run each frame. `GFX_StepPaletteAnimation` copies colors inside the working copy and sets the upload flag. It does not change the arena.
 
 ## Load path
 
-| Asset                         | Route                                                                                                                                                                                                                           |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| texture page, type 3          | `EMI_LoaderLoadGraphics` uploads it with `LoadImage`, one 32x32 rectangle at a time ([chunk layout](#chunk-layout))                                                                                                             |
-| CLUT bank, type 0             | `EMI_LoaderCopyPayload (exe/slus_004_22@0x801625E4)` copies it into the palette arena at its load address; the engine uploads the arena's working copy to VRAM rows 480 to 511 ([area](../area/#palette-arena))                 |
-| `etc/start/09` save-icon TIMs | never uploaded: `CardBuildFileHeader (emi/etc/start/09@0x801EF27C)` copies icon 0's CLUT colours and each icon's pixels into the memory card save frame at `0x800C1800`; nothing reads the TIM headers ([save](../save/#icons)) |
+| Asset                         | Route                                                                                                                                                                                                                          |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| texture page, type 3          | `EMI_LoaderLoadGraphics` uploads it with `LoadImage`, one 32x32 rectangle at a time ([chunk layout](#chunk-layout))                                                                                                            |
+| CLUT bank, type 0             | `EMI_LoaderCopyPayload (exe/slus_004_22@0x801625E4)` copies it into the palette arena at its load address; the engine uploads the arena's working copy to VRAM rows 480 to 511 ([area](../area/#palette-arena))                |
+| `etc/start/09` save-icon TIMs | never uploaded: `CardBuildFileHeader (emi/etc/start/09@0x801EF27C)` copies icon 0's CLUT colors and each icon's pixels into the memory card save frame at `0x800C1800`; nothing reads the TIM headers ([save](../save/#icons)) |
 
 ## Texture-to-palette join
 
@@ -189,8 +189,8 @@ These are ranked by the bytes they leave unexplained.
 
 ## Sources and confidence
 
-- **Confidence:** medium. The upload, the colour words and the proven joins are read and checked on every payload, but 381 of 593 textures have no proven depth or palette.
-- **Evidence:** all 593 type-3 payloads and 620 palette banks, the loader and drawing functions named above (including `GFX_CopyPaletteAnimationColors`, which copies colours inside the working copy), and every CLUT and TPage write in the game code. The community [BoF3-Data-Doc](https://github.com/GlitchedDragon-dev/BoF3-Data-Doc) (texture and palette notes) only confirms. The runtime primitives are PsyQ 3.7 ([sources](../../appendix/sources/)).
+- **Confidence:** medium. The upload, the color words and the proven joins are read and checked on every payload, but 381 of 593 textures have no proven depth or palette.
+- **Evidence:** all 593 type-3 payloads and 620 palette banks, the loader and drawing functions named above (including `GFX_CopyPaletteAnimationColors`, which copies colors inside the working copy), and every CLUT and TPage write in the game code. The community [BoF3-Data-Doc](https://github.com/GlitchedDragon-dev/BoF3-Data-Doc) (texture and palette notes) only confirms. The runtime primitives are PsyQ 3.7 ([sources](../../appendix/sources/)).
 
 ## Related
 

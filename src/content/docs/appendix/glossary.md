@@ -58,9 +58,9 @@ offsets, citations and evidence tags.
 | Term        | Meaning                                                                                                                      |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | VRAM        | the GPU's 1 MiB video memory, 1,024 by 512 16-bit words                                                                      |
-| CLUT        | colour lookup table: a row of palette words in VRAM that an indexed (4 or 8 bit) texture uses                                |
-| TPage       | texture page: the VRAM region and colour depth a primitive samples                                                           |
-| STP         | the semi-transparency bit of a 16-bit colour word                                                                            |
+| CLUT        | color lookup table: a row of palette words in VRAM that an indexed (4 or 8 bit) texture uses                                 |
+| TPage       | texture page: the VRAM region and color depth a primitive samples                                                            |
+| STP         | the semi-transparency bit of a 16-bit color word                                                                             |
 | GTE         | the geometry transformation engine: the coprocessor that rotates and projects vertices                                       |
 | SPU         | the sound processing unit; it plays ADPCM samples with an envelope                                                           |
 | ADPCM       | the 4-bit sample compression the SPU and XA audio use                                                                        |

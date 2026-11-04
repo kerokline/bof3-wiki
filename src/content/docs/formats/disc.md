@@ -128,7 +128,7 @@ Two items on or beside the disc are not among the 887 files.
 
 | Item            | Where                | Notes                                                                                 |
 | --------------- | -------------------- | ------------------------------------------------------------------------------------- |
-| Licence sectors | LBA 0-11             | read by the BIOS only                                                                 |
+| License sectors | LBA 0-11             | read by the BIOS only                                                                 |
 | CDDA track 2    | separate track image | 37,044,044 bytes, silent ([coverage](../../appendix/coverage/#outside-the-887-files)) |
 
 ## Unidentified

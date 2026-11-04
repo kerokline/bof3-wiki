@@ -9,7 +9,7 @@ The game keeps pictures in three forms: textures that the loader uploads to VRAM
 
 **Where.** The disc holds 593 type-3 entries. A type-3 payload is a run of 2,048-byte chunks, and each chunk is a 32 by 32 rectangle of 16-bit VRAM words. The load argument gives the first VRAM column, the first VRAM row and the number of rectangles per row ([type-3 load argument](../../formats/graphics/#type-3-load-argument)).
 
-**What to change.** Edit the words of a chunk. Read the payload as 16-bit words if the depth is unknown. For a texture whose depth and palette are known, edit it as indexed pixels, and for a direct-colour texture edit the colour words.
+**What to change.** Edit the words of a chunk. Read the payload as 16-bit words if the depth is unknown. For a texture whose depth and palette are known, edit it as indexed pixels, and for a direct-color texture edit the color words.
 
 **Limits.**
 
@@ -22,13 +22,13 @@ The game keeps pictures in three forms: textures that the loader uploads to VRAM
 
 **Where.** The disc holds 620 palette entries (type 0), from 32 to 6,144 bytes each. They load into the palette arena at `0x80033800` and reach VRAM rows 480 to 511 ([palette arena](../../formats/area/#palette-arena)).
 
-**What to change.** A palette is a run of 16-bit colour words, `STP | blue | green | red` with 5 bits per channel ([palettes](../../formats/graphics/#palettes)). Edit a word to change a colour. A word of `0x0000` is never drawn, so keep it for transparent texels.
+**What to change.** A palette is a run of 16-bit color words, `STP | blue | green | red` with 5 bits per channel ([palettes](../../formats/graphics/#palettes)). Edit a word to change a color. A word of `0x0000` is never drawn, so keep it for transparent texels.
 
-**Limits.** A bank is a multiple of 32 bytes (one 16-colour row), and a 256-colour row is 512 bytes. Each bank has a fixed slot in the arena, so keep its size and its position.
+**Limits.** A bank is a multiple of 32 bytes (one 16-color row), and a 256-color row is 512 bytes. Each bank has a fixed slot in the arena, so keep its size and its position.
 
 ## The font sheet
 
-**Where.** `ETC/FIRST.EMI#3` and `ETC/ENDKANJI.EMI#0` are two identical type-3 entries of 32,768 bytes with the load argument `0x1E000200`: VRAM column 30 (x = 960), row 0, 2 rectangles per row. The text drawer selects the texture page at column 15 of 64-word pages, which is the same x = 960, in 4-bit mode. That these entries are the font sheet is `[inferred]` from the shared target. The text colours are 16 palette rows at `(16 * n, 480)`.
+**Where.** `ETC/FIRST.EMI#3` and `ETC/ENDKANJI.EMI#0` are two identical type-3 entries of 32,768 bytes with the load argument `0x1E000200`: VRAM column 30 (x = 960), row 0, 2 rectangles per row. The text drawer selects the texture page at column 15 of 64-word pages, which is the same x = 960, in 4-bit mode. That these entries are the font sheet is `[inferred]` from the shared target. The text colors are 16 palette rows at `(16 * n, 480)`.
 
 **What to change.** Edit the sheet as 4-bit pixels. A byte of text selects one 8 by 12 pixel cell of a 31-column atlas ([glyph atlas](../../data/text/#glyph-atlas)).
 
@@ -38,7 +38,7 @@ The game keeps pictures in three forms: textures that the loader uploads to VRAM
 
 **Where.** Character banks sit in `PLCHAR` (19 LZ77 containers), `BPLCHAR` (45 LZ77 containers, 1 raw container and 75 standalone sections) and `BMAGIC` (3 blocks), 144 blobs in all. Each bank loads at `0x8003B800` ([load arguments](../../formats/character/#load-arguments)).
 
-**What to change.** Edit the palette tables only. A bank has one palette layer per section, and each palette is 32 colour words ([palette layer](../../formats/character/#palette-layer)). Decode the bank, change the palette, and write the table back over the decoded bank. Every other byte stays the same.
+**What to change.** Edit the palette tables only. A bank has one palette layer per section, and each palette is 32 color words ([palette layer](../../formats/character/#palette-layer)). Decode the bank, change the palette, and write the table back over the decoded bank. Every other byte stays the same.
 
 **Limits.**
 

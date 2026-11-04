@@ -124,10 +124,10 @@ Pages: [rendering](../../systems/rendering/#open-questions), [graphics](../../fo
 | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | Ordering meaning of each layer number, and layers above 7 passed to `GFX_AddPrim`     | List every `GFX_AddPrim` layer literal per overlay and compare with screenshots. Search call sites for non-literal values. |
 | VRAM page allocation between area, character, battle and font sheets                  | A VRAM dump from an emulator at each phase.                                                                                |
-| Whether `LoadImage` finishes before `DrawOTag` in the same frame                      | PsyQ `LoadImage` queue behaviour, or a trace of the GPU DMA.                                                               |
+| Whether `LoadImage` finishes before `DrawOTag` in the same frame                      | PsyQ `LoadImage` queue behavior, or a trace of the GPU DMA.                                                                |
 | Purpose of the (0x340, 0x100, 0xC0, 0x100) draw area                                  | Trace which records set record flag `0x08`.                                                                                |
 | Page 16 mismatch between sheet upload and draw formulas                               | Read the page bytes of shipped sprite records.                                                                             |
-| Behaviour of `func_8014BC70`                                                          | A full read of its assembly.                                                                                               |
+| Behavior of `func_8014BC70`                                                           | A full read of its assembly.                                                                                               |
 | The palette and depth of the 381 textures with no proven join                         | The resident banks of the scene and the callers' arguments for the battle, `SCENARIO` and `ETC` draw sites.                |
 | Which of several overlapping sheets is resident (for example `AREA024` slots 5 and 7) | The stream order of `EMI_LoaderUploadSector`.                                                                              |
 
@@ -168,7 +168,7 @@ Pages: [saving](../../systems/saving/#open-questions), [state](../../systems/sta
 | Meaning of bit `0x02` of the `Party_AddMember` flag byte                                                          | Find the readers of that bit in the party and battle code `[unknown]`.                    |
 | Which scenario overlays write which flag bits                                                                     | Decode the flag opcodes of each scenario overlay.                                         |
 | Whether the load path rejects a wrong `"SC"` header                                                               | A load test with a damaged header. The BIOS may reject it, the game code does not.        |
-| Source of the seventh title digit, and the behaviour when two files share a slot digit                            | The writer of the byte at `0x8014496E`, and a card with two such files.                   |
+| Source of the seventh title digit, and the behavior when two files share a slot digit                             | The writer of the byte at `0x8014496E`, and a card with two such files.                   |
 | Meaning of the unnamed payload bytes                                                                              | Readers of those bytes ([records](../../data/records/#save-layout) lists the named ones). |
 
 ## Data formats

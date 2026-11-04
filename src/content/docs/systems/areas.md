@@ -18,7 +18,7 @@ An area is one place the party can stand: a town, a dungeon, the world map, a ba
 | `0x30` | `u8`        | `last_exit` | Index of the last exit entry, so an area has `last_exit + 1` entries.                                                                 | `func_801A0048`              |
 | `0x32` | `u8`        | `flag_32`   | Map-kind flags, copied to `g_GameRequestFlags`.                                                                                       | `func_8019FAA0`              |
 | `0x34` | `Callback*` | `steps`     | Message answer handlers: an answer step id below `0x80` calls `steps[id]`; ids from `0x80` use the 16-entry shared bank `D_80149ACC`. | `Message_DispatchAnswerStep` |
-| `0x38` | `void*`     | `matrix`    | Pointer to the GTE colour matrix, or null for the default.                                                                            | `func_8019FAA0`              |
+| `0x38` | `void*`     | `matrix`    | Pointer to the GTE color matrix, or null for the default.                                                                             | `func_8019FAA0`              |
 | `0x3C` | `void*`     | `unk_3C`    | Word table that `func_801ACE10` indexes and calls.                                                                                    | `func_801ACE10`              |
 | `0x40` | `Callback`  | `callback`  | Pointer to the area's own setup code, run after the setup stream when it is set.                                                      | `func_8019FAA0`              |
 
@@ -74,17 +74,17 @@ sequenceDiagram
 
 `func_8019FAA0` runs these steps in this order.
 
-| Step | Call                                                                             | Effect                                                                                                                                                  |
-| ---: | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|    1 | `Actor_ClearAll`, `GFX_ResetPaletteFades`                                        | Free the 20 staged scene objects and clear palette fades.                                                                                               |
-|    2 | `SND_StartBgm(g_GamePrevSelection, 100, 8)`                                      | Start the BGM chosen for the previous cell, or set `g_SndBgmId = 0xFF` when there is none.                                                              |
-|    3 | `EMI_LoaderStreamInitSlot(seed + 0x2AB)` and poll                                | Only when the id differs from `g_GameAreaId` and `g_GameStateIndex` is 5. The poll blocks the callback thread, one `CallbackWait(1)` per frame.         |
-|    4 | read `g_AreaLoads[g_GameAreaId]`                                                 | Copy `AreaLoad.flag_32` to `g_GameRequestFlags` and mark a palette upload pending.                                                                      |
-|    5 | `GFX_ResetPalette`, `func_801BFF9C`                                              | `func_801BFF9C` places the party rows from the map kind (world map, battlefield, fishing, camp or walked area).                                         |
-|    6 | `func_801A0348`, `func_80153DE8`, `SetColorMatrix`                               | Cache the zone kind of the arrival cell. Run map setup. Load the GTE colour matrix from `AreaLoad.matrix`, or the default `D_8018214C` when it is null. |
-|    7 | `Scene_Start` when `g_SceneState.flags_01 & 0x80`                                | Advance the story chapter ([scenario](../scenario/#chapter-advance)).                                                                                   |
-|    8 | `Area_RunSetupStream(AreaLoad.handler)`, `AreaLoad.callback()`                   | Build the area's entities and objects, then run the area's own setup code if the callback is set.                                                       |
-|    9 | `SYS_ClearFlag(g_SceneEventFlags, 0x1C)`, `mode_02 = 1`, `Game_RunScenarioEntry` | Let the scenario react to the arrival.                                                                                                                  |
+| Step | Call                                                                             | Effect                                                                                                                                                 |
+| ---: | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+|    1 | `Actor_ClearAll`, `GFX_ResetPaletteFades`                                        | Free the 20 staged scene objects and clear palette fades.                                                                                              |
+|    2 | `SND_StartBgm(g_GamePrevSelection, 100, 8)`                                      | Start the BGM chosen for the previous cell, or set `g_SndBgmId = 0xFF` when there is none.                                                             |
+|    3 | `EMI_LoaderStreamInitSlot(seed + 0x2AB)` and poll                                | Only when the id differs from `g_GameAreaId` and `g_GameStateIndex` is 5. The poll blocks the callback thread, one `CallbackWait(1)` per frame.        |
+|    4 | read `g_AreaLoads[g_GameAreaId]`                                                 | Copy `AreaLoad.flag_32` to `g_GameRequestFlags` and mark a palette upload pending.                                                                     |
+|    5 | `GFX_ResetPalette`, `func_801BFF9C`                                              | `func_801BFF9C` places the party rows from the map kind (world map, battlefield, fishing, camp or walked area).                                        |
+|    6 | `func_801A0348`, `func_80153DE8`, `SetColorMatrix`                               | Cache the zone kind of the arrival cell. Run map setup. Load the GTE color matrix from `AreaLoad.matrix`, or the default `D_8018214C` when it is null. |
+|    7 | `Scene_Start` when `g_SceneState.flags_01 & 0x80`                                | Advance the story chapter ([scenario](../scenario/#chapter-advance)).                                                                                  |
+|    8 | `Area_RunSetupStream(AreaLoad.handler)`, `AreaLoad.callback()`                   | Build the area's entities and objects, then run the area's own setup code if the callback is set.                                                      |
+|    9 | `SYS_ClearFlag(g_SceneEventFlags, 0x1C)`, `mode_02 = 1`, `Game_RunScenarioEntry` | Let the scenario react to the arrival.                                                                                                                 |
 
 Back in `Game_RunAreaLoadState`, a fishing area (`flag_32 & 8`) goes to entry state 8. Every other area goes to entry state 2 with `g_GameStateIndex = 0`, the running field. The arrival effect is `UI_SetMode(g_GameRequestKind)`; `g_GameRequestKind` is 11 when the area id is among the first 11 words of `D_801C8384`, otherwise 1. Fishing and the fairy village are in [screens](../screens/).
 

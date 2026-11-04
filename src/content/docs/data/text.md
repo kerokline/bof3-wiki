@@ -9,13 +9,13 @@ Every string the game prints is a byte string in one custom encoding: digits and
 
 The encoding has five classes of byte. The table shows which bytes belong to each class.
 
-| Class          | Bytes                                                         | Meaning                              |
-| -------------- | ------------------------------------------------------------- | ------------------------------------ |
-| characters     | `0x30`-`0x39`, `0x41`-`0x5A`, `0x61`-`0x7A`                   | digits and letters, in ASCII order   |
-| special glyphs | `0x3A`-`0x3E`, `0x5C`, `0x5D`, `0x8B`, `0x8D`, `0x8E`, `0x8F` | punctuation                          |
-| space          | `0xFF`                                                        | the message font's space glyph       |
-| controls       | `0x00`-`0x16`, `0x90`                                         | message codes, listed below          |
-| unresolved     | everything else                                               | no glyph or behaviour has been found |
+| Class          | Bytes                                                         | Meaning                             |
+| -------------- | ------------------------------------------------------------- | ----------------------------------- |
+| characters     | `0x30`-`0x39`, `0x41`-`0x5A`, `0x61`-`0x7A`                   | digits and letters, in ASCII order  |
+| special glyphs | `0x3A`-`0x3E`, `0x5C`, `0x5D`, `0x8B`, `0x8D`, `0x8E`, `0x8F` | punctuation                         |
+| space          | `0xFF`                                                        | the message font's space glyph      |
+| controls       | `0x00`-`0x16`, `0x90`                                         | message codes, listed below         |
+| unresolved     | everything else                                               | no glyph or behavior has been found |
 
 Letters and digits equal their ASCII values. The message font has no `0x20` space; `0xFF` is the
 space. The plain ASCII space `0x20` belongs to the interface font of
@@ -78,15 +78,15 @@ line. The message engine, `func_8015083C (exe/slus_004_22@0x8015083C)` with `UI_
 
 The table lists each code, how many operand bytes it takes and what it does.
 
-| Byte     | Tag           | Behaviour                                                                                                   |
+| Byte     | Tag           | Behavior                                                                                                    |
 | -------- | ------------- | ----------------------------------------------------------------------------------------------------------- |
 | `0x00`   | `{END}`       | ends the string                                                                                             |
 | `0x01`   | `{NEWLINE}`   | sets `x` to the line origin and adds 12 px to `y`                                                           |
 | `0x02`   | `{PAGE}`      | the engine enters its wait state                                                                            |
 | `0x03`   | `{GOTO}`      | redirects to the character record `0x80144968 + 0xA4 * g_CharSlot[byte[0x80145F09]]`, budget 6              |
 | `0x04 n` | `{INSERT:nn}` | redirects to the 164-byte character record that operand `n` indexes, budget 6                               |
-| `0x05 n` | `{COLOR:nn}`  | loads the colour `0x7800 \| (n & 0xF)`; red is operand `0x02`, blue is `0x03`                               |
-| `0x06`   | `{NOCOLOR}`   | restores the saved colour                                                                                   |
+| `0x05 n` | `{COLOR:nn}`  | loads the color `0x7800 \| (n & 0xF)`; red is operand `0x02`, blue is `0x03`                                |
+| `0x06`   | `{NOCOLOR}`   | restores the saved color                                                                                    |
 | `0x07 n` | `{VAR:nn}`    | prints the 32-byte string at `0x801490D8 + n * 32`, budget 33                                               |
 | `0x08 n` | `{LINK:nn}`   | redirects to the string that `u16[2 * n]` of the table at `0x80010000 + u32[0x80010004]` selects, budget 17 |
 | `0x09`   | `{NOP09}`     | no effect; the shared tail advances one byte                                                                |

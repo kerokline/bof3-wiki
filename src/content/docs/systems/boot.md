@@ -3,7 +3,7 @@ title: "Boot"
 description: "Boot is the path from the BIOS handoff to the first title frame."
 ---
 
-Boot is the path from the BIOS handoff to the first title frame. A C runtime stub prepares the CPU, `SYS_Main` initialises the console, the `LOGO.EXE` program plays the Capcom movie, and two callbacks load the first two archives and start the title. After that the [frame loop](../../concepts/frame-loop/) runs for the rest of the session. This page does not cover the title's states ([game phases](../phases/)) or the loader's steps ([loading](../../concepts/loading/)).
+Boot is the path from the BIOS handoff to the first title frame. A C runtime stub prepares the CPU, `SYS_Main` initializes the console, the `LOGO.EXE` program plays the Capcom movie, and two callbacks load the first two archives and start the title. After that the [frame loop](../../concepts/frame-loop/) runs for the rest of the session. This page does not cover the title's states ([game phases](../phases/)) or the loader's steps ([loading](../../concepts/loading/)).
 
 :::note
 `exe/logo` and `exe/slus_004_22` are separate programs with separate symbols. They share one RAM, so the same address can mean different things in each ([memory map](../../concepts/memory/)).
@@ -11,7 +11,7 @@ Boot is the path from the BIOS handoff to the first title frame. A C runtime stu
 
 ## Executable header and C runtime
 
-The BIOS reads `SYSTEM.CNF`, loads `SLUS_004.22` and jumps to its entry address. That the BIOS copies `t_size` bytes to `t_addr` and jumps to the start address is BIOS behaviour outside the game files. `[inferred]` The header fields are in [executables and boot files](../../formats/exe/#ps-x-exe-header).
+The BIOS reads `SYSTEM.CNF`, loads `SLUS_004.22` and jumps to its entry address. That the BIOS copies `t_size` bytes to `t_addr` and jumps to the start address is BIOS behavior outside the game files. `[inferred]` The header fields are in [executables and boot files](../../formats/exe/#ps-x-exe-header).
 
 The payload is far larger than the resident code. The rest is zero fill, apart from a few stamp words. That zero fill reserves RAM for overlays and for the resident game program, which later loads write over it ([memory map](../../concepts/memory/#the-executable-image)).
 
@@ -27,7 +27,7 @@ Three stubs prepare the CPU and start the game. The start address of the header 
 
 ## `SYS_Main` sequence
 
-`SYS_Main` initialises, then enters the permanent loop:
+`SYS_Main` initializes, then enters the permanent loop:
 
 1. `__main`, then clear `g_SysHardwareInitialized`.
 2. `SYS_InitRuntime (exe/slus_004_22@0x8014ACA0)`: `SYS_InitHardware`, `SYS_InitDisplay`, reset both render records, `CallbackInitThreads`, clear all of VRAM, `DrawSync(0)`, `SetDispMask(1)` and `SYS_PrepareFrame`.
@@ -42,7 +42,7 @@ Three stubs prepare the CPU and start the game. The start address of the header 
 3. `InitGeom`, `SetGeomScreen(0x3E8)`, `SetGeomOffset(0xA0, 0x78)`.
 4. `PadInit(0)`, `SYS_InitCard` (seven card events, `InitCARD(1)`, `StartCARD`, `_bu_init`) and `ChangeClearPAD(0)`.
 
-`SYS_ShowException (exe/slus_004_22@0x8014B3C4)` draws a register dump on a double-buffered screen and never returns. Sound is not initialised here. `SYS_StartFrontend` does it after the logo.
+`SYS_ShowException (exe/slus_004_22@0x8014B3C4)` draws a register dump on a double-buffered screen and never returns. Sound is not initialized here. `SYS_StartFrontend` does it after the logo.
 
 `SYS_InitDisplay (exe/slus_004_22@0x8014AE08)` sets up two draw and display environment pairs of 320 x 240. One draws at y = 0 and displays y = 0xF0, and the other draws at y = 0xF0 and displays y = 0. The [frame loop](../../concepts/frame-loop/) alternates between them.
 
@@ -125,7 +125,7 @@ The first frame with the title drawn and input enabled is the first playable fra
 
 ## Sources and confidence
 
-- **Confidence:** medium. The steps of the boot path are read in the code of the executable, the title overlay and `LOGO.EXE`, but the BIOS behaviour at load and at `Exec`, and the heap use, are `[inferred]` or `[unknown]`.
+- **Confidence:** medium. The steps of the boot path are read in the code of the executable, the title overlay and `LOGO.EXE`, but the BIOS behavior at load and at `Exec`, and the heap use, are `[inferred]` or `[unknown]`.
 - **Evidence:** the code of `stup2`, `stup1`, `stup0`, `SYS_Main`, `SYS_InitRuntime`, `SYS_InitHardware`, `SYS_RunLogo`, `SYS_LoadExec`, `SYS_StartFrontend`, `SYS_EnterFrontend` and `Game_RunTitle`; the entry code of `LOGO.EXE`; the logo's literal movie LBA against the disc file table.
 
 ## Related

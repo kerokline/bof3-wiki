@@ -43,7 +43,7 @@ flowchart TD
 
 The CD controller mixes XA into the audio output itself. `SND_SetCdVolume (exe/slus_004_22@0x80163EB0)` sets that mix with `CdMix`.
 
-## Initialisation
+## Initialization
 
 `SYS_StartFrontend` calls `SND_Init (exe/slus_004_22@0x8015CD00)`, `SND_SetBankLayout(0)` and later `SND_Start (exe/slus_004_22@0x8015CE70)` ([boot](../boot/)).
 
@@ -223,7 +223,7 @@ What an edited audio asset must stay within:
 ## Sources and confidence
 
 - **Confidence:** medium. The loading path, the music and battle handling, the cue path and the XA state machine are read in the code. Window and span limits, the reserved-voice meaning and several writers are `[inferred]` or `[unknown]`.
-- **Evidence:** the sound functions in `exe/slus_004_22` (`SND_Init`, `SND_SetBankLayout`, `SND_StartBgm`, `SND_PlayCue`, `SND_ResolveXaStream`, `SND_ServiceXa`), the audio entry loaders `EMI_LoaderLoadVabHeader`, `EMI_LoaderLoadVabBody`, `EMI_LoaderLoadSequence` and `EMI_LoaderLoadVabCues`, the battle entry and exit in `emi/etc/game/00` and `emi/battle/battle/03`, and the static tables `D_80181EB8`, `D_8018239C`, `D_801823F0` and `D_80182348`. Library behaviour follows the PsyQ contract.
+- **Evidence:** the sound functions in `exe/slus_004_22` (`SND_Init`, `SND_SetBankLayout`, `SND_StartBgm`, `SND_PlayCue`, `SND_ResolveXaStream`, `SND_ServiceXa`), the audio entry loaders `EMI_LoaderLoadVabHeader`, `EMI_LoaderLoadVabBody`, `EMI_LoaderLoadSequence` and `EMI_LoaderLoadVabCues`, the battle entry and exit in `emi/etc/game/00` and `emi/battle/battle/03`, and the static tables `D_80181EB8`, `D_8018239C`, `D_801823F0` and `D_80182348`. Library behavior follows the PsyQ contract.
 
 ## Related
 

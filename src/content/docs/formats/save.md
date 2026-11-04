@@ -32,7 +32,7 @@ The file holds the card header, three icon frames, the payload and padding. The 
 | `0x0003` |     1 | `u8`       | `block_count`  | block count (the game passes 1)                                     |
 | `0x0004` |    64 | `u8[64]`   | `title`        | Shift-JIS, zero padded                                              |
 | `0x0044` |    28 | `u8[28]`   | unnamed        | zero                                                                |
-| `0x0060` |    32 | `u16[16]`  | `icon_palette` | 16 colours                                                          |
+| `0x0060` |    32 | `u16[16]`  | `icon_palette` | 16 colors                                                           |
 | `0x0080` |   128 | `u8[128]`  | `icon_frame0`  | 16x16 pixels, 4 bits per pixel                                      |
 | `0x0100` |   128 | `u8[128]`  | `icon_frame1`  | same format                                                         |
 | `0x0180` |   128 | `u8[128]`  | `icon_frame2`  | same format                                                         |
@@ -52,7 +52,7 @@ The BIOS card menu shows one to three 16x16 icon frames. The game does not store
 | Part        | Size | Content                                                 |
 | ----------- | ---: | ------------------------------------------------------- |
 | TIM header  |    8 | magic `0x10`, flags `8` (4 bits per pixel, with a CLUT) |
-| CLUT block  |   44 | 16 colours, VRAM position (256, 480)                    |
+| CLUT block  |   44 | 16 colors, VRAM position (256, 480)                     |
 | image block |  140 | 4 by 16 words                                           |
 
 `CardBuildFileHeader` copies the 32-byte CLUT of icon 0 to file offset `0x60` and a 128-byte pixel block to each of `0x80`, `0x100` and `0x180`. The flag byte at `0x02` decides which icon feeds which frame:
@@ -109,7 +109,7 @@ The save menu fills its rows with a read of 28 bytes at file offset `0xEA0`. The
 - Meaning of the unnamed payload bytes. [Game records](../../data/records/#save-layout) lists the named ones, and readers of the rest would settle it.
 - Whether the load path rejects a wrong `"SC"` header. A load test with a damaged header would settle it (the BIOS may reject it; the game code does not).
 - Source of the seventh title digit. The writer of the byte at `0x8014496E` would settle it.
-- Behaviour when two files share a slot digit. A card with two such files would settle it.
+- Behavior when two files share a slot digit. A card with two such files would settle it.
 
 ## Sources and confidence
 
