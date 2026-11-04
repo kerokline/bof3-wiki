@@ -4,7 +4,7 @@ Independent research on the file formats, memory layouts and runtime of *Breath 
 
 This repository holds no game data and no game assets. *Breath of Fire* and the game belong to Capcom, and the PlayStation belongs to Sony. This project is not affiliated with or endorsed by either company. The text is under the MIT license in `LICENSE`.
 
-The site is built with [Astro Starlight](https://starlight.astro.build/). Pages are Markdown in `src/content/docs/`; `nav.json` sets the sidebar order.
+The site is built with [Astro Starlight](https://starlight.astro.build/). Pages are Markdown in `src/content/docs/`. `nav.json` sets the sidebar order.
 
 ## Build
 

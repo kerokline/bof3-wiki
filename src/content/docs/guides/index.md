@@ -9,7 +9,7 @@ Every change to the *Breath of Fire III* disc follows one cycle: find the entry,
 
 The write path says how a change gets back into the game. *In place* means the guide lists the fields to edit. *Partly* means some of the data is editable only as raw bytes.
 
-| Task                                       | Write path         | What is still unknown                                                   |
+| Task                                       | Write path         | Not yet known                                                           |
 | ------------------------------------------ | ------------------ | ----------------------------------------------------------------------- |
 | [Edit text and dialogue](text/)            | in place (strings) | glyph-less bytes, window layout, a map from a text id to its string     |
 | [Edit items, skills and shops](items/)     | partly             | the shop and master-skill fields, some unnamed bytes, ability flag bits |
