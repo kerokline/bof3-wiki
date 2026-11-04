@@ -257,10 +257,10 @@ The area program is code in 181 archives. The other 19 payloads at `0x801F2C00` 
 
 Two type-0 images with code-style addresses hold no code. Both are 512-byte CLUT banks with one segment ending at `0x200`, one CLUT and neither a `jr $ra` nor an `addiu sp,sp` prologue.
 
-| Target                   |         Load | Payload                                                                               |
-| ------------------------ | -----------: | ------------------------------------------------------------------------------------- |
-| `emi/etc/bate/03`        | `0x80033A00` | 256 colors (512 B), arena `+0x200`, VRAM row 481 ([area](../area/#palette-arena))     |
-| `emi/battle/batl_re2/01` | `0x80036E00` | 256 colors (512 B), arena `+0x3600`, VRAM row 507; colors 96-255 `0x8000` (STP black) |
+| Target                   |         Load | Payload                                                                                 |
+| ------------------------ | -----------: | --------------------------------------------------------------------------------------- |
+| `emi/etc/bate/03`        | `0x80033A00` | 256 colours (512 B), arena `+0x200`, VRAM row 481 ([area](../area/#palette-arena))      |
+| `emi/battle/batl_re2/01` | `0x80036E00` | 256 colours (512 B), arena `+0x3600`, VRAM row 507; colours 96-255 `0x8000` (STP black) |
 
 ## Open questions
 
