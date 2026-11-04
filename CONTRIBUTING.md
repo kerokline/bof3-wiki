@@ -184,7 +184,8 @@ old URL keeps working. When you rename a heading, search for links to its old sl
 ## Build and check
 
 You need Node.js 22.23.4 or later, [dprint](https://dprint.dev/) and Python 3.11 or later. The
-dependencies are pinned in `package-lock.json`. CI runs the same commands.
+dependencies are pinned in `package-lock.json`. CI runs the same commands. A pull request that
+changes only docs still builds the site, because the build checks the content.
 
 ```sh
 npm ci
