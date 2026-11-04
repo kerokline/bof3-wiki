@@ -109,7 +109,7 @@ The save menu fills its rows with a read of 28 bytes at file offset `0xEA0`. The
 - Meaning of the unnamed payload bytes. [Game records](../../data/records/#save-layout) lists the named ones, and readers of the rest would settle it.
 - Whether the load path rejects a wrong `"SC"` header. A load test with a damaged header would settle it (the BIOS may reject it; the game code does not).
 - Source of the seventh title digit. The writer of the byte at `0x8014496E` would settle it.
-- Behavior when two files share a slot digit. A card with two such files would settle it.
+- Behaviour when two files share a slot digit. A card with two such files would settle it.
 
 ## Sources and confidence
 

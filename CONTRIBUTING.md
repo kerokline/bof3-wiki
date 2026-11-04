@@ -4,7 +4,7 @@ All contributions follow the [code of conduct](CODE_OF_CONDUCT.md). Contribution
 repository's [MIT license](LICENSE).
 
 The wiki states facts about *Breath of Fire III* (US, PlayStation): file formats, memory layouts and
-runtime behavior. A change needs evidence: a game address, bytes, or a cited source from the
+runtime behaviour. A change needs evidence: a game address, bytes, or a cited source from the
 [sources page](src/content/docs/appendix/sources.md). Do not add game data, disc images, extracted
 assets or game text. To check a claim yourself, dump your own US disc (Redump-verified CUE sheet and
 BIN tracks).
@@ -125,7 +125,7 @@ A mistake that corrupts data, a save or a build of the game.
 ### Diagrams
 
 Use a Mermaid diagram only for flow or structure that prose shows badly. Give nodes short labels. Do
-not set colors in the diagram: the theme colors it for light and dark.
+not set colours in the diagram: the theme colours it for light and dark.
 
 In a sequence diagram, break a long participant name or message with `<br/>` at about 20
 characters. Do not rely on automatic wrapping: it splits words with hyphens. Show a repeated
