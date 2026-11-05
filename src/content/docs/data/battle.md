@@ -328,7 +328,7 @@ typedef struct BattleEffect {
     /* 0x4B */ u8  unk_4B;
     /* 0x5C */ u8  unk_5C;
     /* 0x60 */ BattleTargetIndex word_60;
-    /* 0x74 */ u32 work_74;
+    /* 0x74 */ u32 target;
 } BattleEffect;                /* 0x78 bytes; other members folded */
 ```
 

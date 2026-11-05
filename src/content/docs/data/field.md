@@ -96,7 +96,7 @@ typedef struct Actor {
     /* 0x02 */ u8    state_02;
     /* 0x05 */ u8    unk_05;
     /* 0x06 */ u8    unk_06;
-    /* 0x07 */ u8    unk_07;
+    /* 0x07 */ u8    option_flags;
     /* 0x08 */ u8    direction_08;
     /* 0x0C */ s32   unk_0C;
     /* 0x14 */ s32   vz;
@@ -111,7 +111,7 @@ typedef struct Actor {
     /* 0x50 */ u8*   source_50;
     /* 0x54 */ ActorRange range_54;
     /* 0x5C */ ActorTint tint;
-    /* 0x70 */ u8    speed_70;
+    /* 0x70 */ u8    state_70;
     /* 0x74 */ u8    flags_74;
     /* 0x7A */ u8    callback_index;
     /* 0x8C */ s16   stamina_max_8C;
