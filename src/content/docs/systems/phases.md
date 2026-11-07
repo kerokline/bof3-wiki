@@ -77,8 +77,8 @@ New Game takes a longer path inside the `START` overlay. `Start_RunNewGame (emi/
 |           6 | `Game_RunCameraLookState`                               | camera look mode (D-pad orbit); back to 2 when the camera is restored                                                        |
 |           7 | `Game_RunShopState (emi/etc/game/00@0x80198234)`        | runs `g_GameStateHandlers[substate]`; substate 0 streams `SHOP`, or returns to 2 at once for a shop actor of kind 9          |
 |           8 | `Game_RunFishingState (emi/etc/game/00@0x801984AC)`     | runs `g_GameSubstateHandlers[substate]`; entered from state 1 when `g_GameRequestFlags` bit 3 is set                         |
-|           9 | `Game_RunAbilityMenuState (emi/etc/game/00@0x80198744)` | 3-handler table `g_MenuAbilityOpen`; the name suggests the ability menu `[inferred]`                                         |
-|          10 | `Game_RunStatusMenuState (emi/etc/game/00@0x80198904)`  | 3-handler table `g_MenuStatusOpen`; the name suggests the status menu `[inferred]`                                           |
+|           9 | `Game_RunAbilityMenuState (emi/etc/game/00@0x80198744)` | 3-handler table `g_MenuAbilityOpen`: streams `BATE`, an equipment screen and a stat tally for character record 7             |
+|          10 | `Game_RunStatusMenuState (emi/etc/game/00@0x80198904)`  | 3-handler table `g_MenuStatusOpen`: streams `SHISU`, an item minigame that scores the items used and ranks the score 0 to 5  |
 |          11 | `Game_RunSceneCameraState (emi/etc/game/00@0x80198AC4)` | 3-handler table `g_GameFlowHandlers`: scene dispatch with camera control, camera reset, back to 2                            |
 
 State 2 is where the game spends most of its time. World map, cutscenes, bosses, the fairy village and fishing do not have states of their own, with fishing the exception that sets state 8. They run as area and scenario code inside the field.
@@ -96,8 +96,8 @@ Code deep inside the field does not set `g_GameEntryState` directly. It writes a
 |    4 | `func_801B5884`, when a button is held and `g_GameFlags & 0x2000` is clear                                         | goes to state 6 (camera look)                                                                                         |
 |    5 | `Game_RequestAreaChange (emi/etc/game/00@0x8019FA28)` and five other field handlers                                | area change: sets the entry flag, fades the music if the selection changes, starts `g_GameEntryMode`, goes to state 1 |
 |    6 | `Party_JoinMember`, on party overflow                                                                              | goes to state 7, the shop state by its name `[inferred]`                                                              |
-|    7 | `scena06`: `func_801F97C0` and `func_801F9DF4`, three stores in all                                                | goes to state 9, the `BATE` screen ([screens](../screens/#bate-and-shisu-entry-states-9-and-10))                      |
-|    8 | `scena11`: `func_801F8B84`, one store                                                                              | goes to state 10, the `SHISU` screen ([screens](../screens/#bate-and-shisu-entry-states-9-and-10))                    |
+|    7 | `scena06`: `func_801F97C0` (three stores) and `func_801F9DF4` (two stores)                                         | goes to state 9, the `BATE` screen ([screens](../screens/#bate-and-shisu-entry-states-9-and-10))                      |
+|    8 | `scena11`: `func_801F8B84`, two stores                                                                             | goes to state 10, the `SHISU` screen ([screens](../screens/#bate-and-shisu-entry-states-9-and-10))                    |
 |    9 | `func_801B5910`, when Start is pressed and `g_GameRequestFlags & 0x69` is clear; `func_80167428` in the executable | goes to state 11; Start-in-field is `[inferred]`                                                                      |
 
 `Game_RequestAreaChange` stores the seed, position and kind in `0x80143F10..0x80143F1C`, calls `func_801A02E8` and `func_801A0380`, and sets code 5. `g_GameEntryMode (exe/slus_004_22@0x80143F1E)` is the effect index that state 1 starts: 10 when the load flags have bit 0 set (the world map), 20 for area `0xBD`, otherwise 0.
@@ -169,7 +169,6 @@ The table lists the symbols that carry the phase state. All of them are work var
 
 | Question                                                       | What would settle it                                                                     |
 | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| What entry states 9 and 10 show (request codes 7 and 8)        | Read the step tables of `BATE` and `SHISU`; the writers are known (`scena06`, `scena11`) |
 | The menu trigger for code 1 and Start-in-field for code 9      | Read the callers of `func_801B2A00` and `func_801B5910`                                  |
 | Where name entry runs                                          | Read the `g_MenuCampSubFuncs` tables `D_801ECCF8`, `D_801ECD1C` and `D_801ED138`         |
 | Entry paths of the shop, master, fishing and the fairy village | Callers of `EMI_LoaderStreamInitSlot` with `0x266`, `0x267`, `0x258` and the area flags  |
@@ -182,7 +181,7 @@ The table lists the symbols that carry the phase state. All of them are work var
 ## Sources and confidence
 
 - **Confidence:** medium. The entry states, the request codes and the title path are read in the code, but several codes and states have no known writer, and the phases of the world map, the boss, the shop, fishing and the ending are `[inferred]` or `[unknown]`.
-- **Evidence:** the code of `Game_RunMainLoop`, the 12 handlers of `g_GameStates`, `Game_RequestAreaChange`, `func_8019FAA0`, `Scene_Start`, the stores to `g_GameStateIndex` in `func_801F97C0`, `func_801F9DF4` and `func_801F8B84`, the title and start-menu overlays, and the `UI_SetMode` and `CallbackReplace` call sites in the executable and the overlays.
+- **Evidence:** the code of `Game_RunMainLoop`, the 12 handlers of `g_GameStates`, `Game_RequestAreaChange`, `func_8019FAA0`, `Scene_Start`, the stores to `g_GameStateIndex` in `func_801F97C0`, `func_801F9DF4` and `func_801F8B84` (no other program on the disc stores 7 or 8 there), the step tables of `BATE` and `SHISU`, the title and start-menu overlays, and the `UI_SetMode` and `CallbackReplace` call sites in the executable and the overlays.
 
 ## Related
 

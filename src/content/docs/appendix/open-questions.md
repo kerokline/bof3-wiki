@@ -49,7 +49,6 @@ Pages: [phases](../../systems/phases/#open-questions), [scenario](../../systems/
 
 | Question                                                                     | What would settle it                                                                                  |
 | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| What entry states 9 and 10 show (request codes 7 and 8)                      | Read the step tables of `BATE` and `SHISU`; the writers are known (`scena06`, `scena11`).             |
 | The menu trigger for code 1 and Start-in-field for code 9                    | Read the callers of `func_801B2A00` and `func_801B5910`.                                              |
 | Where name entry runs                                                        | Read the camp substate tables `D_801ECCF8`, `D_801ECD1C` and `D_801ED138`.                            |
 | Whether name entry reaches `Party_InitDefaults` before the first field frame | `Party_InitDefaults` runs in camp substate 2. Trace the chain from there to `Game_StartSelectedGame`. |
@@ -102,7 +101,8 @@ Pages: [screens](../../systems/screens/#open-questions), [UI](../../systems/ui/#
 | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | The button that writes request code 1 (menu open)                         | Read the callers of the actor step table `D_801CD110`.                                                                                              |
 | Names of the 9 STATUS steps and the 10 SHOP screens                       | Read each step function after `D_801EC35C` and `D_801E5144`.                                                                                        |
-| What BATE and SHISU show, and the other scenarios that open them          | Enumerate every scenario write of `g_GameStateIndex = 7` or 8 and read the step tables.                                                             |
+| What the BATE tally counts                                                | Find the writers of `0x801FE4E8`, `0x801FE4EF` and `0x801FE4F0` in the `scena06` image.                                                             |
+| Which prize each SHISU rank gives                                         | Find the readers of `D_80144E5E`, and of `g_ScriptVars[3]` after code 8.                                                                            |
 | Which script selects scene event 4 (master) and the events for COMMU01-05 | Search the area setup streams and scenarios for `D_801448EB` stores.                                                                                |
 | The caller of fishing substate 3 (`func_801E0C20`)                        | Search `area030` for stores to `g_GameEntrySubstate`. Only `func_801DDC54` stores 3.                                                                |
 | Which addresses hold the fishing rod and lure tables                      | The strides are read from `func_801DDE2C`, but both addresses lie in the `D_801E2424` panel-icon array ([field](../../data/field/#open-questions)). |
