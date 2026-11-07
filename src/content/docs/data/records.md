@@ -313,7 +313,7 @@ Notes on the fields:
 - Skill byte `0x63` (99) in an AI block marks it unused.
 - The enemy id is in the range `0x0001`-`0x04A8`. There are 175 ids for 168 names, and the pointer index is not the id. Six names carry two or three ids: Ammonite `0x95`/`0x96`, Beyd `0x58`/`0x59`, Garr `0x454`/`0x465`, Golem `0x4C`/`0x4D`, Nue `0x0D`/`0x0E` and ToxicMan `0x7F`/`0xAE`/`0xAF`.
 - Resistances run in the order Fire, Frost, Thunder, Earth, Wind, Holy, Psionic, Status, Death. Each value is a level from 0 to 7.
-- The two item rows are 4 bytes each. A battle copies them unchanged to the battler's two drop rows at battler `+0x98` and `+0x9C`, and at the end of the battle both rows roll the same way ([drops](#drops)). The row has two views: [battle records](../battle/#drops) reads the same four bytes as a `u16` item id, a `u8` rate and a padding byte. Which row the Steal skill takes is `[unknown]`; no code treats either row as a Steal row.
+- The two item rows are 4 bytes each. A battle copies them unchanged to the battler's two drop rows at battler `+0x98` and `+0x9C`, and at the end of the battle both rows roll the same way ([drops](#drops)). The row has two views: [battle records](../battle/#drops) reads the same four bytes as a `u16` item id, a `u8` rate and a padding byte. Pilfer and Steal take the first row ([steal](#steal)).
 - `Enemy +0x82` (reach) and `+0x83` (height) are the two bytes at block `+0xCA` and `+0xCB` of the `0x800E4000` encounter block (`0x48 + 0x82 = 0xCA`). Placement reads both through `func_801C7064 (emi/etc/game/00@0x801C7064)`: reach sets the probe step `(reach + 1) << 14` in 16.16 units, and each of the four probe points must project inside the 320 by 240 screen. A final probe must project to a screen y of at least height plus 8. Reach alone feeds the overlap test `func_801C7498 (emi/etc/game/00@0x801C7498)` between two candidates, with half-extent `(reach + 1) << 15`. The battle panels subtract height plus 8 from an enemy's y, and at least one spell effect adds it to a y cell.
 - A chest with item type `0xFF` gives zenny: `item_index × 40`.
 - Manillo fish items start at item index `0x38`.
@@ -340,15 +340,22 @@ The first table gives the numeric namespaces in these tables. The second table g
 | shop index                 | array | 0-39                                                               | shop stock           |
 | fairy gift, explore, prize | array | 0-19, 0-47, 0-47                                                   | reward tables        |
 
-| Mask          | Bits                                                                                                                                      |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| equipability  | 0 Ryu, 1 Nina, 2 Garr, 3 Teepo, 4 Rei, 5 Momo, 6 Peco, 7 Whelp                                                                            |
-| element       | 0 Fire, 1 Ice, 2 Lightning, 3 Earth, 4 Wind, 5 Holy, 6 Psionic, 7 Status                                                                  |
-| item flags    | 7 usable from menu, 6 show animation, 5 show name, 4 story item, 3 target all, 2 default target enemy, 1 target selectable, 0 target both |
-| ability flags | 4 affects stats, 2 default target ally, 1 examinable; bits 0 and 3 are `[unknown]`                                                        |
-| status word   | `0x04` paralyzed, `0x08` blind, `0x10` silenced, `0x20` confused, `0x40` sleeping, `0x80` poisoned, `0x4000` knocked out                  |
+| Mask          | Bits                                                                                                                                           |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| equipability  | 0 Ryu, 1 Nina, 2 Garr, 3 Teepo, 4 Rei, 5 Momo, 6 Peco, 7 Whelp                                                                                 |
+| element       | 0 Fire, 1 Ice, 2 Lightning, 3 Earth, 4 Wind, 5 Holy, 6 Psionic, 7 Status                                                                       |
+| item flags    | 0 usable in the field, 1 usable in battle, 2 no hit reaction, 3 cannot be sold, 4 a whole side, 5 the other side, 6 player picks, 7 both sides |
+| ability flags | 4 affects stats, 2 default target ally, 1 examinable; bits 0 and 3 are `[unknown]`                                                             |
+| status word   | `0x04` paralyzed, `0x08` blind, `0x10` silenced, `0x20` confused, `0x40` sleeping, `0x80` poisoned, `0x4000` knocked out                       |
 
 The status word tests or clears bits `0x01`, `0x02`, `0x04`, `0x08`, `0x10`, `0x40`, `0x80`, `0x800`, `0x2000` and `0x4000`. The code uses the rejection mask `0x4944` and the heal mask `0xEF`. The map loader clears bit `0x20` for the party, and the code restores it later. That behavior is why the bit is named confused `[inferred]`.
+
+The item flags byte (item `+0x0C`, read through `Item_GetFlags`, `exe/slus_004_22@0x80165F68`) has the bit layout of the [ability targeting](#ability-targeting) byte. The list predicate `func_801AF494 (emi/etc/game/00@0x801AF494)` tests bit 0 for the camp menu's item list (mode 1, `emi/etc/start/08`), bit 1 for the battle item list (mode 2, `emi/battle/battle/15`) and a clear bit 3 for the shop's sell list (mode 3, `emi/etc/shop/00`). The Faerie Tiara also needs the party on cell code `0xAE` in mode 1. When bit 2 is set, `func_801DFCB4` and `func_801E3C14` (`emi/battle/battle/03`) skip the hit reaction, as they do for an ability's bit 2. The battle target comes from bits 4 to 7 in `func_800989FC (emi/battle/battle/15@0x800989FC)`:
+
+- Bit 6 set: the player picks one battler, or one side when bit 4 is set. Bit 5 starts the cursor on the enemies (battler slot 3 and up), and bit 7 lets it move to the other side `[inferred]`.
+- Bit 6 clear and bit 7 set: both sides (selector `0xC0`).
+- Bits 6 and 7 clear and bit 4 set: one side, the enemies (`0x40`) when bit 5 is set and the party (`0x80`) when it is clear.
+- Bits 4, 6 and 7 clear: the user.
 
 ### Ability targeting
 
@@ -383,6 +390,22 @@ A drop row's rate is an index into the eight-byte chance table `g_BattleDropChan
 
 Rate 0 never drops because the code skips the row. Rate 1 and rate 0 hold the same chance byte, but only rate 1 rolls.
 
+### Steal
+
+Pilfer (ability 65) and Steal (ability 216) take the target's first drop row. The roll is in each ability's effect overlay, not in the battle overlays: `func_801EEC90 (emi/bmagic/magic065/00@0x801EEC90)` for Pilfer and `func_801EECDC (emi/bmagic/magic216/00@0x801EECDC)` for Steal run the same code. The roll passes when `rand() & 0xFF` is less than `steal rate × factor`, so the probability is `steal rate × factor / 256`. The row's rate byte (battler `+0x9A`) indexes an eight-byte steal-rate table in the overlay.
+
+| Rate       |   0 |   1 |   2 |   3 |    4 |    5 |    6 |    7 |
+| ---------- | --: | --: | --: | --: | ---: | ---: | ---: | ---: |
+| Steal rate |   0 |   1 |   3 |   6 |   12 |   16 |   32 |   32 |
+
+The factor comes from the user's agility (party battler `+0x98`) minus the target's (enemy battler `+0xA8`).
+
+| Difference | 49 and up | 29 to 48 | 19 to 28 | 9 to 18 | -10 to 8 | -20 to -11 | -30 to -21 | -50 to -31 | under -50 |
+| ---------- | --------: | -------: | -------: | ------: | -------: | ---------: | ---------: | ---------: | --------: |
+| Factor     |        12 |       11 |       10 |       9 |        8 |          7 |          6 |          5 |         4 |
+
+A passed roll on a non-zero item adds one of it to the inventory (`Item_Add`, `exe/slus_004_22@0x801650B4`). When that succeeds, the code clears the row's item (`+0x98`) and rate (`+0x9A`), so the item cannot be stolen again and does not drop at the end of the battle. A failed roll, an empty row or a failed `Item_Add` leaves the row as it is.
+
 ## Archive index
 
 The table lists which archive holds each kind of data.
@@ -397,7 +420,7 @@ The table lists which archive holds each kind of data.
 | enemies and encounters                           | each `WORLDn/AREAnnn.EMI`                           |
 | chests, genes, chrysms, Manillo trades           | selected area archives                              |
 
-`BENEMY` archives hold enemy audio, not enemy code. A link from enemy id `N` to `ENEMY{N-1}.EMI` has no runtime caller yet, so it is `[unknown]`.
+`BENEMY` archives hold enemy audio, not enemy code. `ENEMYnnn.EMI` is the enemy sound bank of `AREAnnn`, not of an enemy id: a random battle streams slot `0x9 + g_GameAreaId` ([battle engine](../../systems/battle/#mode-0-reset-and-entrance)). An enemy's cues in that bank are `0x600 | 2n` and `0x601 | 2n`, where `n` is the index of its record in the area's enemy block. `Battle_LoadEnemyBattler (emi/battle/battle/15@0x800AC218)` stores `n` at enemy battler `+0xE0`, and `func_801E3A44`, `func_801E4C7C` (`emi/battle/battle/03`) and `func_800AFC98` (`emi/battle/battle/15`) play the cues only in a random battle.
 
 ## Community RAM map
 
@@ -417,7 +440,7 @@ The community notes give 320 bytes as the enemy row stride. That is the player r
 ## Sources and confidence
 
 - **Confidence:** medium. The table layouts, counts and strides are established, but several fields, the chest, gene and Manillo counts and most save-offset names are `[inferred]` or `[unknown]`.
-- **Evidence:** the retail archives and the functions named in each section (the item dispatcher, `Party_InitDefaults`, the level-up and master routines, the drop roll, the encounter placement functions `Area_BuildEncounter`, `func_801C7064` and `func_801C7498`, and the enemy-to-battler copy in `func_800AC218`). Community notes and cheat lists confirm addresses and strides only ([sources](../../appendix/sources/)).
+- **Evidence:** the retail archives and the functions named in each section (the item dispatcher, `Party_InitDefaults`, the level-up and master routines, the drop roll, the encounter placement functions `Area_BuildEncounter`, `func_801C7064` and `func_801C7498`, the enemy-to-battler copy `Battle_LoadEnemyBattler`, the item-flag readers `func_801AF494`, `func_801DFCB4`, `func_801E3C14` and `func_800989FC`, the Pilfer and Steal rolls in the `MAGIC065` and `MAGIC216` overlays, and the enemy-bank load in `func_801D1228`). Community notes and cheat lists confirm addresses and strides only ([sources](../../appendix/sources/)).
 
 ## Related
 
