@@ -13,7 +13,7 @@ Every area archive uses the same load addresses, so the address names the block.
 | ---------------------- | ------------ | ----------------------------------------------------------------------------------------- |
 | Message bank           | `0x80010000` | dialogue ([text](../text/))                                                               |
 | Cell grid              | `0x80032000` | 4-bit cell values ([cell grid](../../formats/area/#0x80032000-packed-4-bit-cell-grid))    |
-| Script bank            | `0x800D3800` | actor bytecode ([script bank](../../formats/area/#0x800d3800-area-script-bank))           |
+| Script bank            | `0x800D3800` | sprite animation scripts ([script bank](../../formats/area/#0x800d3800-area-script-bank)) |
 | Scene table            | `0x800E3800` | the actors of the area ([scene table](../../formats/area/#0x800e3800-scenestep-table))    |
 | Encounters and enemies | `0x800E4000` | enemies and battles ([characters and enemies](../characters/))                            |
 | Map bundle             | `0x80104000` | terrain, tiles and object lists ([map bundle](../../formats/area/#0x80104000-map-bundle)) |
@@ -28,7 +28,7 @@ The textures, the palettes and the sound bank of the area are further entries of
 - **Tiles.** A 4-byte descriptor gives the tile of a cell: a bank, a palette index and a mode ([tile descriptor](../../formats/area/#tile-descriptor)).
 - **The cell grid.** It holds one 4-bit value per cell, two cells per byte, with the nibble chosen by the parity of the cell index. Edit it as raw bytes. Its values run from 0 to 13, and 0 means a free cell. What the other values do is `[unknown]`.
 - **The scene table.** It starts with a `u32` count and holds one 8-byte record per actor: an id to match and setup bytes that include the script section the actor runs. The game matches the actor id to find the record.
-- **Scripts.** The script bank is a directory of sections, and each section is a table of record offsets followed by byte-coded records. The structure is known, but the opcodes are not decoded, so edit a record as raw bytes. If a record changes length, rebuild the offset table of the section and the directory of the bank.
+- **Scripts.** The script bank is a directory of sections, and each section is a table of record offsets followed by sprite animation scripts. The [record layout](../../formats/area/#0x800d3800-area-script-bank) gives the steps and the frames. If a record changes length, rebuild the offset table of the section and the directory of the bank.
 - **Encounters.** Edit the 1,160-byte block as the [characters guide](../characters/) describes.
 
 ## Limits and pitfalls

@@ -3,7 +3,7 @@ title: "Audio formats"
 description: "Breath of Fire III stores music and sound effects as PsyQ sound banks (VAB), sound-effect cue tables and music sequence packages (SEP), and it streams voice lines and long effects as XA ADPCM."
 ---
 
-Breath of Fire III stores music and sound effects as PsyQ sound banks (VAB), sound-effect cue tables and music sequence packages (SEP), and it streams voice lines and long effects as XA ADPCM. This page gives the byte layouts of the three bank and sequence kinds and the format of an XA sound unit. The sector layout of the stream files is in [STR and XA playback](../str/), the runtime that requests and schedules sound is in [Audio system](../../systems/audio/), and the loader chain is in [EMI container](../emi/#loader-chain).
+Breath of Fire III stores music and sound effects as PsyQ sound banks (VAB), sound-effect cue tables and music sequence packages (SEP), and it streams voice lines and long effects as XA ADPCM. This page gives the byte layouts of the three bank and sequence kinds and the format of an XA sound group. The sector layout of the stream files is in [STR and XA playback](../str/), the runtime that requests and schedules sound is in [Audio system](../../systems/audio/), and the loader chain is in [EMI container](../emi/#loader-chain).
 
 ## Content on disc
 
@@ -13,9 +13,9 @@ Each `BIN/BGM/BGMxxx.EMI` is a bank plus a sequence package: type 6 is the VAB h
 
 ## XA ADPCM
 
-An XA audio sector holds 18 sound units of 128 bytes in its 2,324-byte payload. [STR and XA playback](../str/#sector-layout) describes the rest of the sector and the stream files. The subheader byte `coding` has bit 0 for stereo (1) or mono (0), and bit 2 for 18,900 Hz (1) or 37,800 Hz (0). The game uses `0x00` (mono, 37,800 Hz) and `0x01` (stereo, 37,800 Hz). The `channel` field separates interleaved streams. The last sector of a channel (submode bit `0x80`) is valid audio.
+An XA audio sector holds 18 sound groups of 128 bytes in its 2,324-byte payload. [STR and XA playback](../str/#sector-layout) describes the rest of the sector and the stream files. The subheader byte `coding` has bit 0 for stereo (1) or mono (0), and bit 2 for 18,900 Hz (1) or 37,800 Hz (0). The game uses `0x00` (mono, 37,800 Hz) and `0x01` (stereo, 37,800 Hz). The `channel` field separates interleaved streams. The last sector of a channel (submode bit `0x80`) is valid audio.
 
-A 128-byte sound unit holds four 4-byte parameter blocks, then 112 bytes of samples (4 groups of 28 bytes). In parameter byte 0, bits 0 to 3 are `shift` and bits 4 to 5 are `filter`. A mono unit repeats the same parameter in all four blocks and decodes to 224 samples. A stereo unit sends blocks 0 and 2 to the left channel and blocks 1 and 3 to the right, which gives 112 samples per channel.
+A 128-byte sound group holds 16 parameter bytes, then 28 data words of 4 bytes. The group carries eight sound units of 28 samples each, and every unit has its own parameter byte. Bytes 4 to 11 are the parameters of units 0 to 7. Bytes 0 to 3 copy bytes 4 to 7, and bytes 12 to 15 copy bytes 8 to 11. In each parameter byte, bits 0 to 3 are `shift` and bits 4 to 5 are `filter`, so one group can change its pair up to eight times. Sample *j* of unit *u* is in data word *j*, byte `u / 2`: the low nibble for an even unit and the high nibble for an odd unit. A mono group plays units 0 to 7 in order, which gives 224 samples. A stereo group sends the even units to the left channel and the odd units to the right, which gives 112 samples per channel.
 
 ## VAB bank
 
@@ -268,7 +268,7 @@ All are in `exe/slus_004_22`. `SND_Exit` is not the music scheduler or the boots
 ## Sources and confidence
 
 - **Confidence:** medium. The VAB, cue-record and SEP layouts are read from the code and checked on every instance, but two cue-record fields have no known role and a standalone player's tables are not traced.
-- **Evidence:** the linked PsyQ 3.7 `libsnd` structures and routines, the seven cue-reader routines and `SND_PlayCue`, and checks over all 1,020 banks, 904 cue tables and 119 SEP packages. The SPU hardware model (ADPCM, ADSR, interpolation, reverb) follows [psx-spx](https://psx-spx.consoledev.net/soundprocessingunitspu/) ([sources](../../appendix/sources/)).
+- **Evidence:** the linked PsyQ 3.7 `libsnd` structures and routines, the seven cue-reader routines and `SND_PlayCue`, and checks over all 1,020 banks, 904 cue tables and 119 SEP packages. The SPU hardware model (ADPCM, ADSR, interpolation, reverb) follows [psx-spx](https://psx-spx.consoledev.net/soundprocessingunitspu/) ([sources](../../appendix/sources/)). The XA sound-group layout follows the psx-spx [XA ADPCM section](https://psx-spx.consoledev.net/cdromformat/) (header bytes and `decode_28_nibbles`).
 
 ## Related
 

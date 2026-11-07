@@ -119,7 +119,7 @@ The 30 frames per second and double-speed figures come from the stream's size an
 
 ## Related
 
-- [Audio formats](../audio/): the XA ADPCM sound unit and the VAB and SEP formats.
+- [Audio formats](../audio/): the XA ADPCM sound group and the VAB and SEP formats.
 - [Audio system](../../systems/audio/): how the game starts, services and stops an XA stream.
 - [Executables and boot files](../exe/): the file table and the logo boot chain.
 - [Converting game data](../conversion/): wrapping stored sectors as raw sectors for other tools.

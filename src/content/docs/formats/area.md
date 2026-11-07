@@ -55,7 +55,7 @@ The nibble order follows the parity of the linear index, not the parity of `x`. 
 
 ## `0x800D3800`: area script bank
 
-The script bank holds the bytecode that drives the area's actors. It is a two-level index. A directory of section offsets starts the block. Each section opens with a table of record offsets, and the records follow as plain bytes. All 200 payloads fit this description.
+The script bank holds the sprite animation scripts of the area's actors. It is a two-level index. A directory of section offsets starts the block. Each section opens with a table of record offsets, and each record is one animation script with its frames inside it ([script record](#script-record)). All 200 payloads fit the two-level index.
 
 ```text
 bank
@@ -65,7 +65,7 @@ section (bank + section_off[i])
   +0x00 u16 table_bytes        ; == 2*M; also record_off[0]
   +0x02 u16 record_off[M-1]    ; remaining offsets, relative to the section base
 record
-  bytes (byte-addressed, no fixed stride)
+  one animation script (byte-addressed, no fixed stride)
 ```
 
 `dir_bytes` is the size of the directory, not an entry count: `L = dir_bytes / 4`. Reading it as a count overruns the payload (`WORLD00/AREA016` slot 4 has `u32[0] = 28` and `u32[29] = 0x240018` in 2,708 bytes). `dir_bytes == 4*L` and the entries are strictly increasing and inside the payload in 200 of 200 banks. `L` ranges from 4 to 36, so the 200 banks hold 2,380 sections. The last section runs to the end of the block.
@@ -79,9 +79,53 @@ section = u32[bank + 4 * lhu(work + 0x2C)]
 record  = bank + section + u16[bank + section + 2 * lbu(work + 0x4B)]
 ```
 
-`SYS_StartFrontend (exe/slus_004_22@0x8014EA80)` sets the pointer to `0x800D3800`. The battle handlers swap in `0x800F0800` around each handler call and restore `0x800D3800` afterwards (`func_801E6724 (emi/battle/battle/03@0x801E6724)`, `func_801E6C84 (emi/battle/battle/03@0x801E6C84)`). The record length comes from the bytecode: `Actor_CopyScriptEntry (exe/slus_004_22@0x8014D54C)` copies a byte count that the instruction supplies, starting at the record cursor. The table offsets are the only stored record boundaries.
+`SYS_StartFrontend (exe/slus_004_22@0x8014EA80)` sets the pointer to `0x800D3800`. The battle handlers swap in `0x800F0800` around each handler call and restore `0x800D3800` afterwards (`func_801E6724 (emi/battle/battle/03@0x801E6724)`, `func_801E6C84 (emi/battle/battle/03@0x801E6C84)`). When bit 0 of work `+0x24` is set, `Actor_BeginScript` takes the record from the actor's character bank (work `+0x4C`) through `Actor_SelectScriptBank (exe/slus_004_22@0x8014DC08)` instead, and the same step code reads it. No record stores its length, so the table offsets are the only stored record boundaries. `Actor_CopyScriptEntry (exe/slus_004_22@0x8014D54C)` does not read this bank. It selects a record through `Actor_SelectScriptBank` and copies a byte count that its caller passes: `0xA00` from `func_801BEE5C (emi/etc/game/00@0x801BEE5C)` and `0x1800` from `func_801D6F28 (emi/battle/battle/03@0x801D6F28)` and `func_801DEFE4 (emi/battle/battle/03@0x801DEFE4)`.
 
-Every section describes itself, because `u16[0]` is both the table size and record 0's offset. In all 2,380 sections the distinct offsets of a table increase strictly, and the spans between them tile the section from the table end to its end. 308 of the 2,380 tables contain a descent (51 byte-identical tables, the most used 23 times, across 88 archives), and 225 more contain only equal words. A table entry may therefore repeat an earlier offset, and then it shares that record with the earlier entry. The bytecode opcodes are not decoded here.
+Every section describes itself, because `u16[0]` is both the table size and record 0's offset. In all 2,380 sections the distinct offsets of a table increase strictly, and the spans between them tile the section from the table end to its end. 308 of the 2,380 tables contain a descent (51 byte-identical tables, the most used 23 times, across 88 archives), and 225 more contain only equal words. A table entry may therefore repeat an earlier offset, and then it shares that record with the earlier entry.
+
+### Script record
+
+A record is one animation script. `Actor_SeekScript (exe/slus_004_22@0x8014D910)` reads byte 1 as the step count, moves the cursor (work `+0x50`) past the two count bytes and points the frame table (work `+0x54`) at `cursor + 2 * steps`. `func_8014DB98 (exe/slus_004_22@0x8014DB98)` loads one step: it stores the hold byte to work `+0x4A` and the frame-table entry that the frame byte selects to work `+0x5A`.
+
+|             Offset |         Size | Type           | Meaning                                                                                     |
+| -----------------: | -----------: | -------------- | ------------------------------------------------------------------------------------------- |
+|             `0x00` |            1 | `u8`           | frame count, the number of frame-table entries `[inferred]`; the step code does not read it |
+|             `0x01` |            1 | `u8`           | step count; `Actor_SeekScript` stores it to work `+0x49`                                    |
+|             `0x02` |  `2 * steps` | `u8[2][steps]` | one (hold, frame) pair per step                                                             |
+| `0x02 + 2 * steps` | `2 * frames` | `u16[frames]`  | frame offsets, relative to the start of this table                                          |
+|    after the table |            - | `u8`, parts    | each frame is a `u8` part count, then that many 5-byte parts                                |
+
+A step is a pair of bytes: a hold and a frame index. A step function counts the hold down by one on each call and loads the next step at zero. A hold of `0x80` or more makes the pair a jump: the step function moves to the step whose index is the pair's second byte, loads it at once and reports 1. Three step functions differ only at the end of the list.
+
+| Step function                                | After the last step                                                                                 |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `func_8014D978 (exe/slus_004_22@0x8014D978)` | starts again at step 0 and reports 1                                                                |
+| `func_8014DAEC (exe/slus_004_22@0x8014DAEC)` | keeps the last frame and reports 1 on each later call                                               |
+| `func_8014DA24 (exe/slus_004_22@0x8014DA24)` | walks the steps backward without jumps; after step 0 it starts again at the last step and reports 1 |
+
+### Frame parts
+
+`Area_DrawObjectSprite (exe/slus_004_22@0x8014C4D4)` reads the frame at the frame table plus work `+0x5A`: a `u8` part count, then that many 5-byte parts. It draws each part as one textured quad. Bits 4 to 6 of `size` are not read there.
+
+| Offset | Size | Type | Name   | Meaning                                                                                                          |
+| -----: | ---: | ---- | ------ | ---------------------------------------------------------------------------------------------------------------- |
+| `0x00` |    1 | `u8` | `size` | bits 0 to 3 index the width and height table `g_SpriteSizes` (`0x8017F53C`); bit 7 mirrors the part horizontally |
+| `0x01` |    1 | `s8` | `x`    | x offset from the actor's screen position (work `+0x2E`)                                                         |
+| `0x02` |    1 | `s8` | `y`    | y offset from the actor's screen position (work `+0x30`)                                                         |
+| `0x03` |    1 | `u8` | `u`    | texture x                                                                                                        |
+| `0x04` |    1 | `u8` | `v`    | texture y, added to work `+0x26`                                                                                 |
+
+```c
+typedef struct SpriteCell {
+    /* 0x00 */ u8 size;
+    /* 0x01 */ u8 x;
+    /* 0x02 */ u8 y;
+    /* 0x03 */ u8 u;
+    /* 0x04 */ u8 v;
+} SpriteCell;
+```
+
+Source: [`engine/slus/slus.h`](https://github.com/raulcorreia7/bof3-decomp/blob/main/src/engine/slus/slus.h)
 
 ## `0x800E3800`: scene/step table
 
@@ -432,17 +476,18 @@ Nineteen payloads hold no `addiu $sp` and no `jr $ra` at any word offset, so the
 
 | Question                                                                                | What would settle it                                                 |
 | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| Bytecode opcodes of the script bank                                                     | a decode of the interpreter that `Actor_BeginScript` feeds           |
 | Names behind byte-code values; operands of the `+0x20` and `+0x22` record lists         | the dispatch tables `D_8017F8F0` and `D_8017F8FC` and their handlers |
 | Header word `scroll` (map bundle `+0x1E`)                                               | the reader of that field, or a map that uses it                      |
 | Which battle background upload a battle draws, and its palette                          | the battle code that selects a `BATL_*` upload                       |
 | The loader and palette of the world-map uploads in `AREA000` and the 11 world-map areas | the code that reads entries 5 and 7                                  |
 | The script that ends the 10 enemies with HP `0xFFFF`                                    | a trace of one such fight                                            |
+| Whether any code reads byte 0 of a script record, the frame count                       | a reader of that byte                                                |
+| Bits 4 to 6 of a frame part's `size` byte                                               | a reader of those bits                                               |
 
 ## Sources and confidence
 
-- **Confidence:** medium. The block formats, the script bank and the map bundle header are read and checked on all 200 archives, but the opcodes, the byte-code names, the `scroll` field and the battle and world-map graphics are not decoded.
-- **Evidence:** the 200 area archives, the loader and the area, field and battle functions named above. The opcodes that the community [bof3-script-editor](https://github.com/glitch-in-the-herring/bof3-script-editor) (MIT) lists are a lead for the script bank, not evidence ([sources](../../appendix/sources/)).
+- **Confidence:** medium. The block formats, the script bank and the map bundle header are read and checked on all 200 archives, and the script record grammar is read in the step and draw code, but the byte-code names, the `scroll` field and the battle and world-map graphics are not decoded.
+- **Evidence:** the 200 area archives, the loader and the area, field and battle functions named above. The script record grammar comes from `Actor_BeginScript`, `Actor_SeekScript`, `func_8014DB98`, the three step functions and `Area_DrawObjectSprite`. The frame count at record byte 0 is `[inferred]` from the layout, because no step function reads it. The script bank holds no opcodes, so the event-script opcodes that the community [bof3-script-editor](https://github.com/glitch-in-the-herring/bof3-script-editor) (MIT) lists do not describe it ([sources](../../appendix/sources/)).
 
 ## Related
 
